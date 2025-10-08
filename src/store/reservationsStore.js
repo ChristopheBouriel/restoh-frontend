@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import * as reservationsApi from '../api/reservationsApi'
 
 const useReservationsStore = create(
   persist(
@@ -7,185 +8,165 @@ const useReservationsStore = create(
       // État
       reservations: [],
       isLoading: false,
+      error: null,
 
       // Actions
       setLoading: (loading) => set({ isLoading: loading }),
 
-      // Initialiser avec des données de test
-      initializeReservations: () => {
-        const stored = localStorage.getItem('admin-reservations')
-        if (stored) {
-          set({ reservations: JSON.parse(stored) })
-        } else {
-          // Calculer la date de demain
-          const tomorrow = new Date()
-          tomorrow.setDate(tomorrow.getDate() + 1)
-          const tomorrowStr = tomorrow.toISOString().split('T')[0]
-          
-          // Données initiales pour la démo
-          const initialReservations = [
-            {
-              id: 'reservation-001',
-              userId: 'client',
-              userEmail: 'client@example.com',
-              userName: 'Jean Dupont',
-              phone: '06 12 34 56 78',
-              date: tomorrowStr,
-              time: '19:30',
-              guests: 4,
-              status: 'confirmed', // pending, confirmed, seated, completed, cancelled
-              tableNumber: 12,
-              specialRequests: 'Table près de la fenêtre',
-              createdAt: '2024-01-20T14:30:00Z',
-              updatedAt: '2024-01-20T14:30:00Z'
-            },
-            {
-              id: 'reservation-002',
-              userId: 'client2',
-              userEmail: 'marie@example.com',
-              userName: 'Marie Martin',
-              phone: '07 98 76 54 32',
-              date: '2024-01-25',
-              time: '20:00',
-              guests: 2,
-              status: 'pending',
-              tableNumber: null,
-              specialRequests: 'Allergie aux fruits de mer',
-              createdAt: '2024-01-21T10:15:00Z',
-              updatedAt: '2024-01-21T10:15:00Z'
-            },
-            {
-              id: 'reservation-003',
-              userId: 'client3',
-              userEmail: 'paul@example.com',
-              userName: 'Paul Leblanc',
-              phone: '06 55 44 33 22',
-              date: '2024-01-24',
-              time: '19:00',
-              guests: 6,
-              status: 'completed',
-              tableNumber: 8,
-              specialRequests: 'Anniversaire - décoration table',
-              createdAt: '2024-01-19T16:45:00Z',
-              updatedAt: '2024-01-24T21:30:00Z'
-            },
-            {
-              id: 'reservation-004',
-              userId: 'client4',
-              userEmail: 'sophie@example.com',
-              userName: 'Sophie Durand',
-              phone: '07 11 22 33 44',
-              date: '2024-01-26',
-              time: '12:30',
-              guests: 3,
-              status: 'cancelled',
-              tableNumber: null,
-              specialRequests: '',
-              createdAt: '2024-01-22T09:20:00Z',
-              updatedAt: '2024-01-23T14:10:00Z'
-            },
-            {
-              id: 'reservation-000',
-              userId: 'client',
-              userEmail: 'client@example.com',
-              userName: 'Jean Dupont',
-              phone: '06 12 34 56 78',
-              date: '2024-01-24',
-              time: '19:30',
-              guests: 4,
-              status: 'completed',
-              tableNumber: 1,
-              specialRequests: 'Table au fond de la salle',
-              createdAt: '2024-01-20T14:30:00Z',
-              updatedAt: '2024-01-20T14:30:00Z'
-            },
-          ]
-          
-          set({ reservations: initialReservations })
-          localStorage.setItem('admin-reservations', JSON.stringify(initialReservations))
+      setError: (error) => set({ error }),
+
+      clearError: () => set({ error: null }),
+
+      // Récupérer les réservations selon le rôle
+      fetchReservations: async (isAdmin = false) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = isAdmin
+            ? await reservationsApi.getAllReservations()
+            : await reservationsApi.getUserReservations()
+
+          if (result.success) {
+            set({
+              reservations: result.data || [],
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors du chargement des réservations'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      // Récupérer une réservation spécifique
+      fetchReservationById: async (reservationId) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await reservationsApi.getReservationById(reservationId)
+
+          if (result.success) {
+            set({ isLoading: false, error: null })
+            return { success: true, reservation: result.data }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors du chargement de la réservation'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
       // Créer une nouvelle réservation
       createReservation: async (reservationData) => {
-        set({ isLoading: true })
-        
+        set({ isLoading: true, error: null })
+
         try {
-          // Simulation d'appel API
-          await new Promise(resolve => setTimeout(resolve, 800))
-          
-          const newReservation = {
-            id: `reservation-${Date.now()}`,
-            ...reservationData,
-            status: 'pending',
-            tableNumber: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+          const result = await reservationsApi.createReservation(reservationData)
+
+          if (result.success) {
+            // Recharger les réservations après création
+            await get().fetchReservations()
+            set({ isLoading: false })
+            return { success: true, reservationId: result.data._id || result.data.id }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
           }
-          
-          const updatedReservations = [newReservation, ...get().reservations]
-          set({ reservations: updatedReservations, isLoading: false })
-          localStorage.setItem('admin-reservations', JSON.stringify(updatedReservations))
-          
-          return { success: true, reservationId: newReservation.id }
         } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
+          const errorMessage = error.error || 'Erreur lors de la création de la réservation'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Mettre à jour le statut d'une réservation
+      // Mettre à jour le statut d'une réservation (admin)
       updateReservationStatus: async (reservationId, newStatus) => {
-        set({ isLoading: true })
-        
+        set({ isLoading: true, error: null })
+
         try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedReservations = get().reservations.map(reservation =>
-            reservation.id === reservationId 
-              ? { ...reservation, status: newStatus, updatedAt: new Date().toISOString() }
-              : reservation
-          )
-          
-          set({ reservations: updatedReservations, isLoading: false })
-          localStorage.setItem('admin-reservations', JSON.stringify(updatedReservations))
-          
-          return { success: true }
+          const result = await reservationsApi.updateReservationStatus(reservationId, newStatus)
+
+          if (result.success) {
+            // Recharger les réservations après mise à jour
+            await get().fetchReservations(true) // true = admin
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
         } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
+          const errorMessage = error.error || 'Erreur lors de la mise à jour du statut'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Assigner une table à une réservation
+      // Assigner une table à une réservation (admin)
       assignTable: async (reservationId, tableNumber) => {
-        set({ isLoading: true })
-        
+        set({ isLoading: true, error: null })
+
         try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedReservations = get().reservations.map(reservation =>
-            reservation.id === reservationId 
-              ? { 
-                  ...reservation, 
-                  tableNumber: tableNumber,
-                  status: reservation.status === 'pending' ? 'confirmed' : reservation.status,
-                  updatedAt: new Date().toISOString() 
-                }
-              : reservation
-          )
-          
-          set({ reservations: updatedReservations, isLoading: false })
-          localStorage.setItem('admin-reservations', JSON.stringify(updatedReservations))
-          
-          return { success: true }
+          // Note: La logique d'auto-confirmation (pending -> confirmed) quand on assigne une table
+          // est maintenant gérée côté BACKEND
+          const result = await reservationsApi.assignTable(reservationId, tableNumber)
+
+          if (result.success) {
+            // Recharger les réservations après assignation
+            await get().fetchReservations(true) // true = admin
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
         } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
+          const errorMessage = error.error || 'Erreur lors de l\'assignation de table'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Getters
+      // Getters (calculs locaux sur les données chargées)
       getReservationsByStatus: (status) => {
         return get().reservations.filter(reservation => reservation.status === status)
       },
@@ -195,12 +176,14 @@ const useReservationsStore = create(
       },
 
       getReservationsByUser: (userId) => {
-        return get().reservations.filter(reservation => reservation.userId === userId)
+        return get().reservations.filter(reservation =>
+          reservation.userId === userId || reservation.user?._id === userId
+        )
       },
 
       getTodaysReservations: () => {
         const today = new Date().toISOString().split('T')[0]
-        return get().reservations.filter(reservation => 
+        return get().reservations.filter(reservation =>
           reservation.date === today
         )
       },
@@ -208,19 +191,19 @@ const useReservationsStore = create(
       getUpcomingReservations: () => {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-        
+
         return get().reservations.filter(reservation => {
           const reservationDate = new Date(reservation.date)
           return reservationDate >= today && reservation.status !== 'cancelled'
         }).sort((a, b) => new Date(a.date) - new Date(b.date))
       },
 
-      // Statistiques
+      // Statistiques (calculées localement)
       getReservationsStats: () => {
         const reservations = get().reservations
         const today = new Date().toISOString().split('T')[0]
         const todaysReservations = reservations.filter(r => r.date === today)
-        
+
         return {
           total: reservations.length,
           pending: reservations.filter(r => r.status === 'pending').length,
@@ -242,8 +225,8 @@ const useReservationsStore = create(
     }),
     {
       name: 'reservations-storage',
-      partialize: (state) => ({ 
-        reservations: state.reservations 
+      partialize: (state) => ({
+        reservations: state.reservations
       }),
     }
   )

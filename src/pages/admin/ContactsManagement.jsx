@@ -6,7 +6,7 @@ const ContactsManagement = () => {
   const {
     messages,
     isLoading,
-    initializeMessages,
+    fetchMessages,
     markAsRead,
     markAsReplied,
     deleteMessage,
@@ -17,8 +17,9 @@ const ContactsManagement = () => {
   const [selectedMessage, setSelectedMessage] = useState(null)
 
   useEffect(() => {
-    initializeMessages()
-  }, [initializeMessages])
+    // Charger tous les messages de contact (admin)
+    fetchMessages()
+  }, [fetchMessages])
 
   // Configuration des statuts
   const statusConfig = {

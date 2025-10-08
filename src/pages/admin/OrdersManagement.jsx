@@ -8,7 +8,7 @@ const OrdersManagement = () => {
   const {
     orders,
     isLoading,
-    initializeOrders,
+    fetchOrders,
     updateOrderStatus,
     getOrdersStats
   } = useOrdersStore()
@@ -55,8 +55,9 @@ const OrdersManagement = () => {
   }
 
   useEffect(() => {
-    initializeOrders()
-  }, [initializeOrders])
+    // Charger toutes les commandes (mode admin)
+    fetchOrders(true)
+  }, [fetchOrders])
 
   // Filtrer les commandes selon le statut et les dates
   const filteredOrders = orders.filter(order => {

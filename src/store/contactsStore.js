@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import * as contactsApi from '../api/contactsApi'
 
 const useContactsStore = create(
   persist(
@@ -7,170 +8,176 @@ const useContactsStore = create(
       // État
       messages: [],
       isLoading: false,
+      error: null,
 
       // Actions
       setLoading: (loading) => set({ isLoading: loading }),
 
-      // Initialiser avec des données de test
-      initializeMessages: () => {
-        const stored = localStorage.getItem('admin-messages')
-        if (stored) {
-          set({ messages: JSON.parse(stored) })
-        } else {
-          // Données initiales pour la démo
-          const today = new Date()
-          const yesterday = new Date(today)
-          yesterday.setDate(yesterday.getDate() - 1)
-          const twoDaysAgo = new Date(today)
-          twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
-          
-          const initialMessages = [
-            {
-              id: 'msg-001',
-              name: 'Marie Dubois',
-              email: 'marie.dubois@email.com',
-              phone: '06 12 34 56 78',
-              subject: 'Question sur les allergènes',
-              message: 'Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.',
-              status: 'new', // new, read, replied
-              createdAt: today.toISOString(),
-              readAt: null,
-              repliedAt: null
-            },
-            {
-              id: 'msg-002',
-              name: 'Pierre Martin',
-              email: 'pierre.martin@company.fr',
-              phone: '01 23 45 67 89',
-              subject: 'Réservation événement d\'entreprise',
-              message: 'Nous souhaitons organiser un événement d\'entreprise pour 50 personnes le mois prochain. Proposez-vous des menus de groupe et avez-vous une salle privée disponible ?',
-              status: 'read',
-              createdAt: yesterday.toISOString(),
-              readAt: yesterday.toISOString(),
-              repliedAt: null
-            },
-            {
-              id: 'msg-003',
-              name: 'Sophie Laurent',
-              email: 'sophie.l@email.com',
-              phone: null,
-              subject: 'Félicitations',
-              message: 'Je voulais simplement vous féliciter pour l\'excellente soirée que nous avons passée hier soir. Le service était impeccable et les plats délicieux. Nous reviendrons très bientôt !',
-              status: 'replied',
-              createdAt: twoDaysAgo.toISOString(),
-              readAt: twoDaysAgo.toISOString(),
-              repliedAt: twoDaysAgo.toISOString()
-            }
-          ]
-          
-          set({ messages: initialMessages })
-          localStorage.setItem('admin-messages', JSON.stringify(initialMessages))
+      setError: (error) => set({ error }),
+
+      clearError: () => set({ error: null }),
+
+      // Récupérer tous les messages (admin uniquement)
+      fetchMessages: async () => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await contactsApi.getAllContacts()
+
+          if (result.success) {
+            set({
+              messages: result.data || [],
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors du chargement des messages'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
       // Créer un nouveau message (appelé depuis le formulaire de contact)
       createMessage: async (messageData) => {
-        set({ isLoading: true })
-        
+        set({ isLoading: true, error: null })
+
         try {
-          // Simulation d'appel API
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const newMessage = {
-            id: `msg-${Date.now()}`,
-            ...messageData,
-            status: 'new',
-            createdAt: new Date().toISOString(),
-            readAt: null,
-            repliedAt: null
+          const result = await contactsApi.sendContactMessage(messageData)
+
+          if (result.success) {
+            set({ isLoading: false })
+            return { success: true, messageId: result.data._id || result.data.id }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
           }
-          
-          const updatedMessages = [newMessage, ...get().messages]
-          set({ messages: updatedMessages, isLoading: false })
-          localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-          
-          return { success: true, messageId: newMessage.id }
         } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
+          const errorMessage = error.error || 'Erreur lors de l\'envoi du message'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Marquer un message comme lu
+      // Mettre à jour le statut d'un message (admin)
+      updateMessageStatus: async (messageId, status) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await contactsApi.updateContactStatus(messageId, status)
+
+          if (result.success) {
+            // Recharger les messages après mise à jour
+            await get().fetchMessages()
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors de la mise à jour du statut'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      // Marquer un message comme lu (helper pour updateMessageStatus)
       markAsRead: async (messageId) => {
-        set({ isLoading: true })
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 300))
-          
-          const updatedMessages = get().messages.map(message =>
-            message.id === messageId 
-              ? { 
-                  ...message, 
-                  status: message.status === 'new' ? 'read' : message.status,
-                  readAt: message.readAt || new Date().toISOString()
-                }
-              : message
-          )
-          
-          set({ messages: updatedMessages, isLoading: false })
-          localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-          
-          return { success: true }
-        } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
-        }
+        return await get().updateMessageStatus(messageId, 'read')
       },
 
-      // Marquer un message comme répondu
+      // Marquer un message comme répondu (helper pour updateMessageStatus)
       markAsReplied: async (messageId) => {
-        set({ isLoading: true })
-        
+        return await get().updateMessageStatus(messageId, 'replied')
+      },
+
+      // Répondre à un message (admin)
+      replyToMessage: async (messageId, replyData) => {
+        set({ isLoading: true, error: null })
+
         try {
-          await new Promise(resolve => setTimeout(resolve, 300))
-          
-          const now = new Date().toISOString()
-          const updatedMessages = get().messages.map(message =>
-            message.id === messageId 
-              ? { 
-                  ...message, 
-                  status: 'replied',
-                  readAt: message.readAt || now,
-                  repliedAt: now
-                }
-              : message
-          )
-          
-          set({ messages: updatedMessages, isLoading: false })
-          localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-          
-          return { success: true }
+          const result = await contactsApi.replyToContact(messageId, replyData)
+
+          if (result.success) {
+            // Recharger les messages après réponse
+            await get().fetchMessages()
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
         } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
+          const errorMessage = error.error || 'Erreur lors de l\'envoi de la réponse'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Supprimer un message
+      // Supprimer un message (si l'API le supporte)
       deleteMessage: async (messageId) => {
-        set({ isLoading: true })
-        
+        set({ isLoading: true, error: null })
+
         try {
-          await new Promise(resolve => setTimeout(resolve, 300))
-          
-          const updatedMessages = get().messages.filter(message => message.id !== messageId)
-          set({ messages: updatedMessages, isLoading: false })
-          localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-          
-          return { success: true }
+          // Note: Si le backend ne supporte pas la suppression,
+          // on pourrait utiliser updateMessageStatus avec un statut 'deleted'
+          const result = await contactsApi.deleteContact?.(messageId)
+          if (!result) {
+            throw new Error('Suppression non supportée par l\'API')
+          }
+
+          if (result.success) {
+            // Recharger les messages après suppression
+            await get().fetchMessages()
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
         } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
+          const errorMessage = error.error || 'Erreur lors de la suppression du message'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Getters et filtres
+      // Getters et filtres (calculs locaux)
       getMessagesByStatus: (status) => {
         return get().messages.filter(message => message.status === status)
       },
@@ -179,7 +186,7 @@ const useContactsStore = create(
         return get().messages.filter(message => message.status === 'new').length
       },
 
-      // Statistiques
+      // Statistiques (calculées localement)
       getMessagesStats: () => {
         const messages = get().messages
         return {
@@ -192,8 +199,8 @@ const useContactsStore = create(
     }),
     {
       name: 'contacts-storage',
-      partialize: (state) => ({ 
-        messages: state.messages 
+      partialize: (state) => ({
+        messages: state.messages
       }),
     }
   )

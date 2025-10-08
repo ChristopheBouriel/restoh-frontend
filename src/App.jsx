@@ -30,20 +30,38 @@ import { ROUTES } from './constants'
 function App() {
   const { user } = useAuthStore()
   const { setCurrentUser } = useCartStore()
-  const { initializeMenu } = useMenuStore()
-  const { initializeOrders } = useOrdersStore()
-  const { initializeReservations } = useReservationsStore()
+  const { fetchMenuItems } = useMenuStore()
+  const { fetchOrders } = useOrdersStore()
+  const { fetchReservations } = useReservationsStore()
   const { initializeUsers } = useUsersStore()
-  const { initializeMessages } = useContactsStore()
+  const { fetchMessages } = useContactsStore()
 
   useEffect(() => {
-    // Initialiser le menu, les commandes, les réservations, les utilisateurs et les messages au démarrage
-    initializeMenu()
-    initializeOrders()
-    initializeReservations()
-    initializeUsers()
-    initializeMessages()
-  }, [initializeMenu, initializeOrders, initializeReservations, initializeUsers, initializeMessages])
+    // Charger les données initiales au démarrage de l'app
+    const loadInitialData = async () => {
+      // Charger le menu (public)
+      await fetchMenuItems()
+
+      // Si l'utilisateur est connecté, charger ses données
+      if (user) {
+        const isAdmin = user.role === 'admin'
+
+        if (isAdmin) {
+          // Admin : charger toutes les données
+          await fetchOrders(true)
+          await fetchReservations(true)
+          await fetchMessages()
+          initializeUsers() // usersStore pas encore migré
+        } else {
+          // User : charger uniquement ses propres données
+          await fetchOrders(false)
+          await fetchReservations(false)
+        }
+      }
+    }
+
+    loadInitialData()
+  }, [user]) // Re-charger quand l'utilisateur change (login/logout)
 
   useEffect(() => {
     // Connecter l'utilisateur au panier

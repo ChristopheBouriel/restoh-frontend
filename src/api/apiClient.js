@@ -2,12 +2,12 @@ import axios from 'axios'
 import { toast } from 'react-hot-toast'
 
 // URL de base de l'API (depuis les variables d'environnement)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 // Créer l'instance axios
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // 30 secondes (bcrypt peut être lent en développement)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -43,9 +43,11 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     // Retourner directement la data pour simplifier l'usage
+    console.log('✅ Response interceptor SUCCESS:', response.data)
     return response.data
   },
   (error) => {
+    console.log('❌ Response interceptor ERROR:', error)
     // Gérer les différents codes d'erreur HTTP
     if (error.response) {
       const { status, data } = error.response

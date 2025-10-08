@@ -7,13 +7,14 @@ import useOrdersStore from '../../store/ordersStore'
 const Orders = () => {
   const [filter, setFilter] = useState('all')
   const [showDetails, setShowDetails] = useState(null)
-  
-  const { initializeOrders } = useOrdersStore()
+
+  const { fetchOrders } = useOrdersStore()
   const { orders, cancelOrder, canCancelOrder, formatPrice, formatDate } = useOrders()
 
   useEffect(() => {
-    initializeOrders()
-  }, [initializeOrders])
+    // Charger les commandes de l'utilisateur connecté
+    fetchOrders(false) // false = user (pas admin)
+  }, [fetchOrders])
 
   const handleLeaveReview = () => {
     toast.success('Fonctionnalité d\'avis en cours de développement')

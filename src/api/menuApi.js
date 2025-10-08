@@ -8,7 +8,7 @@ import apiClient from './apiClient'
 export const getMenuItems = async (category = null) => {
   try {
     const params = category ? { category } : {}
-    const response = await apiClient.get('/menu/items', { params })
+    const response = await apiClient.get('/menu', { params })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Erreur lors de la récupération du menu' }
@@ -28,7 +28,7 @@ export const getCategories = async () => {
 // Créer un nouvel item (ADMIN)
 export const createMenuItem = async (itemData) => {
   try {
-    const response = await apiClient.post('/menu/items', itemData)
+    const response = await apiClient.post('/menu', itemData)
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Erreur lors de la création de l\'item' }
@@ -38,7 +38,7 @@ export const createMenuItem = async (itemData) => {
 // Mettre à jour un item (ADMIN)
 export const updateMenuItem = async (itemId, itemData) => {
   try {
-    const response = await apiClient.put(`/menu/items/${itemId}`, itemData)
+    const response = await apiClient.put(`/menu/${itemId}`, itemData)
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Erreur lors de la mise à jour de l\'item' }
@@ -48,7 +48,7 @@ export const updateMenuItem = async (itemId, itemData) => {
 // Supprimer un item (ADMIN)
 export const deleteMenuItem = async (itemId) => {
   try {
-    const response = await apiClient.delete(`/menu/items/${itemId}`)
+    const response = await apiClient.delete(`/menu/${itemId}`)
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Erreur lors de la suppression de l\'item' }

@@ -5,12 +5,12 @@ import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 
 const ReservationsManagement = () => {
-  const { 
-    reservations, 
-    initializeReservations, 
+  const {
+    reservations,
+    fetchReservations,
     updateReservationStatus,
     assignTable,
-    getReservationsStats 
+    getReservationsStats
   } = useReservationsStore()
 
   const [statusFilter, setStatusFilter] = useState('all')
@@ -21,8 +21,9 @@ const ReservationsManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    initializeReservations()
-  }, [initializeReservations])
+    // Charger toutes les réservations (mode admin)
+    fetchReservations(true)
+  }, [fetchReservations])
 
   const stats = getReservationsStats()
 

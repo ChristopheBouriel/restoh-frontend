@@ -1,202 +1,202 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import * as menuApi from '../api/menuApi'
 
 const useMenuStore = create(
   persist(
     (set, get) => ({
       // État
       items: [],
+      categories: [],
       isLoading: false,
-      categories: [
-        { id: 'entrees', name: 'Entrées', slug: 'entrees' },
-        { id: 'plats', name: 'Plats', slug: 'plats' },
-        { id: 'desserts', name: 'Desserts', slug: 'desserts' },
-        { id: 'boissons', name: 'Boissons', slug: 'boissons' }
-      ],
+      error: null,
 
       // Actions
       setLoading: (loading) => set({ isLoading: loading }),
 
-      initializeMenu: () => {
-        const stored = localStorage.getItem('admin-menu-items')
-        if (stored) {
-          set({ items: JSON.parse(stored) })
-        } else {
-          // Données initiales
-          const initialItems = [
-            {
-              id: 1,
-              name: 'Pizza Margherita',
-              category: 'plats',
-              price: 15.90,
-              description: 'Base tomate, mozzarella, basilic frais, huile d\'olive extra vierge',
-              image: 'pizza-margherita.jpg',
-              available: true,
-              preparationTime: 15,
-              ingredients: ['Pâte à pizza', 'Sauce tomate', 'Mozzarella', 'Basilic'],
-              allergens: ['Gluten', 'Lactose'],
-              isPopular: true,
-              createdAt: '2024-01-15T10:00:00Z',
-              updatedAt: '2024-01-15T10:00:00Z'
-            },
-            {
-              id: 2,
-              name: 'Salade César',
-              category: 'entrees',
-              price: 12.50,
-              description: 'Salade romaine, croûtons croustillants, copeaux de parmesan, sauce césar maison',
-              image: 'salade-cesar.jpg',
-              available: true,
-              preparationTime: 10,
-              ingredients: ['Salade romaine', 'Croûtons', 'Parmesan', 'Sauce césar'],
-              allergens: ['Gluten', 'Lactose', 'Œufs'],
-              isPopular: true,
-              createdAt: '2024-01-15T10:00:00Z',
-              updatedAt: '2024-01-15T10:00:00Z'
-            },
-            {
-              id: 3,
-              name: 'Burger Gourmand',
-              category: 'plats',
-              price: 18.00,
-              description: 'Pain artisanal, steak de bœuf, fromage, légumes frais, frites maison',
-              image: 'burger-gourmand.jpg',
-              available: true,
-              preparationTime: 20,
-              ingredients: ['Pain burger', 'Steak de bœuf', 'Fromage cheddar', 'Salade', 'Tomates'],
-              allergens: ['Gluten', 'Lactose'],
-              isPopular: true,
-              createdAt: '2024-01-15T10:00:00Z',
-              updatedAt: '2024-01-15T10:00:00Z'
-            },
-            {
-              id: 4,
-              name: 'Tiramisu',
-              category: 'desserts',
-              price: 7.50,
-              description: 'Dessert italien traditionnel au café et mascarpone, saupoudré de cacao',
-              image: 'tiramisu-maison.jpg',
-              available: false,
-              preparationTime: 5,
-              ingredients: ['Mascarpone', 'Café', 'Biscuits à la cuillère', 'Cacao'],
-              allergens: ['Lactose', 'Œufs', 'Gluten'],
-              isPopular: true,
-              createdAt: '2024-01-15T10:00:00Z',
-              updatedAt: '2024-01-20T15:30:00Z'
-            },
-            {
-              id: 5,
-              name: 'Coca-Cola',
-              category: 'boissons',
-              price: 4.00,
-              description: 'Boisson gazeuse rafraîchissante 33cl',
-              image: 'coca-cola.jpg', // Pas d'image spécifique, utilisera le placeholder
-              available: true,
-              preparationTime: 1,
-              ingredients: ['Eau gazéifiée', 'Sucre', 'Arômes naturels'],
-              allergens: [],
-              isPopular: false,
-              createdAt: '2024-01-15T10:00:00Z',
-              updatedAt: '2024-01-15T10:00:00Z'
-            },
-            {
-              id: 6,
-              name: 'Frites Maison',
-              category: 'plats',
-              price: 5.50,
-              description: 'Pommes de terre fraîches coupées et frites, servies avec une sauce au choix',
-              image: 'frites-maison.jpg',
-              available: true,
-              preparationTime: 8,
-              ingredients: ['Pommes de terre', 'Huile végétale', 'Sel'],
-              allergens: [],
-              isPopular: false,
-              createdAt: '2024-01-15T10:00:00Z',
-              updatedAt: '2024-01-15T10:00:00Z'
-            }
-          ]
-          
-          set({ items: initialItems })
-          localStorage.setItem('admin-menu-items', JSON.stringify(initialItems))
+      setError: (error) => set({ error }),
+
+      clearError: () => set({ error: null }),
+
+      // Initialiser le menu depuis l'API
+      fetchMenuItems: async () => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await menuApi.getMenuItems()
+
+          if (result.success) {
+            const items = result.data || []
+
+            // Extraire automatiquement les catégories uniques depuis les items
+            const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))]
+            const categoriesWithLabels = uniqueCategories.map(cat => ({
+              id: cat,
+              name: cat.charAt(0).toUpperCase() + cat.slice(1), // Capitaliser
+              slug: cat
+            }))
+
+            set({
+              items: items,
+              categories: categoriesWithLabels,
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors du chargement du menu'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
       },
 
-      // Getters
+      // Récupérer les catégories (maintenant extrait depuis les items)
+      fetchCategories: async () => {
+        // Les catégories sont maintenant chargées automatiquement avec fetchMenuItems
+        // Cette fonction est conservée pour la compatibilité mais ne fait plus d'appel API
+        const items = get().items
+        if (items.length > 0) {
+          const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))]
+          const categoriesWithLabels = uniqueCategories.map(cat => ({
+            id: cat,
+            name: cat.charAt(0).toUpperCase() + cat.slice(1),
+            slug: cat
+          }))
+          set({ categories: categoriesWithLabels })
+          return { success: true }
+        }
+        return { success: true }
+      },
+
+      // Getters (calculs locaux sur les données)
       getAvailableItems: () => {
-        return get().items.filter(item => item.available)
+        return get().items.filter(item => item.isAvailable !== false)
       },
 
       getPopularItems: () => {
-        return get().items.filter(item => item.available && item.isPopular)
+        return get().items.filter(item => item.isAvailable && item.isPopular)
       },
 
       getItemsByCategory: (category) => {
-        return get().items.filter(item => item.available && item.category === category)
+        return get().items.filter(item => item.isAvailable && item.category === category)
       },
 
       getItemById: (id) => {
-        return get().items.find(item => item.id === parseInt(id))
+        return get().items.find(item => item._id === id || item.id === id)
       },
 
-      // Actions CRUD (pour l'admin)
-      addItem: (itemData) => {
-        const newItem = {
-          ...itemData,
-          id: Date.now(),
-          isPopular: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+      // Actions CRUD (pour l'admin) - Appels API
+      createItem: async (itemData) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await menuApi.createMenuItem(itemData)
+
+          if (result.success) {
+            // Recharger le menu après création
+            await get().fetchMenuItems()
+            set({ isLoading: false })
+            return { success: true, item: result.data }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors de la création de l\'item'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
-        
-        const updatedItems = [...get().items, newItem]
-        set({ items: updatedItems })
-        localStorage.setItem('admin-menu-items', JSON.stringify(updatedItems))
-        return newItem
       },
 
-      updateItem: (id, itemData) => {
-        const updatedItems = get().items.map(item =>
-          item.id === id 
-            ? { ...item, ...itemData, updatedAt: new Date().toISOString() }
-            : item
-        )
-        
-        set({ items: updatedItems })
-        localStorage.setItem('admin-menu-items', JSON.stringify(updatedItems))
-      },
+      updateItem: async (id, itemData) => {
+        set({ isLoading: true, error: null })
 
-      deleteItem: (id) => {
-        const updatedItems = get().items.filter(item => item.id !== id)
-        set({ items: updatedItems })
-        localStorage.setItem('admin-menu-items', JSON.stringify(updatedItems))
-      },
+        try {
+          const result = await menuApi.updateMenuItem(id, itemData)
 
-      toggleAvailability: (id) => {
-        const updatedItems = get().items.map(item =>
-          item.id === id 
-            ? { ...item, available: !item.available, updatedAt: new Date().toISOString() }
-            : item
-        )
-        
-        set({ items: updatedItems })
-        localStorage.setItem('admin-menu-items', JSON.stringify(updatedItems))
-        
-        const updatedItem = updatedItems.find(item => item.id === id)
-        return updatedItem
-      },
-
-      // Synchronisation
-      syncFromLocalStorage: () => {
-        const stored = localStorage.getItem('admin-menu-items')
-        if (stored) {
-          set({ items: JSON.parse(stored) })
+          if (result.success) {
+            // Recharger le menu après mise à jour
+            await get().fetchMenuItems()
+            set({ isLoading: false })
+            return { success: true, item: result.data }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors de la mise à jour de l\'item'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
         }
+      },
+
+      deleteItem: async (id) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await menuApi.deleteMenuItem(id)
+
+          if (result.success) {
+            // Recharger le menu après suppression
+            await get().fetchMenuItems()
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Erreur lors de la suppression de l\'item'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      toggleAvailability: async (id) => {
+        const item = get().getItemById(id)
+        if (!item) {
+          return { success: false, error: 'Item non trouvé' }
+        }
+
+        // Toggle la disponibilité
+        const newAvailability = !item.isAvailable
+
+        return await get().updateItem(id, { isAvailable: newAvailability })
       }
     }),
     {
       name: 'menu-storage',
-      partialize: (state) => ({ 
-        items: state.items 
+      partialize: (state) => ({
+        items: state.items,
+        categories: state.categories
       }),
     }
   )

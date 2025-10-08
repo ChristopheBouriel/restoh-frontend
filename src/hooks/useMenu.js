@@ -6,25 +6,27 @@ export const useMenu = () => {
     items,
     categories,
     isLoading,
+    error,
     setLoading,
-    initializeMenu,
+    fetchMenuItems,
+    fetchCategories,
     getAvailableItems,
     getPopularItems,
     getItemsByCategory,
     getItemById,
-    addItem,
+    createItem,
     updateItem,
     deleteItem,
-    toggleAvailability,
-    syncFromLocalStorage
+    toggleAvailability
   } = useMenuStore()
 
   useEffect(() => {
-    // Initialiser le menu au premier chargement
+    // Charger le menu au premier chargement si vide
     if (items.length === 0) {
-      initializeMenu()
+      fetchMenuItems()
+      fetchCategories()
     }
-  }, [items.length, initializeMenu])
+  }, [items.length, fetchMenuItems, fetchCategories])
 
   // Pour les pages publiques
   const getPublicMenu = () => {
@@ -44,40 +46,21 @@ export const useMenu = () => {
     return items
   }
 
-  const handleAddItem = (itemData) => {
-    try {
-      const newItem = addItem(itemData)
-      return { success: true, item: newItem }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
+  // Les fonctions CRUD retournent déjà des promesses avec { success, ... }
+  const handleAddItem = async (itemData) => {
+    return await createItem(itemData)
   }
 
-  const handleUpdateItem = (id, itemData) => {
-    try {
-      updateItem(id, itemData)
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
+  const handleUpdateItem = async (id, itemData) => {
+    return await updateItem(id, itemData)
   }
 
-  const handleDeleteItem = (id) => {
-    try {
-      deleteItem(id)
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
+  const handleDeleteItem = async (id) => {
+    return await deleteItem(id)
   }
 
-  const handleToggleAvailability = (id) => {
-    try {
-      const updatedItem = toggleAvailability(id)
-      return { success: true, item: updatedItem }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
+  const handleToggleAvailability = async (id) => {
+    return await toggleAvailability(id)
   }
 
   return {
@@ -87,6 +70,7 @@ export const useMenu = () => {
     popularItems: getPublicPopularItems(),
     categories,
     isLoading,
+    error,
 
     // Getters publics
     getPublicMenu,
@@ -100,8 +84,11 @@ export const useMenu = () => {
     deleteItem: handleDeleteItem,
     toggleAvailability: handleToggleAvailability,
 
+    // Actions de chargement
+    fetchMenuItems,
+    fetchCategories,
+
     // Utilitaires
-    setLoading,
-    syncFromLocalStorage
+    setLoading
   }
 }
