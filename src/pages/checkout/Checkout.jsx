@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CreditCard, MapPin, User, ShoppingBag, Check } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
@@ -28,8 +28,16 @@ const Checkout = () => {
     deliveryAddress: '',
     phone: '',
     notes: '',
-    paymentMethod: 'card'
+    paymentMethod: 'card',
+    type: 'delivery'
   })
+
+  // Auto-switch to card if pickup is selected with cash
+  useEffect(() => {
+    if (formData.type === 'pickup' && formData.paymentMethod === 'cash') {
+      setFormData(prev => ({ ...prev, paymentMethod: 'card' }))
+    }
+  }, [formData.type, formData.paymentMethod])
 
   // Redirect if cart is empty or user not logged in
   if (!user) {
@@ -68,7 +76,8 @@ const Checkout = () => {
         deliveryAddress: formData.deliveryAddress,
         phone: formData.phone,
         notes: formData.notes,
-        paymentMethod: formData.paymentMethod
+        paymentMethod: formData.paymentMethod,
+        orderType: formData.type
       }
 
       const result = await createOrder(orderData)
@@ -186,11 +195,49 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Delivery address */}
+              {/* Order Type */}
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Order Type
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="delivery"
+                      checked={formData.type === 'delivery'}
+                      onChange={handleInputChange}
+                      className="mr-3"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      🚚 Delivery
+                    </span>
+                  </label>
+
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="pickup"
+                      checked={formData.type === 'pickup'}
+                      onChange={handleInputChange}
+                      className="mr-3"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      🏪 Pickup
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Delivery address - only if delivery */}
+              {formData.type === 'delivery' && (
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
-                  Delivery
+                  Delivery Address
                 </h2>
                 
                 <div className="space-y-4">
@@ -239,6 +286,7 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Payment */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -262,17 +310,18 @@ const Checkout = () => {
                     </span>
                   </label>
 
-                  <label className="flex items-center">
+                  <label className={`flex items-center ${formData.type === 'pickup' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="cash"
                       checked={formData.paymentMethod === 'cash'}
                       onChange={handleInputChange}
+                      disabled={formData.type === 'pickup'}
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      💰 Cash on delivery
+                      💰 Cash on delivery {formData.type === 'pickup' && '(not available for pickup)'}
                     </span>
                   </label>
                 </div>
