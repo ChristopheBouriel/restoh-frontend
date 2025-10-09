@@ -183,14 +183,14 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Verify CustomDatePicker is rendered
-    expect(screen.getByText('DD/MM/YYY')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('DD/MM/YYYY')).toBeInTheDocument()
     
     // Select time (this works in other tests)
     await user.click(screen.getByRole('button', { name: '19:30' }))
     
     // Manually set date state by simulating what the CustomDatePicker would do
     // This is a pragmatic approach since the picker interaction is complex in tests
-    const datePicker = screen.getByText('DD/MM/YYY')
+    const datePicker = screen.getByPlaceholderText('DD/MM/YYYY')
     await user.click(datePicker)
     
     // For now, let's test that the form submission flow works
@@ -209,7 +209,7 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Fill date and time to enable the button, but validation will still fail
-    const datePicker = screen.getByText('DD/MM/YYY')
+    const datePicker = screen.getByPlaceholderText('DD/MM/YYYY')
     await user.click(datePicker)
     await waitFor(() => screen.getByText('15'))
     await user.click(screen.getByText('15'))
@@ -285,7 +285,7 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Fill form to enable button, but mock validation will fail
-    const datePicker = screen.getByText('DD/MM/YYY')
+    const datePicker = screen.getByPlaceholderText('DD/MM/YYYY')
     await user.click(datePicker)
     await waitFor(() => screen.getByText('15'))
     await user.click(screen.getByText('15'))

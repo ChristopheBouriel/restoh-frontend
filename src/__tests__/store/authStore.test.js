@@ -2,6 +2,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import useAuthStore from '../../store/authStore'
 
+// Mock API functions
+vi.mock('../../api/authApi', () => ({
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  updateProfile: vi.fn(),
+  changePassword: vi.fn(),
+  deleteAccount: vi.fn(),
+  getCurrentUser: vi.fn()
+}))
+
 // Mock crypto functions
 vi.mock('../../utils/crypto', () => ({
   hashPassword: vi.fn(),
@@ -10,11 +21,21 @@ vi.mock('../../utils/crypto', () => ({
 
 // Get mocked functions via dynamic import
 let mockHashPassword, mockVerifyPassword
+let mockLogin, mockRegister, mockLogout, mockUpdateProfile, mockChangePassword, mockDeleteAccount, mockGetCurrentUser
 
 beforeAll(async () => {
   const crypto = await import('../../utils/crypto')
   mockHashPassword = crypto.hashPassword
   mockVerifyPassword = crypto.verifyPassword
+
+  const authApi = await import('../../api/authApi')
+  mockLogin = authApi.login
+  mockRegister = authApi.register
+  mockLogout = authApi.logout
+  mockUpdateProfile = authApi.updateProfile
+  mockChangePassword = authApi.changePassword
+  mockDeleteAccount = authApi.deleteAccount
+  mockGetCurrentUser = authApi.getCurrentUser
 })
 
 describe('Auth Store', () => {
@@ -44,7 +65,30 @@ describe('Auth Store', () => {
     // Reset crypto mocks
     mockHashPassword.mockResolvedValue('hashedPassword123')
     mockVerifyPassword.mockResolvedValue(true)
-    
+
+    // Reset API mocks with default success responses
+    mockLogin.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'test@example.com', name: 'Test User', role: 'client' },
+      token: 'mock-jwt-token'
+    })
+    mockRegister.mockResolvedValue({
+      success: true,
+      user: { id: '2', email: 'new@example.com', name: 'New User', role: 'client' },
+      token: 'mock-jwt-token'
+    })
+    mockLogout.mockResolvedValue({ success: true })
+    mockUpdateProfile.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'updated@example.com', name: 'Updated User', role: 'client' }
+    })
+    mockChangePassword.mockResolvedValue({ success: true })
+    mockDeleteAccount.mockResolvedValue({ success: true })
+    mockGetCurrentUser.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'test@example.com', name: 'Test User', role: 'client' }
+    })
+
     // Reset store state
     useAuthStore.setState({
       user: null,

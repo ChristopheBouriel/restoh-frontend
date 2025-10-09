@@ -70,6 +70,7 @@ describe('ContactsManagement Component', () => {
   const mockStoreState = {
     messages: mockMessages,
     isLoading: false,
+    fetchMessages: vi.fn(),
     initializeMessages: vi.fn(),
     markAsRead: vi.fn(),
     markAsReplied: vi.fn(),

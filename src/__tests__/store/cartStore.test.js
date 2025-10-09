@@ -10,10 +10,10 @@ const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})
 
 // Mock menu items for testing menu integration
 const mockMenuItems = [
-  { id: '1', name: 'Pizza Margherita', price: 12.50, available: true },
-  { id: '2', name: 'Spaghetti Carbonara', price: 14.00, available: true },
-  { id: '3', name: 'Tiramisu', price: 6.50, available: false },
-  { id: '4', name: 'Deleted Item', price: 8.00, available: true } // Will be "deleted" by not existing in menu
+  { id: '1', name: 'Pizza Margherita', price: 12.50, isAvailable: true },
+  { id: '2', name: 'Spaghetti Carbonara', price: 14.00, isAvailable: true },
+  { id: '3', name: 'Tiramisu', price: 6.50, isAvailable: false },
+  { id: '4', name: 'Deleted Item', price: 8.00, isAvailable: true } // Will be "deleted" by not existing in menu
 ]
 
 // Mock products for cart operations

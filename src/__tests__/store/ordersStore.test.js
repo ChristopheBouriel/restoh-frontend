@@ -1,5 +1,22 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi, beforeAll } from 'vitest'
 import useOrdersStore from '../../store/ordersStore'
+
+// Mock ordersApi
+vi.mock('../../api/ordersApi', () => ({
+  getOrders: vi.fn(),
+  createOrder: vi.fn(),
+  updateOrderStatus: vi.fn()
+}))
+
+// Get mocked functions via dynamic import
+let mockGetOrders, mockCreateOrder, mockUpdateOrderStatus
+
+beforeAll(async () => {
+  const ordersApi = await import('../../api/ordersApi')
+  mockGetOrders = ordersApi.getOrders
+  mockCreateOrder = ordersApi.createOrder
+  mockUpdateOrderStatus = ordersApi.updateOrderStatus
+})
 
 // Mock console.log to avoid noise in tests
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -83,18 +100,32 @@ const mockExistingOrders = [
 describe('ordersStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Reset store state
     useOrdersStore.setState({
       orders: [],
       isLoading: false
     })
-    
+
     // Clear localStorage mocks
     mockLocalStorage.getItem.mockReturnValue(null)
     mockLocalStorage.setItem.mockClear()
     mockConsoleLog.mockClear()
-    
+
+    // Reset API mocks with default success responses
+    mockGetOrders.mockResolvedValue({
+      success: true,
+      data: []
+    })
+    mockCreateOrder.mockResolvedValue({
+      success: true,
+      order: { id: 'order-123', status: 'pending', isPaid: false }
+    })
+    mockUpdateOrderStatus.mockResolvedValue({
+      success: true,
+      order: { id: 'order-123', status: 'confirmed' }
+    })
+
     // Mock Date.now for consistent order IDs
     vi.setSystemTime(new Date('2024-01-30T15:00:00Z'))
   })
