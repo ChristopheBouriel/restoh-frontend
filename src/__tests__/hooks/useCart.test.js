@@ -154,7 +154,7 @@ describe('useCart Hook', () => {
       result.current.addItem(mockProduct)
     })
     
-    expect(toast.error).toHaveBeenCalledWith('Veuillez vous connecter avant d\'alimenter votre panier')
+    expect(toast.error).toHaveBeenCalledWith('Please log in before adding items to your cart')
     expect(mockAddItem).not.toHaveBeenCalled()
   })
 
@@ -166,7 +166,7 @@ describe('useCart Hook', () => {
     })
     
     expect(mockAddItem).toHaveBeenCalledWith(mockProduct)
-    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita ajouté au panier')
+    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita added to cart')
   })
 
   test('should open cart briefly after adding item', () => {
@@ -207,7 +207,7 @@ describe('useCart Hook', () => {
     })
     
     expect(mockRemoveItem).toHaveBeenCalledWith('1')
-    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita retiré du panier')
+    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita removed from cart')
   })
 
   test('should update quantity correctly', () => {
@@ -224,7 +224,7 @@ describe('useCart Hook', () => {
       result.current.updateQuantity('1', 0)
     })
     expect(mockRemoveItem).toHaveBeenCalledWith('1')
-    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita retiré du panier')
+    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita removed from cart')
     
     // Test negative quantity (should also remove item)
     act(() => {
@@ -241,7 +241,7 @@ describe('useCart Hook', () => {
     })
     
     expect(mockClearCart).toHaveBeenCalled()
-    expect(toast.success).toHaveBeenCalledWith('Panier vidé')
+    expect(toast.success).toHaveBeenCalledWith('Cart cleared')
     expect(mockCloseCart).toHaveBeenCalled()
   })
 
@@ -254,7 +254,7 @@ describe('useCart Hook', () => {
     })
     
     expect(mockSyncWithMenu).toHaveBeenCalled()
-    expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Panier synchronisé avec le menu')
+    expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Cart synced with menu')
   })
 
   test('should pass through store utility functions', () => {

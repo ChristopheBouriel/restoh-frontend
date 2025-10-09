@@ -5,7 +5,7 @@ import * as reservationsApi from '../api/reservationsApi'
 const useReservationsStore = create(
   persist(
     (set, get) => ({
-      // État
+      // State
       reservations: [],
       isLoading: false,
       error: null,
@@ -17,7 +17,7 @@ const useReservationsStore = create(
 
       clearError: () => set({ error: null }),
 
-      // Récupérer les réservations selon le rôle
+      // Fetch reservations based on role
       fetchReservations: async (isAdmin = false) => {
         set({ isLoading: true, error: null })
 
@@ -41,7 +41,7 @@ const useReservationsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du chargement des réservations'
+          const errorMessage = error.error || 'Error loading reservations'
           set({
             error: errorMessage,
             isLoading: false
@@ -50,7 +50,7 @@ const useReservationsStore = create(
         }
       },
 
-      // Récupérer une réservation spécifique
+      // Fetch specific reservation
       fetchReservationById: async (reservationId) => {
         set({ isLoading: true, error: null })
 
@@ -68,7 +68,7 @@ const useReservationsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du chargement de la réservation'
+          const errorMessage = error.error || 'Error loading reservation'
           set({
             error: errorMessage,
             isLoading: false
@@ -77,7 +77,7 @@ const useReservationsStore = create(
         }
       },
 
-      // Créer une nouvelle réservation
+      // Create new reservation
       createReservation: async (reservationData) => {
         set({ isLoading: true, error: null })
 
@@ -85,7 +85,7 @@ const useReservationsStore = create(
           const result = await reservationsApi.createReservation(reservationData)
 
           if (result.success) {
-            // Recharger les réservations après création
+            // Reload reservations after creation
             await get().fetchReservations()
             set({ isLoading: false })
             return { success: true, reservationId: result.data._id || result.data.id }
@@ -97,7 +97,7 @@ const useReservationsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la création de la réservation'
+          const errorMessage = error.error || 'Error creating reservation'
           set({
             error: errorMessage,
             isLoading: false
@@ -106,7 +106,7 @@ const useReservationsStore = create(
         }
       },
 
-      // Mettre à jour le statut d'une réservation (admin)
+      // Update reservation status (admin)
       updateReservationStatus: async (reservationId, newStatus) => {
         set({ isLoading: true, error: null })
 
@@ -114,7 +114,7 @@ const useReservationsStore = create(
           const result = await reservationsApi.updateReservationStatus(reservationId, newStatus)
 
           if (result.success) {
-            // Recharger les réservations après mise à jour
+            // Reload reservations after update
             await get().fetchReservations(true) // true = admin
             set({ isLoading: false })
             return { success: true }
@@ -126,7 +126,7 @@ const useReservationsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la mise à jour du statut'
+          const errorMessage = error.error || 'Error updating status'
           set({
             error: errorMessage,
             isLoading: false
@@ -135,17 +135,17 @@ const useReservationsStore = create(
         }
       },
 
-      // Assigner une table à une réservation (admin)
+      // Assign table to reservation (admin)
       assignTable: async (reservationId, tableNumber) => {
         set({ isLoading: true, error: null })
 
         try {
-          // Note: La logique d'auto-confirmation (pending -> confirmed) quand on assigne une table
-          // est maintenant gérée côté BACKEND
+          // Note: Auto-confirmation logic (pending -> confirmed) when assigning table
+          // is now handled on the BACKEND
           const result = await reservationsApi.assignTable(reservationId, tableNumber)
 
           if (result.success) {
-            // Recharger les réservations après assignation
+            // Reload reservations after assignment
             await get().fetchReservations(true) // true = admin
             set({ isLoading: false })
             return { success: true }
@@ -157,7 +157,7 @@ const useReservationsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de l\'assignation de table'
+          const errorMessage = error.error || 'Error assigning table'
           set({
             error: errorMessage,
             isLoading: false
@@ -166,7 +166,7 @@ const useReservationsStore = create(
         }
       },
 
-      // Getters (calculs locaux sur les données chargées)
+      // Getters (local computations on loaded data)
       getReservationsByStatus: (status) => {
         return get().reservations.filter(reservation => reservation.status === status)
       },
@@ -198,7 +198,7 @@ const useReservationsStore = create(
         }).sort((a, b) => new Date(a.date) - new Date(b.date))
       },
 
-      // Statistiques (calculées localement)
+      // Statistics (computed locally)
       getReservationsStats: () => {
         const reservations = get().reservations
         const today = new Date().toISOString().split('T')[0]

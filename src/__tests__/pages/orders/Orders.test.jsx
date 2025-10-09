@@ -49,7 +49,7 @@ const mockOrders = [
     deliveryAddress: '789 Boulevard Saint-Germain, Paris',
     phone: '0147258369',
     paymentMethod: 'card',
-    notes: 'Livraison rapide svp'
+    notes: 'Delivery rapide svp'
   },
   {
     id: '4',
@@ -101,20 +101,20 @@ describe('Orders Component', () => {
   test('should render header and description', () => {
     render(<OrdersWrapper />)
     
-    expect(screen.getByText('Mes Commandes')).toBeInTheDocument()
+    expect(screen.getByText('My Orders')).toBeInTheDocument()
     expect(screen.getByText('Suivez l\'état de vos commandes')).toBeInTheDocument()
   })
 
   test('should render all filter buttons for order statuses', () => {
     render(<OrdersWrapper />)
     
-    expect(screen.getByRole('button', { name: 'Toutes les commandes' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'En attente' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Confirmées' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'En préparation' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Prêtes' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Livrées' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Annulées' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'All orders' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Pending' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Confirmed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preparing' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ready' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delivered' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancelled' })).toBeInTheDocument()
   })
 
   test('should call initializeOrders on component mount', () => {
@@ -128,9 +128,9 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Check order IDs
-    expect(screen.getByText('Commande #1')).toBeInTheDocument()
-    expect(screen.getByText('Commande #2')).toBeInTheDocument()
-    expect(screen.getByText('Commande #3')).toBeInTheDocument()
+    expect(screen.getByText('Order #1')).toBeInTheDocument()
+    expect(screen.getByText('Order #2')).toBeInTheDocument()
+    expect(screen.getByText('Order #3')).toBeInTheDocument()
     
     // Check order totals
     expect(screen.getByText('28.50€')).toBeInTheDocument()
@@ -153,10 +153,10 @@ describe('Orders Component', () => {
     
     // Check that the badges contain the expected text
     const deliveredBadge = document.querySelector('.text-green-600.bg-green-50')
-    expect(deliveredBadge).toHaveTextContent('Livrée')
+    expect(deliveredBadge).toHaveTextContent('Delivered')
     
     const preparingBadge = document.querySelector('.text-yellow-600.bg-yellow-50')
-    expect(preparingBadge).toHaveTextContent('En préparation')
+    expect(preparingBadge).toHaveTextContent('Preparing')
   })
 
   test('should format prices and dates correctly', () => {
@@ -177,40 +177,40 @@ describe('Orders Component', () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
     
-    // Click on "Livrées" filter
-    await user.click(screen.getByRole('button', { name: 'Livrées' }))
+    // Click on "Delivered" filter
+    await user.click(screen.getByRole('button', { name: 'Delivered' }))
     
     // Should only show delivered orders
-    expect(screen.getByText('Commande #1')).toBeInTheDocument()
-    expect(screen.queryByText('Commande #2')).not.toBeInTheDocument()
-    expect(screen.queryByText('Commande #3')).not.toBeInTheDocument()
+    expect(screen.getByText('Order #1')).toBeInTheDocument()
+    expect(screen.queryByText('Order #2')).not.toBeInTheDocument()
+    expect(screen.queryByText('Order #3')).not.toBeInTheDocument()
   })
 
-  test('should show all orders when "Toutes les commandes" is selected', async () => {
+  test('should show all orders when "All orders" is selected', async () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
     
     // First filter by delivered orders
-    await user.click(screen.getByRole('button', { name: 'Livrées' }))
-    expect(screen.queryByText('Commande #2')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Delivered' }))
+    expect(screen.queryByText('Order #2')).not.toBeInTheDocument()
     
-    // Then click "Toutes les commandes"
-    await user.click(screen.getByRole('button', { name: 'Toutes les commandes' }))
+    // Then click "All orders"
+    await user.click(screen.getByRole('button', { name: 'All orders' }))
     
     // Should show all orders again
-    expect(screen.getByText('Commande #1')).toBeInTheDocument()
-    expect(screen.getByText('Commande #2')).toBeInTheDocument()
-    expect(screen.getByText('Commande #3')).toBeInTheDocument()
+    expect(screen.getByText('Order #1')).toBeInTheDocument()
+    expect(screen.getByText('Order #2')).toBeInTheDocument()
+    expect(screen.getByText('Order #3')).toBeInTheDocument()
   })
 
   test('should update active filter button styling correctly', async () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
     
-    const allOrdersButton = screen.getByRole('button', { name: 'Toutes les commandes' })
-    const deliveredButton = screen.getByRole('button', { name: 'Livrées' })
+    const allOrdersButton = screen.getByRole('button', { name: 'All orders' })
+    const deliveredButton = screen.getByRole('button', { name: 'Delivered' })
     
-    // Initially "Toutes les commandes" should be active
+    // Initially "All orders" should be active
     expect(allOrdersButton).toHaveClass('bg-primary-100', 'text-primary-700')
     expect(deliveredButton).toHaveClass('bg-gray-100', 'text-gray-700')
     
@@ -266,7 +266,7 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Check that cancel button appears for pending and preparing orders
-    const cancelButtons = screen.getAllByText('Annuler')
+    const cancelButtons = screen.getAllByText('Cancel')
     expect(cancelButtons).toHaveLength(2) // pending and preparing orders
     
     // Check that delivered and cancelled orders don't have cancel button
@@ -277,7 +277,7 @@ describe('Orders Component', () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
     
-    const cancelButtons = screen.getAllByText('Annuler')
+    const cancelButtons = screen.getAllByText('Cancel')
     await user.click(cancelButtons[0])
     
     expect(mockCancelOrder).toHaveBeenCalledTimes(1)
@@ -308,9 +308,9 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Should show empty state
-    expect(screen.getByText('Aucune commande trouvée')).toBeInTheDocument()
+    expect(screen.getByText('No orders found')).toBeInTheDocument()
     expect(screen.getByText('Vous n\'avez pas encore passé de commande avec ces filtres.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Découvrir le menu' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Discover the menu' })).toBeInTheDocument()
   })
 
   // 7. LOADING STATE (1 test)  
@@ -318,12 +318,12 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Should display all orders when data is available
-    expect(screen.getByText('Commande #1')).toBeInTheDocument()
-    expect(screen.getByText('Commande #2')).toBeInTheDocument()
-    expect(screen.getByText('Commande #3')).toBeInTheDocument()
-    expect(screen.getByText('Commande #4')).toBeInTheDocument()
+    expect(screen.getByText('Order #1')).toBeInTheDocument()
+    expect(screen.getByText('Order #2')).toBeInTheDocument()
+    expect(screen.getByText('Order #3')).toBeInTheDocument()
+    expect(screen.getByText('Order #4')).toBeInTheDocument()
     
     // Should not show empty state
-    expect(screen.queryByText('Aucune commande trouvée')).not.toBeInTheDocument()
+    expect(screen.queryByText('No orders found')).not.toBeInTheDocument()
   })
 })

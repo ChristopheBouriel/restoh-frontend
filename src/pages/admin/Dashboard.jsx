@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [recentReservations, setRecentReservations] = useState([])
   
   useEffect(() => {
-    // Simulation de chargement de données
+    // Data loading simulation
     setTimeout(() => {
       setStats({
         revenue: {
@@ -110,26 +110,26 @@ const Dashboard = () => {
   const getOrderStatusInfo = (status) => {
     switch (status) {
       case 'preparing':
-        return { label: 'En préparation', color: 'bg-yellow-100 text-yellow-800' }
+        return { label: 'Preparing', color: 'bg-yellow-100 text-yellow-800' }
       case 'ready':
-        return { label: 'Prêt', color: 'bg-blue-100 text-blue-800' }
+        return { label: 'Ready', color: 'bg-blue-100 text-blue-800' }
       case 'delivered':
-        return { label: 'Livré', color: 'bg-green-100 text-green-800' }
+        return { label: 'Delivered', color: 'bg-green-100 text-green-800' }
       case 'confirmed':
-        return { label: 'Confirmé', color: 'bg-gray-100 text-gray-800' }
+        return { label: 'Confirmed', color: 'bg-gray-100 text-gray-800' }
       default:
-        return { label: 'Inconnu', color: 'bg-gray-100 text-gray-800' }
+        return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' }
     }
   }
 
   const getReservationStatusInfo = (status) => {
     switch (status) {
       case 'confirmed':
-        return { label: 'Confirmée', color: 'bg-green-100 text-green-800', icon: CheckCircle }
+        return { label: 'Confirmed', color: 'bg-green-100 text-green-800', icon: CheckCircle }
       case 'pending':
-        return { label: 'En attente', color: 'bg-yellow-100 text-yellow-800', icon: Clock }
+        return { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock }
       default:
-        return { label: 'Inconnue', color: 'bg-gray-100 text-gray-800', icon: Clock }
+        return { label: 'Unknown', color: 'bg-gray-100 text-gray-800', icon: Clock }
     }
   }
 
@@ -155,7 +155,7 @@ const Dashboard = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Vue d'ensemble de votre restaurant</p>
+        <p className="text-gray-600">Overview of your restaurant</p>
       </div>
 
       {/* Stats cards */}
@@ -164,9 +164,9 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Revenus du jour</p>
+              <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
               <p className="text-2xl font-bold text-gray-900">€{stats.revenue.today}</p>
-              <p className="text-xs text-gray-500">€{stats.revenue.thisMonth.toLocaleString()} ce mois</p>
+              <p className="text-xs text-gray-500">€{stats.revenue.thisMonth.toLocaleString()} this month</p>
             </div>
             <div className="p-2 bg-green-50 rounded-lg">
               <DollarSign className="w-6 h-6 text-green-600" />
@@ -175,17 +175,17 @@ const Dashboard = () => {
           <div className="mt-4 flex items-center">
             <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600 font-medium">+{stats.revenue.growth}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
+            <span className="text-sm text-gray-500 ml-1">vs last month</span>
           </div>
         </div>
 
-        {/* Commandes */}
+        {/* Orders */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Commandes aujourd'hui</p>
+              <p className="text-sm font-medium text-gray-600">Orders Today</p>
               <p className="text-2xl font-bold text-gray-900">{stats.orders.today}</p>
-              <p className="text-xs text-gray-500">{stats.orders.thisMonth} ce mois</p>
+              <p className="text-xs text-gray-500">{stats.orders.thisMonth} this month</p>
             </div>
             <div className="p-2 bg-blue-50 rounded-lg">
               <ShoppingBag className="w-6 h-6 text-blue-600" />
@@ -194,7 +194,7 @@ const Dashboard = () => {
           <div className="mt-4 flex items-center">
             <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600 font-medium">+{stats.orders.growth}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
+            <span className="text-sm text-gray-500 ml-1">vs last month</span>
           </div>
         </div>
 
@@ -202,9 +202,9 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total clients</p>
+              <p className="text-sm font-medium text-gray-600">Total Customers</p>
               <p className="text-2xl font-bold text-gray-900">{stats.customers.total}</p>
-              <p className="text-xs text-gray-500">+{stats.customers.newThisMonth} nouveaux</p>
+              <p className="text-xs text-gray-500">+{stats.customers.newThisMonth} new</p>
             </div>
             <div className="p-2 bg-purple-50 rounded-lg">
               <Users className="w-6 h-6 text-purple-600" />
@@ -213,17 +213,17 @@ const Dashboard = () => {
           <div className="mt-4 flex items-center">
             <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600 font-medium">+{stats.customers.growth}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
+            <span className="text-sm text-gray-500 ml-1">vs last month</span>
           </div>
         </div>
 
-        {/* Réservations */}
+        {/* Reservations */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Réservations aujourd'hui</p>
+              <p className="text-sm font-medium text-gray-600">Reservations Today</p>
               <p className="text-2xl font-bold text-gray-900">{stats.reservations.today}</p>
-              <p className="text-xs text-gray-500">{stats.reservations.thisWeek} cette semaine</p>
+              <p className="text-xs text-gray-500">{stats.reservations.thisWeek} this week</p>
             </div>
             <div className="p-2 bg-orange-50 rounded-lg">
               <Calendar className="w-6 h-6 text-orange-600" />
@@ -232,19 +232,19 @@ const Dashboard = () => {
           <div className="mt-4 flex items-center">
             <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
             <span className="text-sm text-red-600 font-medium">{Math.abs(stats.reservations.growth)}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs semaine dernière</span>
+            <span className="text-sm text-gray-500 ml-1">vs last week</span>
           </div>
         </div>
       </div>
 
       {/* Recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Commandes récentes */}
+        {/* Recent orders */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Commandes récentes</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
             <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-              Voir tout
+              View all
             </button>
           </div>
           
@@ -274,12 +274,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Réservations récentes */}
+        {/* Recent reservations */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Réservations récentes</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Recent Reservations</h2>
             <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-              Voir tout
+              View all
             </button>
           </div>
           
@@ -303,7 +303,7 @@ const Dashboard = () => {
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
                       {statusInfo.label}
                     </span>
-                    <p className="text-sm text-gray-500 mt-1">{reservation.guests} personnes</p>
+                    <p className="text-sm text-gray-500 mt-1">{reservation.guests} guests</p>
                   </div>
                 </div>
               )

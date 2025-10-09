@@ -28,25 +28,25 @@ const UsersManagement = () => {
 
   const stats = getUsersStats()
 
-  // Options pour les filtres
+  // Options for filters
   const roleOptions = [
-    { value: 'all', label: 'Tous les rôles' },
-    { value: 'admin', label: 'Administrateurs' },
-    { value: 'user', label: 'Utilisateurs' }
+    { value: 'all', label: 'All roles' },
+    { value: 'admin', label: 'Administrators' },
+    { value: 'user', label: 'Users' }
   ]
 
   const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'active', label: 'Actifs' },
-    { value: 'inactive', label: 'Inactifs' }
+    { value: 'all', label: 'All statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' }
   ]
 
   const roleUpdateOptions = [
-    { value: 'user', label: 'Utilisateur' },
-    { value: 'admin', label: 'Administrateur' }
+    { value: 'user', label: 'User' },
+    { value: 'admin', label: 'Administrator' }
   ]
 
-  // Fonction de filtrage
+  // Filtering function
   const filteredUsers = users.filter(user => {
     const searchMatch = searchQuery === '' || 
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -61,32 +61,32 @@ const UsersManagement = () => {
     return searchMatch && roleMatch && statusMatch
   })
 
-  // Gestion du changement de statut
+  // Handle status change
   const handleStatusToggle = async (userId) => {
     await toggleUserStatus(userId)
   }
 
-  // Gestion du changement de rôle
+  // Handle role change
   const handleRoleChange = async (userId, newRole) => {
     await updateUserRole(userId, newRole)
   }
 
-  // Ouvrir le modal de détail
+  // Open detail modal
   const openUserModal = (user) => {
     setSelectedUser(user)
     setIsModalOpen(true)
   }
 
-  // Fermer le modal
+  // Close modal
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedUser(null)
   }
 
-  // Fonction pour formater la date
+  // Function to format date
   const formatDate = (dateStr) => {
-    if (!dateStr) return 'Jamais'
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    if (!dateStr) return 'Never'
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -95,27 +95,27 @@ const UsersManagement = () => {
     })
   }
 
-  // Fonction pour obtenir la couleur du badge selon le rôle
+  // Function to get badge color based on role
   const getRoleColor = (role) => {
     return role === 'admin' 
       ? 'bg-purple-100 text-purple-800' 
       : 'bg-blue-100 text-blue-800'
   }
 
-  // Fonction pour obtenir le libellé du rôle
+  // Function to get role label
   const getRoleLabel = (role) => {
-    return role === 'admin' ? 'Admin' : 'Utilisateur'
+    return role === 'admin' ? 'Admin' : 'User'
   }
 
   return (
     <div className="p-6">
-      {/* En-tête */}
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Gestion des Utilisateurs</h1>
-        <p className="text-gray-600">Gérez tous les utilisateurs de la plateforme</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Users Management</h1>
+        <p className="text-gray-600">Manage all platform users</p>
       </div>
 
-      {/* Statistiques */}
+      {/* Statistics */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
@@ -131,7 +131,7 @@ const UsersManagement = () => {
           <div className="flex items-center">
             <UserCheck className="h-8 w-8 text-green-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Actifs</p>
+              <p className="text-sm font-medium text-gray-600">Active</p>
               <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
             </div>
           </div>
@@ -151,7 +151,7 @@ const UsersManagement = () => {
           <div className="flex items-center">
             <Mail className="h-8 w-8 text-orange-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Vérifiés</p>
+              <p className="text-sm font-medium text-gray-600">Verified</p>
               <p className="text-2xl font-bold text-gray-900">{stats.verified}</p>
             </div>
           </div>
@@ -161,7 +161,7 @@ const UsersManagement = () => {
           <div className="flex items-center">
             <TrendingUp className="h-8 w-8 text-emerald-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Ce mois</p>
+              <p className="text-sm font-medium text-gray-600">This month</p>
               <p className="text-2xl font-bold text-gray-900">{stats.newThisMonth}</p>
             </div>
           </div>
@@ -171,26 +171,26 @@ const UsersManagement = () => {
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-indigo-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Actifs ce mois</p>
+              <p className="text-sm font-medium text-gray-600">Active this month</p>
               <p className="text-2xl font-bold text-gray-900">{stats.activeThisMonth}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filtres et recherche */}
+      {/* Filters and search */}
       <div className="bg-white rounded-lg border p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Recherche et filtres</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Search and filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Rechercher
+              Search
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
-                placeholder="Nom, email, téléphone..."
+                placeholder="Name, email, phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -199,7 +199,7 @@ const UsersManagement = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Rôle
+              Role
             </label>
             <SimpleSelect
               value={roleFilter}
@@ -210,7 +210,7 @@ const UsersManagement = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut
+              Status
             </label>
             <SimpleSelect
               value={statusFilter}
@@ -222,39 +222,39 @@ const UsersManagement = () => {
         </div>
       </div>
 
-      {/* Liste des utilisateurs */}
+      {/* Users list */}
       <div className="bg-white rounded-lg border">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            Utilisateurs ({filteredUsers.length})
+            Users ({filteredUsers.length})
           </h2>
         </div>
 
         {filteredUsers.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
-            Aucun utilisateur trouvé avec ces critères.
+            No users found with these criteria.
           </div>
         ) : (
           <>
-            {/* Vue Desktop - Tableau */}
+            {/* Desktop View - Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Utilisateur
+                      User
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Contact
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rôle
+                      Role
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Statut
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Activité
+                      Activity
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -300,37 +300,37 @@ const UsersManagement = () => {
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
-                            {user.isActive ? 'Actif' : 'Inactif'}
+                            {user.isActive ? 'Active' : 'Inactive'}
                           </span>
                           {user.emailVerified ? (
-                            <div className="text-xs text-green-600">✓ Email vérifié</div>
+                            <div className="text-xs text-green-600">✓ Email verified</div>
                           ) : (
-                            <div className="text-xs text-orange-600">⚠ Email non vérifié</div>
+                            <div className="text-xs text-orange-600">⚠ Email not verified</div>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div>Commandes: {user.totalOrders}</div>
-                        <div>Dépensé: {user.totalSpent.toFixed(2)}€</div>
-                        <div>Réservations: {user.totalReservations}</div>
+                        <div>Orders: {user.totalOrders}</div>
+                        <div>Spent: {user.totalSpent.toFixed(2)}€</div>
+                        <div>Reservations: {user.totalReservations}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <button
                             onClick={() => openUserModal(user)}
                             className="text-gray-400 hover:text-blue-600 transition-colors"
-                            title="Voir les détails"
+                            title="View details"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleStatusToggle(user.id)}
                             className={`transition-colors ${
-                              user.isActive 
-                                ? 'text-red-400 hover:text-red-600' 
+                              user.isActive
+                                ? 'text-red-400 hover:text-red-600'
                                 : 'text-green-400 hover:text-green-600'
                             }`}
-                            title={user.isActive ? 'Désactiver' : 'Activer'}
+                            title={user.isActive ? 'Deactivate' : 'Activate'}
                           >
                             {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                           </button>
@@ -342,7 +342,7 @@ const UsersManagement = () => {
               </table>
             </div>
 
-            {/* Vue Mobile/Tablet - Cards */}
+            {/* Mobile/Tablet View - Cards */}
             <div className="lg:hidden divide-y divide-gray-200">
               {filteredUsers.map((user) => (
                 <div key={user.id} className="p-4 hover:bg-gray-50">
@@ -351,7 +351,7 @@ const UsersManagement = () => {
                       <button
                         onClick={() => openUserModal(user)}
                         className="text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Voir les détails"
+                        title="View details"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
@@ -361,7 +361,7 @@ const UsersManagement = () => {
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {user.isActive ? 'Actif' : 'Inactif'}
+                        {user.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                     <button
@@ -388,13 +388,13 @@ const UsersManagement = () => {
                     </div>
                     
                     <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Commandes: {user.totalOrders}</span>
-                      <span>Dépensé: {user.totalSpent.toFixed(2)}€</span>
-                      <span>Réservations: {user.totalReservations}</span>
+                      <span>Orders: {user.totalOrders}</span>
+                      <span>Spent: {user.totalSpent.toFixed(2)}€</span>
+                      <span>Reservations: {user.totalReservations}</span>
                     </div>
 
                     {!user.emailVerified && (
-                      <div className="text-xs text-orange-600">⚠ Email non vérifié</div>
+                      <div className="text-xs text-orange-600">⚠ Email not verified</div>
                     )}
                   </div>
                 </div>
@@ -404,14 +404,14 @@ const UsersManagement = () => {
         )}
       </div>
 
-      {/* Modal de détail */}
+      {/* Detail modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Détails de l'utilisateur
+                  User details
                 </h2>
                 <button
                   onClick={closeModal}
@@ -422,17 +422,17 @@ const UsersManagement = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Informations personnelles */}
+                {/* Personal information */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Informations personnelles</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Personal information</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <p><strong>ID:</strong> {selectedUser.id}</p>
-                    <p><strong>Nom:</strong> {selectedUser.name}</p>
+                    <p><strong>Name:</strong> {selectedUser.name}</p>
                     <p><strong>Email:</strong> {selectedUser.email}</p>
-                    <p><strong>Téléphone:</strong> {selectedUser.phone || 'N/A'}</p>
-                    <p><strong>Adresse:</strong> {selectedUser.address || 'N/A'}</p>
+                    <p><strong>Phone:</strong> {selectedUser.phone || 'N/A'}</p>
+                    <p><strong>Address:</strong> {selectedUser.address || 'N/A'}</p>
                     <p>
-                      <strong>Rôle:</strong>{' '}
+                      <strong>Role:</strong>{' '}
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(selectedUser.role)}`}>
                         {getRoleLabel(selectedUser.role)}
                       </span>
@@ -440,47 +440,47 @@ const UsersManagement = () => {
                   </div>
                 </div>
 
-                {/* Statut et activité */}
+                {/* Status and activity */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Statut et activité</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Status and activity</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <p>
-                      <strong>Statut:</strong>{' '}
+                      <strong>Status:</strong>{' '}
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         selectedUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {selectedUser.isActive ? 'Actif' : 'Inactif'}
+                        {selectedUser.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </p>
                     <p>
-                      <strong>Email vérifié:</strong>{' '}
+                      <strong>Email verified:</strong>{' '}
                       {selectedUser.emailVerified ? (
-                        <span className="text-green-600">✓ Oui</span>
+                        <span className="text-green-600">✓ Yes</span>
                       ) : (
-                        <span className="text-red-600">✗ Non</span>
+                        <span className="text-red-600">✗ No</span>
                       )}
                     </p>
-                    <p><strong>Inscription:</strong> {formatDate(selectedUser.createdAt)}</p>
-                    <p><strong>Dernière connexion:</strong> {formatDate(selectedUser.lastLoginAt)}</p>
+                    <p><strong>Registration:</strong> {formatDate(selectedUser.createdAt)}</p>
+                    <p><strong>Last login:</strong> {formatDate(selectedUser.lastLoginAt)}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Statistiques d'activité */}
+              {/* Activity statistics */}
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Statistiques d'activité</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Activity statistics</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-blue-600">{selectedUser.totalOrders}</div>
-                    <div className="text-sm text-blue-600">Commandes</div>
+                    <div className="text-sm text-blue-600">Orders</div>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-green-600">{selectedUser.totalSpent.toFixed(2)}€</div>
-                    <div className="text-sm text-green-600">Total dépensé</div>
+                    <div className="text-sm text-green-600">Total spent</div>
                   </div>
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-purple-600">{selectedUser.totalReservations}</div>
-                    <div className="text-sm text-purple-600">Réservations</div>
+                    <div className="text-sm text-purple-600">Reservations</div>
                   </div>
                 </div>
               </div>
@@ -491,7 +491,7 @@ const UsersManagement = () => {
                   onClick={closeModal}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Fermer
+                  Close
                 </button>
               </div>
             </div>

@@ -11,7 +11,7 @@ const Reservations = () => {
   const [specialRequests, setSpecialRequests] = useState('')
   const [editingId, setEditingId] = useState(null)
 
-  // Utilisation du hook de réservations avec persistance
+  // Use reservations hook with persistence
   const {
     reservations,
     createReservation,
@@ -28,25 +28,25 @@ const Reservations = () => {
     switch (status) {
       case 'confirmed':
         return {
-          label: 'Confirmée',
+          label: 'Confirmed',
           color: 'text-green-600 bg-green-50',
           icon: CheckCircle
         }
       case 'pending':
         return {
-          label: 'En attente',
+          label: 'Pending',
           color: 'text-yellow-600 bg-yellow-50',
           icon: AlertCircle
         }
       case 'cancelled':
         return {
-          label: 'Annulée',
+          label: 'Cancelled',
           color: 'text-red-600 bg-red-50',
           icon: AlertCircle
         }
       default:
         return {
-          label: 'Inconnue',
+          label: 'Unknown',
           color: 'text-gray-600 bg-gray-50',
           icon: AlertCircle
         }
@@ -72,7 +72,7 @@ const Reservations = () => {
     
     try {
       createReservation(reservationData)
-      
+
       // Reset form
       setSelectedDate('')
       setSelectedTime('')
@@ -89,7 +89,7 @@ const Reservations = () => {
     setSelectedTime(reservation.time)
     setPartySize(reservation.guests)
     setSpecialRequests(reservation.specialRequests || '')
-    toast.info('Modification activée - utilisez le formulaire ci-dessus')
+    toast.info('Edit mode enabled - use the form above')
   }
 
   const handleCancelReservation = async (reservationId) => {
@@ -115,7 +115,7 @@ const Reservations = () => {
     
     try {
       updateReservation(editingId, reservationData)
-      
+
       // Reset form and editing state
       setSelectedDate('')
       setSelectedTime('')
@@ -123,7 +123,7 @@ const Reservations = () => {
       setSpecialRequests('')
       setEditingId(null)
     } catch (error) {
-      // L'erreur est déjà gérée dans le hook
+      // Error already handled in hook
     }
   }
 
@@ -135,23 +135,23 @@ const Reservations = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Réservations</h1>
-          <p className="text-gray-600">Réservez une table et gérez vos réservations</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reservations</h1>
+          <p className="text-gray-600">Book a table and manage your reservations</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Nouvelle Réservation */}
+          {/* New Reservation */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
               <Plus className="w-5 h-5 mr-2" />
-              Nouvelle Réservation
+              New reservation
             </h2>
 
             <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-6">
               {editingId && (
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                   <p className="text-sm text-blue-800">
-                    ✏️ Mode modification - Modifiez les détails ci-dessous
+                    ✏️ Edit mode - Modify details below
                   </p>
                 </div>
               )}
@@ -166,7 +166,7 @@ const Reservations = () => {
                   onChange={setSelectedDate}
                   minDate={today}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Sélectionner une date"
+                  placeholder="Select a date"
                 />
               </div>
 
@@ -174,7 +174,7 @@ const Reservations = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   <Clock className="w-4 h-4 inline mr-2" />
-                  Heure
+                  Time
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {availableTimes.map((time) => (
@@ -198,7 +198,7 @@ const Reservations = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Users className="w-4 h-4 inline mr-2" />
-                  Nombre de personnes
+                  Number of guests
                 </label>
                 <div className="flex items-center space-x-3">
                   <button
@@ -224,12 +224,12 @@ const Reservations = () => {
               {/* Demandes spéciales */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Demandes spéciales
+                  Special requests
                 </label>
                 <textarea
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
-                  placeholder="Allergies, préférences de table, occasion spéciale..."
+                  placeholder="Allergies, table preferences, special occasion..."
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
@@ -241,7 +241,7 @@ const Reservations = () => {
                   disabled={!selectedDate || !selectedTime}
                   className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {editingId ? '✏️ Modifier' : '🗓️ Réserver'}
+                  {editingId ? '✏️ Update' : '🗓️ Book'}
                 </button>
                 
                 {editingId && (
@@ -253,21 +253,21 @@ const Reservations = () => {
                       setSelectedTime('')
                       setPartySize(2)
                       setSpecialRequests('')
-                      toast.info('Modification annulée')
+                      toast.info('Edit cancelled')
                     }}
                     className="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
                   >
-                    Annuler
+                    Cancel
                   </button>
                 )}
               </div>
             </form>
           </div>
 
-          {/* Mes Réservations */}
+          {/* My Reservations */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Mes Réservations
+              My reservations
             </h2>
 
             <div className="space-y-4">
@@ -284,10 +284,10 @@ const Reservations = () => {
                             <span className="font-semibold">
                               {new Date(reservation.date).toLocaleDateString('fr-FR')}
                             </span>
-                            <span className="text-gray-500">à {reservation.time}</span>
+                            <span className="text-gray-500">at {reservation.time}</span>
                           </div>
                           <p className="text-sm text-gray-600">
-                            <span className='mr-2'>👥</span> {reservation.guests} personne{reservation.guests > 1 ? 's' : ''}
+                            <span className='mr-2'>👥</span> {reservation.guests} guest{reservation.guests > 1 ? 's' : ''}
                           </p>
                           {reservation.specialRequests && (
                             <p className="text-sm text-gray-600 mt-1">
@@ -308,14 +308,14 @@ const Reservations = () => {
                           className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                         >
                           <Edit className="w-3 h-3" />
-                          <span>Modifier</span>
+                          <span>Edit</span>
                         </button>
                         <button 
                           onClick={() => handleCancelReservation(reservation.id)}
                           className="flex items-center space-x-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
                         >
                           <Trash2 className="w-3 h-3" />
-                          <span>Annuler</span>
+                          <span>Cancel</span>
                         </button>
                       </div>
                     </div>
@@ -325,10 +325,10 @@ const Reservations = () => {
                 <div className="text-center py-8">
                   <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Aucune réservation
+                    No reservations
                   </h3>
                   <p className="text-gray-600">
-                    Vous n'avez pas encore de réservation.
+                    You don't have any reservations yet.
                   </p>
                 </div>
               )}
@@ -337,7 +337,7 @@ const Reservations = () => {
             {reservations.length > 0 && (
               <div className="mt-6 text-center">
                 <button className="text-primary-600 hover:text-primary-700 font-medium">
-                  Voir l'historique
+                  View history
                 </button>
               </div>
             )}
@@ -347,22 +347,22 @@ const Reservations = () => {
         {/* Info Section */}
         <div className="mt-8 bg-primary-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-primary-900 mb-3">
-            Informations importantes
+            Important information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-primary-800">
             <div>
-              <strong>Horaires de service :</strong>
+              <strong>Opening hours:</strong>
               <br />
-              Lundi - Vendredi: 11h30 - 14h30, 18h30 - 22h30
+              Monday - Friday: 11:30 AM - 2:30 PM, 6:30 PM - 10:30 PM
               <br />
-              Week-end: 12h00 - 23h00
+              Weekend: 12:00 PM - 11:00 PM
             </div>
             <div>
-              <strong>Politique d'annulation :</strong>
+              <strong>Cancellation policy:</strong>
               <br />
-              Annulation gratuite jusqu'à 2h avant la réservation.
+              Free cancellation up to 2 hours before reservation.
               <br />
-              Pour les groupes de +6 personnes, merci d'appeler.
+              For groups of 6+ people, please call.
             </div>
           </div>
         </div>

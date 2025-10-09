@@ -31,7 +31,7 @@ const Checkout = () => {
     paymentMethod: 'card'
   })
 
-  // Rediriger si panier vide ou utilisateur non connecté
+  // Redirect if cart is empty or user not logged in
   if (!user) {
     navigate(ROUTES.LOGIN)
     return null
@@ -55,10 +55,10 @@ const Checkout = () => {
     setIsProcessing(true)
 
     try {
-      // Simulation du traitement de commande
+      // Order processing simulation
       await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Créer la commande
+
+      // Create order
       const orderData = {
         userId: user.id,
         userEmail: user.email,
@@ -74,25 +74,25 @@ const Checkout = () => {
       const result = await createOrder(orderData)
       
       if (result.success) {
-        // Vider le panier
+        // Clear cart
         clearCart()
-        
-        // Afficher la confirmation
+
+        // Show confirmation
         setCompletedOrderId(result.orderId)
         setOrderCompleted(true)
-        toast.success('🎉 Commande passée avec succès !')
+        toast.success('🎉 Order placed successfully!')
       } else {
-        throw new Error(result.error || 'Erreur lors de la création de la commande')
+        throw new Error(result.error || 'Error creating order')
       }
     } catch (error) {
-      toast.error('Erreur lors du traitement de la commande')
+      toast.error('Error processing order')
       console.error('Checkout error:', error)
     } finally {
       setIsProcessing(false)
     }
   }
 
-  // Vue de confirmation de commande
+  // Order confirmation view
   if (orderCompleted) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -103,19 +103,19 @@ const Checkout = () => {
             </div>
             
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Commande confirmée !
+              Order confirmed!
             </h1>
-            
+
             <p className="text-gray-600 mb-6">
-              Votre commande <strong>#{completedOrderId}</strong> a été reçue et est en cours de traitement.
+              Your order <strong>#{completedOrderId}</strong> has been received and is being processed.
             </p>
             
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <p className="text-sm text-gray-600">
-                <strong>Total payé:</strong> {formattedTotalPriceAvailable}
+                <strong>Total paid:</strong> {formattedTotalPriceAvailable}
               </p>
               <p className="text-sm text-gray-600">
-                <strong>Articles:</strong> {totalItemsAvailable}
+                <strong>Items:</strong> {totalItemsAvailable}
               </p>
             </div>
             
@@ -124,14 +124,14 @@ const Checkout = () => {
                 onClick={() => navigate(ROUTES.ORDERS)}
                 className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
               >
-                Voir mes commandes
+                View my orders
               </button>
-              
+
               <button
                 onClick={() => navigate(ROUTES.MENU)}
                 className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
               >
-                Continuer mes achats
+                Continue shopping
               </button>
             </div>
           </div>
@@ -144,25 +144,25 @@ const Checkout = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Formulaire de commande */}
+          {/* Order form */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Finaliser la commande</h1>
-              <p className="text-gray-600">Complétez vos informations de livraison</p>
+              <h1 className="text-2xl font-bold text-gray-900">Complete your order</h1>
+              <p className="text-gray-600">Complete your delivery information</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Informations client */}
+              {/* Customer information */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <User className="w-5 h-5 mr-2" />
-                  Informations client
+                  Customer information
                 </h2>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom complet
+                      Full name
                     </label>
                     <input
                       type="text"
@@ -186,17 +186,17 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Adresse de livraison */}
+              {/* Delivery address */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
-                  Livraison
+                  Delivery
                 </h2>
                 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Adresse de livraison *
+                      Delivery address *
                     </label>
                     <textarea
                       name="deliveryAddress"
@@ -211,7 +211,7 @@ const Checkout = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Téléphone *
+                      Phone *
                     </label>
                     <input
                       type="tel"
@@ -226,25 +226,25 @@ const Checkout = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Instructions de livraison
+                      Delivery instructions
                     </label>
                     <textarea
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
                       rows={2}
-                      placeholder="Étage, code d'accès, instructions spéciales..."
+                      placeholder="Floor, access code, special instructions..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Paiement */}
+              {/* Payment */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <CreditCard className="w-5 h-5 mr-2" />
-                  Paiement
+                  Payment
                 </h2>
                 
                 <div className="space-y-3">
@@ -258,10 +258,10 @@ const Checkout = () => {
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      💳 Carte bancaire (simulé)
+                      💳 Credit card (simulated)
                     </span>
                   </label>
-                  
+
                   <label className="flex items-center">
                     <input
                       type="radio"
@@ -272,13 +272,13 @@ const Checkout = () => {
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      💰 Espèces à la livraison
+                      💰 Cash on delivery
                     </span>
                   </label>
                 </div>
               </div>
 
-              {/* Bouton de commande */}
+              {/* Order button */}
               <button
                 type="submit"
                 disabled={isProcessing}
@@ -291,21 +291,21 @@ const Checkout = () => {
                 {isProcessing ? (
                   <span className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Traitement en cours...
+                    Processing...
                   </span>
                 ) : (
-                  `Commander - ${formattedTotalPriceAvailable}`
+                  `Order - ${formattedTotalPriceAvailable}`
                 )}
               </button>
             </form>
           </div>
 
-          {/* Résumé de commande */}
+          {/* Order summary */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <ShoppingBag className="w-5 h-5 mr-2" />
-                Résumé de commande
+                Order summary
               </h2>
               
               <div className="space-y-4">
@@ -335,13 +335,13 @@ const Checkout = () => {
               
               <div className="border-t pt-4 mt-4 space-y-2">
                 <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Total ({totalItemsAvailable} articles)</span>
+                  <span>Total ({totalItemsAvailable} items)</span>
                   <span className="text-primary-600">{formattedTotalPriceAvailable}</span>
                 </div>
-                
+
                 <div className="text-sm text-gray-500">
-                  <p>• Livraison estimée: 30-45 minutes</p>
-                  <p>• Paiement sécurisé</p>
+                  <p>• Estimated delivery: 30-45 minutes</p>
+                  <p>• Secure payment</p>
                 </div>
               </div>
             </div>

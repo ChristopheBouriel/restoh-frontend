@@ -42,7 +42,7 @@ const createTestUsersStore = () => create((set, get) => ({
       {
         id: 'admin',
         email: 'admin@restoh.fr',
-        name: 'Administrateur',
+        name: 'Administrator',
         role: 'admin',
         phone: '01 23 45 67 89',
         address: '456 Avenue de l\'Administration, 75008 Paris',
@@ -443,19 +443,19 @@ describe('usersStore', () => {
       const users = store.getState().users
       expect(users).toHaveLength(2) // 2 default users
       
-      // Vérifier enrichissement admin
+      // Check enrichissement admin
       const adminUser = users.find(u => u.id === 'admin')
       expect(adminUser.totalOrders).toBe(2)
       expect(adminUser.totalSpent).toBe(25.50) // Seulement les delivered
       expect(adminUser.totalReservations).toBe(1)
       
-      // Vérifier enrichissement client
+      // Check enrichissement client
       const clientUser = users.find(u => u.id === 'client')
       expect(clientUser.totalOrders).toBe(1)
       expect(clientUser.totalSpent).toBe(35.75)
       expect(clientUser.totalReservations).toBe(2)
 
-      // Vérifier nettoyage ancienne clé
+      // Check nettoyage ancienne clé
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('admin-users')
     })
 
@@ -468,13 +468,13 @@ describe('usersStore', () => {
 
       store.getState().saveUserChangesToStorage(testUsers)
 
-      // Vérifier que seulement l'utilisateur non-par-défaut est sauvegardé
+      // Check que seulement l'utilisateur non-par-défaut est sauvegardé
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
         'registered-users',
         expect.stringContaining('user-123')
       )
       
-      // Vérifier que les utilisateurs par défaut ne sont pas sauvegardés
+      // Check que les utilisateurs par défaut ne sont pas sauvegardés
       const savedData = JSON.parse(mockLocalStorage.setItem.mock.calls[0][1])
       expect(savedData).toHaveLength(1)
       expect(savedData[0].id).toBe('user-123')
@@ -650,7 +650,7 @@ describe('usersStore', () => {
     })
   })
 
-  describe('Gestion des Erreurs', () => {
+  describe('Management des Erreurs', () => {
     it('should handle errors in async actions and reset loading', async () => {
       // Simuler une erreur en mockant setTimeout pour throw
       const originalSetTimeout = global.setTimeout

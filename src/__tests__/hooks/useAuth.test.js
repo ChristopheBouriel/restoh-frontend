@@ -98,7 +98,7 @@ describe('useAuth Hook', () => {
         email: 'test@example.com', 
         password: 'password' 
       })
-      expect(toast.success).toHaveBeenCalledWith('Connexion réussie !')
+      expect(toast.success).toHaveBeenCalledWith('Successfully logged in!')
       expect(mockNavigate).toHaveBeenCalledWith('/')
       expect(loginResult).toBe(true)
     })
@@ -106,7 +106,7 @@ describe('useAuth Hook', () => {
     it('should handle failed login with error toast', async () => {
       const mockErrorState = {
         ...mockAuthStore,
-        error: 'Identifiants invalides'
+        error: 'Invalid credentials'
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
       mockAuthStore.login.mockResolvedValue({ success: false })
@@ -122,7 +122,7 @@ describe('useAuth Hook', () => {
         email: 'wrong@example.com', 
         password: 'wrong' 
       })
-      expect(toast.error).toHaveBeenCalledWith('Identifiants invalides')
+      expect(toast.error).toHaveBeenCalledWith('Invalid credentials')
       expect(mockNavigate).not.toHaveBeenCalled()
       expect(loginResult).toBe(false)
     })
@@ -146,7 +146,7 @@ describe('useAuth Hook', () => {
         email: 'new@example.com',
         password: 'password123'
       })
-      expect(toast.success).toHaveBeenCalledWith('Inscription réussie ! Bienvenue !')
+      expect(toast.success).toHaveBeenCalledWith('Registration successful! Welcome!')
       expect(mockNavigate).toHaveBeenCalledWith('/')
       expect(registerResult).toBe(true)
     })
@@ -154,7 +154,7 @@ describe('useAuth Hook', () => {
     it('should handle failed registration with error toast', async () => {
       const mockErrorState = {
         ...mockAuthStore,
-        error: 'Email déjà utilisé'
+        error: 'Email already in use'
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
       mockAuthStore.register.mockResolvedValue({ success: false })
@@ -170,7 +170,7 @@ describe('useAuth Hook', () => {
         })
       })
 
-      expect(toast.error).toHaveBeenCalledWith('Email déjà utilisé')
+      expect(toast.error).toHaveBeenCalledWith('Email already in use')
       expect(mockNavigate).not.toHaveBeenCalled()
       expect(registerResult).toBe(false)
     })
@@ -186,7 +186,7 @@ describe('useAuth Hook', () => {
       })
 
       expect(mockAuthStore.logout).toHaveBeenCalled()
-      expect(toast.success).toHaveBeenCalledWith('Déconnexion réussie')
+      expect(toast.success).toHaveBeenCalledWith('Successfully logged out')
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
 
@@ -207,7 +207,7 @@ describe('useAuth Hook', () => {
         name: 'Updated Name',
         email: 'updated@example.com'
       })
-      expect(toast.success).toHaveBeenCalledWith('Profil mis à jour avec succès !')
+      expect(toast.success).toHaveBeenCalledWith('Profile updated successfully!')
       expect(updateResult).toBe(true)
     })
 
@@ -222,7 +222,7 @@ describe('useAuth Hook', () => {
       })
 
       expect(mockAuthStore.deleteAccount).toHaveBeenCalledWith('password123')
-      expect(toast.success).toHaveBeenCalledWith('Compte supprimé avec succès')
+      expect(toast.success).toHaveBeenCalledWith('Account deleted successfully')
       expect(mockNavigate).toHaveBeenCalledWith('/')
       expect(deleteResult).toBe(true)
     })
@@ -239,17 +239,17 @@ describe('useAuth Hook', () => {
 
       expect(mockAuthStore.changePassword).toHaveBeenCalledWith('oldPassword', 'newPassword')
       expect(changeResult).toEqual({ success: true })
-      // Pas de toast pour le changement de mot de passe (géré par le composant)
+      // No toast for password change (handled by component)
       expect(toast.success).not.toHaveBeenCalled()
     })
   })
 
-  // 4. GESTION D'ERREURS
+  // 4. ERROR HANDLING
   describe('Error Handling', () => {
     it('should handle profile update failure with error toast', async () => {
       const mockErrorState = {
         ...mockAuthStore,
-        error: 'Erreur de validation'
+        error: 'Validation error'
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
       mockAuthStore.updateProfile.mockResolvedValue({ success: false })
@@ -263,14 +263,14 @@ describe('useAuth Hook', () => {
         })
       })
 
-      expect(toast.error).toHaveBeenCalledWith('Erreur de validation')
+      expect(toast.error).toHaveBeenCalledWith('Validation error')
       expect(updateResult).toBe(false)
     })
 
     it('should return error details for failed password change', async () => {
       mockAuthStore.changePassword.mockResolvedValue({ 
         success: false, 
-        error: 'Mot de passe actuel incorrect' 
+        error: 'Current password is incorrect' 
       })
 
       const { result } = renderHook(() => useAuth())
@@ -281,10 +281,10 @@ describe('useAuth Hook', () => {
       })
 
       expect(changeResult).toEqual({ 
-        success: false, 
-        error: 'Mot de passe actuel incorrect' 
+        success: false,
+        error: 'Current password is incorrect'
       })
-      // Pas de toast pour les erreurs de changement de mot de passe (géré par le composant)
+      // No toast for password change errors (handled by component)
       expect(toast.error).not.toHaveBeenCalled()
     })
 
@@ -303,7 +303,7 @@ describe('useAuth Hook', () => {
         loginResult = await result.current.login({ email: 'test@example.com', password: 'password' })
       })
 
-      expect(toast.error).toHaveBeenCalledWith('Erreur de connexion')
+      expect(toast.error).toHaveBeenCalledWith('Login error')
       expect(loginResult).toBe(false)
     })
 

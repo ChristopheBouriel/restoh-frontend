@@ -21,7 +21,7 @@ const MenuManagement = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   
-  // Utiliser le hook de menu centralisé
+  // Use centralized menu hook
   const {
     items: menuItems,
     isLoading,
@@ -43,20 +43,20 @@ const MenuManagement = () => {
   })
 
   const categories = [
-    { value: 'all', label: 'Toutes catégories' },
-    { value: 'entrees', label: 'Entrées' },
-    { value: 'plats', label: 'Plats' },
+    { value: 'all', label: 'All Categories' },
+    { value: 'entrees', label: 'Starters' },
+    { value: 'plats', label: 'Main Courses' },
     { value: 'desserts', label: 'Desserts' },
-    { value: 'boissons', label: 'Boissons' }
+    { value: 'boissons', label: 'Beverages' }
   ]
 
-  // Supprimer loadMenuItems car le hook useMenu gère l'initialisation
+  // Remove loadMenuItems as useMenu hook handles initialization
 
   useEffect(() => {
     filterItems()
   }, [menuItems, searchTerm, selectedCategory])
 
-  // Fonction loadMenuItems supprimée - gérée par useMenu
+  // loadMenuItems function removed - handled by useMenu
 
   const filterItems = () => {
     let filtered = menuItems
@@ -75,7 +75,7 @@ const MenuManagement = () => {
     setFilteredItems(filtered)
   }
 
-  // saveToStorage supprimé - géré par useMenu
+  // saveToStorage removed - handled by useMenu
 
   const resetForm = () => {
     setFormData({
@@ -106,8 +106,8 @@ const MenuManagement = () => {
       image: item.image,
       available: item.available,
       preparationTime: item.preparationTime.toString(),
-      ingredients: item.ingredients.join(', '),
-      allergens: item.allergens.join(', ')
+      ingredients: item.ingredients ? item.ingredients.join(', ') : '',
+      allergens: item.allergens ? item.allergens.join(', ') : ''
     })
     setEditingItem(item)
     setShowModal(true)
@@ -123,7 +123,7 @@ const MenuManagement = () => {
     e.preventDefault()
     
     if (!formData.name || !formData.price || !formData.description) {
-      toast.error('Veuillez remplir tous les champs obligatoires')
+      toast.error('Please fill in all required fields')
       return
     }
 
@@ -142,16 +142,16 @@ const MenuManagement = () => {
     if (editingItem) {
       const result = updateItem(editingItem.id, itemData)
       if (result.success) {
-        toast.success('Article modifié avec succès !')
+        toast.success('Item updated successfully!')
       } else {
-        toast.error('Erreur lors de la modification')
+        toast.error('Error updating item')
       }
     } else {
       const result = addItem(itemData)
       if (result.success) {
-        toast.success('Article ajouté avec succès !')
+        toast.success('Item added successfully!')
       } else {
-        toast.error('Erreur lors de l\'ajout')
+        toast.error('Error adding item')
       }
     }
 
@@ -159,12 +159,12 @@ const MenuManagement = () => {
   }
 
   const handleDeleteItem = (id, name) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${name}" ?`)) {
+    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       const result = deleteItem(id)
       if (result.success) {
-        toast.success('Article supprimé')
+        toast.success('Item deleted')
       } else {
-        toast.error('Erreur lors de la suppression')
+        toast.error('Error deleting item')
       }
     }
   }
@@ -173,9 +173,9 @@ const MenuManagement = () => {
     const result = toggleAvailability(id)
     if (result.success) {
       const item = result.item
-      toast.success(`${item.name} ${item.available ? 'activé' : 'désactivé'}`)
+      toast.success(`${item.name} ${item.available ? 'enabled' : 'disabled'}`)
     } else {
-      toast.error('Erreur lors de la modification')
+      toast.error('Error updating availability')
     }
   }
 
@@ -208,15 +208,15 @@ const MenuManagement = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion du Menu</h1>
-          <p className="text-gray-600">{filteredItems.length} articles • {menuItems.filter(item => item.available).length} disponibles</p>
+          <h1 className="text-2xl font-bold text-gray-900">Menu Management</h1>
+          <p className="text-gray-600">{filteredItems.length} items • {menuItems.filter(item => item.available).length} available</p>
         </div>
         <button
           onClick={openAddModal}
           className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
         >
           <Plus size={20} />
-          <span>Nouvel article</span>
+          <span>New Item</span>
         </button>
       </div>
 
@@ -227,7 +227,7 @@ const MenuManagement = () => {
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher un article..."
+              placeholder="Search for an item..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -267,7 +267,7 @@ const MenuManagement = () => {
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {item.available ? 'Disponible' : 'Indisponible'}
+                  {item.available ? 'Available' : 'Unavailable'}
                 </span>
               </div>
             </div>
@@ -285,9 +285,9 @@ const MenuManagement = () => {
                 <span>{item.preparationTime} min</span>
               </div>
 
-              {item.allergens.length > 0 && (
+              {item.allergens && item.allergens.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Allergènes:</p>
+                  <p className="text-xs text-gray-500 mb-1">Allergens:</p>
                   <div className="flex flex-wrap gap-1">
                     {item.allergens.map((allergen, idx) => (
                       <span key={idx} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
@@ -304,7 +304,7 @@ const MenuManagement = () => {
                   className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                 >
                   <Edit size={16} />
-                  <span>Modifier</span>
+                  <span>Edit</span>
                 </button>
 
                 <button
@@ -334,11 +334,11 @@ const MenuManagement = () => {
       {filteredItems.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🍽️</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun article trouvé</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
           <p className="text-gray-600 mb-6">
             {searchTerm || selectedCategory !== 'all'
-              ? 'Essayez de modifier vos filtres'
-              : 'Commencez par ajouter votre premier article au menu'
+              ? 'Try adjusting your filters'
+              : 'Start by adding your first menu item'
             }
           </p>
           {!searchTerm && selectedCategory === 'all' && (
@@ -346,7 +346,7 @@ const MenuManagement = () => {
               onClick={openAddModal}
               className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
             >
-              Ajouter un article
+              Add an item
             </button>
           )}
         </div>
@@ -359,7 +359,7 @@ const MenuManagement = () => {
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {editingItem ? 'Modifier l\'article' : 'Nouvel article'}
+                  {editingItem ? 'Edit Item' : 'New Item'}
                 </h3>
                 <button
                   onClick={closeModal}
@@ -374,7 +374,7 @@ const MenuManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom de l'article *
+                    Item Name *
                   </label>
                   <input
                     type="text"
@@ -382,13 +382,13 @@ const MenuManagement = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: Pizza Margherita"
+                    placeholder="e.g. Pizza Margherita"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Catégorie *
+                    Category *
                   </label>
                   <select
                     value={formData.category}
@@ -405,7 +405,7 @@ const MenuManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prix (€) *
+                    Price (€) *
                   </label>
                   <input
                     type="number"
@@ -420,7 +420,7 @@ const MenuManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Temps de préparation (min)
+                    Preparation Time (min)
                   </label>
                   <input
                     type="number"
@@ -442,13 +442,13 @@ const MenuManagement = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Décrivez le plat, ses ingrédients principaux..."
+                  placeholder="Describe the dish, its main ingredients..."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  URL de l'image
+                  Image URL
                 </label>
                 <input
                   type="url"
@@ -461,20 +461,20 @@ const MenuManagement = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ingrédients (séparés par des virgules)
+                  Ingredients (comma-separated)
                 </label>
                 <input
                   type="text"
                   value={formData.ingredients}
                   onChange={(e) => setFormData({...formData, ingredients: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Tomates, Mozzarella, Basilic"
+                  placeholder="Tomatoes, Mozzarella, Basil"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Allergènes (séparés par des virgules)
+                  Allergens (comma-separated)
                 </label>
                 <input
                   type="text"
@@ -494,7 +494,7 @@ const MenuManagement = () => {
                   className="mr-2"
                 />
                 <label htmlFor="available" className="text-sm text-gray-700">
-                  Article disponible
+                  Item available
                 </label>
               </div>
 
@@ -504,13 +504,13 @@ const MenuManagement = () => {
                   onClick={closeModal}
                   className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Annuler
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                 >
-                  {editingItem ? 'Modifier' : 'Ajouter'}
+                  {editingItem ? 'Update' : 'Add'}
                 </button>
               </div>
             </form>

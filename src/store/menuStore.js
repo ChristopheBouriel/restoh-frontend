@@ -5,7 +5,7 @@ import * as menuApi from '../api/menuApi'
 const useMenuStore = create(
   persist(
     (set, get) => ({
-      // État
+      // State
       items: [],
       categories: [],
       isLoading: false,
@@ -18,7 +18,7 @@ const useMenuStore = create(
 
       clearError: () => set({ error: null }),
 
-      // Initialiser le menu depuis l'API
+      // Initialize menu from API
       fetchMenuItems: async () => {
         set({ isLoading: true, error: null })
 
@@ -26,13 +26,21 @@ const useMenuStore = create(
           const result = await menuApi.getMenuItems()
 
           if (result.success) {
-            const items = result.data || []
+            const rawItems = result.data || []
 
-            // Extraire automatiquement les catégories uniques depuis les items
+            // Normalize items to ensure all required fields exist
+            const items = rawItems.map(item => ({
+              ...item,
+              allergens: item.allergens || [],
+              ingredients: item.ingredients || [],
+              preparationTime: item.preparationTime || 0
+            }))
+
+            // Automatically extract unique categories from items
             const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))]
             const categoriesWithLabels = uniqueCategories.map(cat => ({
               id: cat,
-              name: cat.charAt(0).toUpperCase() + cat.slice(1), // Capitaliser
+              name: cat.charAt(0).toUpperCase() + cat.slice(1), // Capitalize
               slug: cat
             }))
 
@@ -51,7 +59,7 @@ const useMenuStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du chargement du menu'
+          const errorMessage = error.error || 'Error loading menu'
           set({
             error: errorMessage,
             isLoading: false
@@ -60,10 +68,10 @@ const useMenuStore = create(
         }
       },
 
-      // Récupérer les catégories (maintenant extrait depuis les items)
+      // Fetch categories (now extracted from items)
       fetchCategories: async () => {
-        // Les catégories sont maintenant chargées automatiquement avec fetchMenuItems
-        // Cette fonction est conservée pour la compatibilité mais ne fait plus d'appel API
+        // Categories are now loaded automatically with fetchMenuItems
+        // This function is kept for compatibility but no longer makes API calls
         const items = get().items
         if (items.length > 0) {
           const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))]
@@ -78,7 +86,7 @@ const useMenuStore = create(
         return { success: true }
       },
 
-      // Getters (calculs locaux sur les données)
+      // Getters (local computations on data)
       getAvailableItems: () => {
         return get().items.filter(item => item.isAvailable !== false)
       },
@@ -95,7 +103,7 @@ const useMenuStore = create(
         return get().items.find(item => item._id === id || item.id === id)
       },
 
-      // Actions CRUD (pour l'admin) - Appels API
+      // CRUD Actions (for admin) - API Calls
       createItem: async (itemData) => {
         set({ isLoading: true, error: null })
 
@@ -103,7 +111,7 @@ const useMenuStore = create(
           const result = await menuApi.createMenuItem(itemData)
 
           if (result.success) {
-            // Recharger le menu après création
+            // Reload menu after creation
             await get().fetchMenuItems()
             set({ isLoading: false })
             return { success: true, item: result.data }
@@ -115,7 +123,7 @@ const useMenuStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la création de l\'item'
+          const errorMessage = error.error || 'Error creating item'
           set({
             error: errorMessage,
             isLoading: false
@@ -131,7 +139,7 @@ const useMenuStore = create(
           const result = await menuApi.updateMenuItem(id, itemData)
 
           if (result.success) {
-            // Recharger le menu après mise à jour
+            // Reload menu after update
             await get().fetchMenuItems()
             set({ isLoading: false })
             return { success: true, item: result.data }
@@ -143,7 +151,7 @@ const useMenuStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la mise à jour de l\'item'
+          const errorMessage = error.error || 'Error updating item'
           set({
             error: errorMessage,
             isLoading: false
@@ -159,7 +167,7 @@ const useMenuStore = create(
           const result = await menuApi.deleteMenuItem(id)
 
           if (result.success) {
-            // Recharger le menu après suppression
+            // Reload menu after deletion
             await get().fetchMenuItems()
             set({ isLoading: false })
             return { success: true }
@@ -171,7 +179,7 @@ const useMenuStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la suppression de l\'item'
+          const errorMessage = error.error || 'Error deleting item'
           set({
             error: errorMessage,
             isLoading: false
@@ -183,10 +191,10 @@ const useMenuStore = create(
       toggleAvailability: async (id) => {
         const item = get().getItemById(id)
         if (!item) {
-          return { success: false, error: 'Item non trouvé' }
+          return { success: false, error: 'Item not found' }
         }
 
-        // Toggle la disponibilité
+        // Toggle availability
         const newAvailability = !item.isAvailable
 
         return await get().updateItem(id, { isAvailable: newAvailability })

@@ -28,21 +28,21 @@ describe('Register Component', () => {
     it('should render registration form with all required fields', () => {
       render(<Register />)
       
-      // Vérifier les éléments principaux
+      // Check main elements
       expect(screen.getByText('RestOh!')).toBeInTheDocument()
-      expect(screen.getByText('Créez votre compte')).toBeInTheDocument()
-      
-      // Vérifier tous les champs requis
-      expect(screen.getByLabelText('Nom complet')).toBeInTheDocument()
-      expect(screen.getByLabelText('Adresse email')).toBeInTheDocument()
-      expect(screen.getByLabelText('Mot de passe')).toBeInTheDocument()
-      expect(screen.getByLabelText('Confirmer le mot de passe')).toBeInTheDocument()
-      
-      // Vérifier la checkbox des termes
-      expect(screen.getByLabelText(/J'accepte les/)).toBeInTheDocument()
-      
-      // Vérifier le bouton de soumission
-      expect(screen.getByRole('button', { name: 'Créer mon compte' })).toBeInTheDocument()
+      expect(screen.getByText('Create your account')).toBeInTheDocument()
+
+      // Check all required fields
+      expect(screen.getByLabelText('Full name')).toBeInTheDocument()
+      expect(screen.getByLabelText('Email address')).toBeInTheDocument()
+      expect(screen.getByLabelText('Password')).toBeInTheDocument()
+      expect(screen.getByLabelText('Confirm password')).toBeInTheDocument()
+
+      // Check terms checkbox
+      expect(screen.getByLabelText(/I accept the/)).toBeInTheDocument()
+
+      // Check submit button
+      expect(screen.getByRole('button', { name: 'Create my account' })).toBeInTheDocument()
     })
 
     it('should display navigation links to login and home', () => {
@@ -52,13 +52,13 @@ describe('Register Component', () => {
       expect(screen.getByRole('link', { name: 'RestOh!' })).toHaveAttribute('href', '/')
       
       // Lien vers la page de connexion
-      expect(screen.getByRole('link', { name: 'connectez-vous à votre compte existant' }))
+      expect(screen.getByRole('link', { name: 'log in to your existing account' }))
         .toHaveAttribute('href', '/login')
       
       // Liens vers les conditions
-      expect(screen.getByRole('link', { name: 'conditions d\'utilisation' }))
+      expect(screen.getByRole('link', { name: 'terms of use' }))
         .toHaveAttribute('href', '/terms')
-      expect(screen.getByRole('link', { name: 'politique de confidentialité' }))
+      expect(screen.getByRole('link', { name: 'privacy policy' }))
         .toHaveAttribute('href', '/privacy')
     })
   })
@@ -68,53 +68,53 @@ describe('Register Component', () => {
     it('should prevent form submission when required fields are empty', async () => {
       render(<Register />)
       
-      // Vérifier que les champs sont requis
-      const nameInput = screen.getByLabelText('Nom complet')
-      const emailInput = screen.getByLabelText('Adresse email')
-      const passwordInput = screen.getByLabelText('Mot de passe')
-      const confirmPasswordInput = screen.getByLabelText('Confirmer le mot de passe')
-      const termsCheckbox = screen.getByLabelText(/J'accepte les/)
-      
+      // Check that fields are required
+      const nameInput = screen.getByLabelText('Full name')
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
+      const confirmPasswordInput = screen.getByLabelText('Confirm password')
+      const termsCheckbox = screen.getByLabelText(/I accept the/)
+
       expect(nameInput).toBeRequired()
       expect(emailInput).toBeRequired()
       expect(passwordInput).toBeRequired()
       expect(confirmPasswordInput).toBeRequired()
       expect(termsCheckbox).toBeRequired()
-      
-      // Tenter de cliquer sur submit - ne devrait pas appeler register
-      const submitButton = screen.getByRole('button', { name: 'Créer mon compte' })
+
+      // Try to click submit - should not call register
+      const submitButton = screen.getByRole('button', { name: 'Create my account' })
       await user.click(submitButton)
-      
-      // Vérifier que register n'est pas appelé à cause de la validation HTML5
+
+      // Check that register is not called due to HTML5 validation
       expect(mockRegister).not.toHaveBeenCalled()
     })
 
     it('should handle form submission with invalid data gracefully', async () => {
       render(<Register />)
-      
-      // Remplir tous les champs avec des données invalides
-      await user.type(screen.getByLabelText('Nom complet'), 'Test User')
-      await user.type(screen.getByLabelText('Adresse email'), 'email-invalide')
-      await user.type(screen.getByLabelText('Mot de passe'), '123') // Trop court
-      await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'different') // Différent
-      
-      // Cocher les termes
-      const termsCheckbox = screen.getByLabelText(/J'accepte les/)
+
+      // Fill all fields with invalid data
+      await user.type(screen.getByLabelText('Full name'), 'Test User')
+      await user.type(screen.getByLabelText('Email address'), 'invalid-email')
+      await user.type(screen.getByLabelText('Password'), '123') // Too short
+      await user.type(screen.getByLabelText('Confirm password'), 'different') // Different
+
+      // Check terms checkbox
+      const termsCheckbox = screen.getByLabelText(/I accept the/)
       await user.click(termsCheckbox)
-      
-      const submitButton = screen.getByRole('button', { name: 'Créer mon compte' })
-      
-      // Vérifier que les champs ont les bonnes valeurs
-      expect(screen.getByLabelText('Nom complet')).toHaveValue('Test User')
-      expect(screen.getByLabelText('Adresse email')).toHaveValue('email-invalide')
-      expect(screen.getByLabelText('Mot de passe')).toHaveValue('123')
-      expect(screen.getByLabelText('Confirmer le mot de passe')).toHaveValue('different')
-      
-      // Le formulaire ne devrait pas être soumis avec des données invalides
-      // (soit par validation HTML5, soit par validation JS)
+
+      const submitButton = screen.getByRole('button', { name: 'Create my account' })
+
+      // Check that fields have correct values
+      expect(screen.getByLabelText('Full name')).toHaveValue('Test User')
+      expect(screen.getByLabelText('Email address')).toHaveValue('invalid-email')
+      expect(screen.getByLabelText('Password')).toHaveValue('123')
+      expect(screen.getByLabelText('Confirm password')).toHaveValue('different')
+
+      // Form should not be submitted with invalid data
+      // (either by HTML5 validation or JS validation)
       await user.click(submitButton)
-      
-      // Dans tous les cas, register ne devrait pas être appelé avec des données invalides
+
+      // In any case, register should not be called with invalid data
       expect(mockRegister).not.toHaveBeenCalled()
     })
 
@@ -122,7 +122,7 @@ describe('Register Component', () => {
       render(<Register />)
       
       // Test d'un email valide d'abord
-      const emailInput = screen.getByLabelText('Adresse email')
+      const emailInput = screen.getByLabelText('Email address')
       expect(emailInput).toHaveAttribute('type', 'email')
       
       // Le type="email" HTML5 fournit la validation de base
@@ -136,11 +136,11 @@ describe('Register Component', () => {
     it('should allow typing in all form fields', async () => {
       render(<Register />)
       
-      // Tester que tous les champs acceptent la saisie
-      const nameInput = screen.getByLabelText('Nom complet')
-      const emailInput = screen.getByLabelText('Adresse email')
-      const passwordInput = screen.getByLabelText('Mot de passe')
-      const confirmPasswordInput = screen.getByLabelText('Confirmer le mot de passe')
+      // Test that all fields accept input
+      const nameInput = screen.getByLabelText('Full name')
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
+      const confirmPasswordInput = screen.getByLabelText('Confirm password')
       
       await user.type(nameInput, 'Jean Dupont')
       await user.type(emailInput, 'jean@example.com')
@@ -156,10 +156,10 @@ describe('Register Component', () => {
     it('should toggle password visibility when eye icon clicked', async () => {
       render(<Register />)
       
-      const passwordInput = screen.getByLabelText('Mot de passe')
-      const confirmPasswordInput = screen.getByLabelText('Confirmer le mot de passe')
-      
-      // Initialement, les champs doivent être de type password
+      const passwordInput = screen.getByLabelText('Password')
+      const confirmPasswordInput = screen.getByLabelText('Confirm password')
+
+      // Initially, fields should be password type
       expect(passwordInput).toHaveAttribute('type', 'password')
       expect(confirmPasswordInput).toHaveAttribute('type', 'password')
       
@@ -174,7 +174,7 @@ describe('Register Component', () => {
       await user.click(confirmPasswordToggle)
       expect(confirmPasswordInput).toHaveAttribute('type', 'text')
       
-      // Cliquer à nouveau pour cacher
+      // Click à nouveau pour cacher
       await user.click(passwordToggle)
       expect(passwordInput).toHaveAttribute('type', 'password')
     })
@@ -183,21 +183,21 @@ describe('Register Component', () => {
       mockRegister.mockResolvedValue(true)
       render(<Register />)
       
-      // Remplir le formulaire avec des données valides
-      await user.type(screen.getByLabelText('Nom complet'), 'Jean Dupont')
-      await user.type(screen.getByLabelText('Adresse email'), 'jean@example.com')
-      await user.type(screen.getByLabelText('Mot de passe'), 'password123')
-      await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'password123')
+      // Fill le formulaire avec des données valides
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
       
-      // Cocher les termes
-      const termsCheckbox = screen.getByLabelText(/J'accepte les/)
+      // Check the terms
+      const termsCheckbox = screen.getByLabelText(/I accept the/)
       await user.click(termsCheckbox)
       
       // Soumettre le formulaire
-      const submitButton = screen.getByRole('button', { name: 'Créer mon compte' })
+      const submitButton = screen.getByRole('button', { name: 'Create my account' })
       await user.click(submitButton)
       
-      // Vérifier que register est appelé avec les bonnes données
+      // Check que register est appelé avec les bonnes données
       await waitFor(() => {
         expect(mockRegister).toHaveBeenCalledWith({
           name: 'Jean Dupont',
@@ -219,11 +219,11 @@ describe('Register Component', () => {
       
       render(<Register />)
       
-      // Vérifier l'état de chargement
-      expect(screen.getByText('Création du compte...')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Création du compte/ })).toBeDisabled()
+      // Check l'état de chargement
+      expect(screen.getByText('Creating account...')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Creating account.../ })).toBeDisabled()
       
-      // Vérifier l'icône de chargement
+      // Check l'icône de chargement
       const loadingSpinner = document.querySelector('.animate-spin')
       expect(loadingSpinner).toBeInTheDocument()
     })
@@ -238,37 +238,37 @@ describe('Register Component', () => {
       
       render(<Register />)
       
-      // Vérifier que l'erreur est affichée
+      // Check that error is displayed
       expect(screen.getByText(errorMessage)).toBeInTheDocument()
-      
-      // Vérifier que l'erreur a un style d'erreur
+
+      // Verify that error has error styling
       const errorContainer = screen.getByText(errorMessage).closest('div')
       expect(errorContainer).toHaveClass('text-red-700')
     })
   })
 
-  // 5. CAS LIMITE
+  // 5. EDGE CASES
   describe('Edge Cases', () => {
     it('should require terms checkbox to be checked', async () => {
       render(<Register />)
-      
-      // Remplir le formulaire sans cocher les termes
-      await user.type(screen.getByLabelText('Nom complet'), 'Jean Dupont')
-      await user.type(screen.getByLabelText('Adresse email'), 'jean@example.com')
-      await user.type(screen.getByLabelText('Mot de passe'), 'password123')
-      await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'password123')
-      
-      const submitButton = screen.getByRole('button', { name: 'Créer mon compte' })
-      const termsCheckbox = screen.getByLabelText(/J'accepte les/)
-      
-      // Vérifier que la checkbox est requise et non cochée
+
+      // Fill form without checking terms
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+
+      const submitButton = screen.getByRole('button', { name: 'Create my account' })
+      const termsCheckbox = screen.getByLabelText(/I accept the/)
+
+      // Verify that checkbox is required and not checked
       expect(termsCheckbox).toBeRequired()
       expect(termsCheckbox).not.toBeChecked()
-      
-      // Tenter de soumettre sans cocher les termes
+
+      // Try to submit without checking terms
       await user.click(submitButton)
-      
-      // La validation HTML5 devrait empêcher la soumission
+
+      // HTML5 validation should prevent submission
       expect(mockRegister).not.toHaveBeenCalled()
     })
   })

@@ -1,22 +1,22 @@
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
 
-// URL de base de l'API (depuis les variables d'environnement)
+// API base URL (from environment variables)
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
-// Créer l'instance axios
+// Create axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 secondes (bcrypt peut être lent en développement)
+  timeout: 30000, // 30 seconds (bcrypt can be slow in development)
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// Intercepteur de requêtes - Ajouter le token JWT automatiquement
+// Request interceptor - Add JWT token automatically
 apiClient.interceptors.request.use(
   (config) => {
-    // Récupérer le token depuis le localStorage
+    // Get token from localStorage
     const authStorage = localStorage.getItem('auth-storage')
 
     if (authStorage) {
@@ -39,43 +39,43 @@ apiClient.interceptors.request.use(
   }
 )
 
-// Intercepteur de réponses - Gérer les erreurs globalement
+// Response interceptor - Handle errors globally
 apiClient.interceptors.response.use(
   (response) => {
-    // Retourner directement la data pour simplifier l'usage
+    // Return data directly to simplify usage
     console.log('✅ Response interceptor SUCCESS:', response.data)
     return response.data
   },
   (error) => {
     console.log('❌ Response interceptor ERROR:', error)
-    // Gérer les différents codes d'erreur HTTP
+    // Handle different HTTP error codes
     if (error.response) {
       const { status, data } = error.response
 
       switch (status) {
         case 400:
-          // Bad Request - Erreur de validation
+          // Bad Request - Validation error
           console.error('Validation error:', data)
           break
 
         case 401:
-          // Unauthorized - Token invalide ou expiré
+          // Unauthorized - Invalid or expired token
           console.error('Authentication error:', data)
 
-          // Nettoyer le localStorage et rediriger vers login
+          // Clear localStorage and redirect to login
           localStorage.removeItem('auth-storage')
 
-          // Toast uniquement si pas déjà sur la page de login
+          // Toast only if not already on login page
           if (!window.location.pathname.includes('/login')) {
-            toast.error('Session expirée. Veuillez vous reconnecter.')
+            toast.error('Session expired. Please log in again.')
             window.location.href = '/login'
           }
           break
 
         case 403:
-          // Forbidden - Pas les permissions
+          // Forbidden - Insufficient permissions
           console.error('Permission denied:', data)
-          toast.error('Vous n\'avez pas les permissions nécessaires')
+          toast.error('You do not have the necessary permissions')
           break
 
         case 404:
@@ -84,40 +84,40 @@ apiClient.interceptors.response.use(
           break
 
         case 409:
-          // Conflict - Ex: email déjà utilisé
+          // Conflict - E.g.: email already used
           console.error('Conflict error:', data)
           break
 
         case 500:
           // Internal Server Error
           console.error('Server error:', data)
-          toast.error('Erreur serveur. Veuillez réessayer plus tard.')
+          toast.error('Server error. Please try again later.')
           break
 
         default:
           console.error('API error:', data)
       }
 
-      // Rejeter avec un objet d'erreur structuré
+      // Reject with a structured error object
       return Promise.reject({
         success: false,
-        error: data?.error || data?.message || 'Une erreur est survenue',
+        error: data?.error || data?.message || 'An error occurred',
         code: data?.code,
         status,
         details: data?.details
       })
     } else if (error.request) {
-      // La requête a été faite mais pas de réponse
+      // Request was made but no response received
       console.error('Network error:', error.request)
-      toast.error('Erreur de connexion au serveur')
+      toast.error('Server connection error')
 
       return Promise.reject({
         success: false,
-        error: 'Impossible de contacter le serveur',
+        error: 'Unable to contact the server',
         code: 'NETWORK_ERROR'
       })
     } else {
-      // Erreur lors de la configuration de la requête
+      // Error during request setup
       console.error('Request setup error:', error.message)
 
       return Promise.reject({

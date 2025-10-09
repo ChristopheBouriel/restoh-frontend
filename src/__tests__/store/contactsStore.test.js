@@ -165,7 +165,7 @@ const createTestContactsStore = () => create((set, get) => ({
     }
   },
 
-  // Supprimer un message
+  // Delete un message
   deleteMessage: async (messageId) => {
     set({ isLoading: true })
     

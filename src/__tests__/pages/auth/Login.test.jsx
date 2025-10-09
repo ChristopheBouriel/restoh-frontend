@@ -49,22 +49,22 @@ describe('Login Component', () => {
       
       // Header elements
       expect(screen.getByText('RestOh!')).toBeInTheDocument()
-      expect(screen.getByText('Connectez-vous à votre compte')).toBeInTheDocument()
-      expect(screen.getByText('créez un nouveau compte')).toBeInTheDocument()
+      expect(screen.getByText('Log in to your account')).toBeInTheDocument()
+      expect(screen.getByText('create a new account')).toBeInTheDocument()
       
       // Form fields
-      expect(screen.getByLabelText('Adresse email')).toBeInTheDocument()
-      expect(screen.getByLabelText('Mot de passe')).toBeInTheDocument()
-      expect(screen.getByLabelText('Se souvenir de moi')).toBeInTheDocument()
+      expect(screen.getByLabelText('Email address')).toBeInTheDocument()
+      expect(screen.getByLabelText('Password')).toBeInTheDocument()
+      expect(screen.getByLabelText('Remember me')).toBeInTheDocument()
       
       // Submit button
-      expect(screen.getByRole('button', { name: 'Se connecter' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument()
       
       // Links
-      expect(screen.getByText('Mot de passe oublié ?')).toBeInTheDocument()
+      expect(screen.getByText('Forgot password?')).toBeInTheDocument()
       
       // Demo credentials
-      expect(screen.getByText('Comptes de démonstration :')).toBeInTheDocument()
+      expect(screen.getByText('Demo accounts:')).toBeInTheDocument()
       expect(screen.getByText('🔐 Admin : admin@restoh.fr / admin123')).toBeInTheDocument()
       expect(screen.getByText('👤 Client : client@example.com / client123')).toBeInTheDocument()
     })
@@ -72,22 +72,22 @@ describe('Login Component', () => {
     test('should have proper form structure and attributes', () => {
       render(<LoginWrapper />)
       
-      const emailInput = screen.getByLabelText('Adresse email')
-      const passwordInput = screen.getByLabelText('Mot de passe')
-      const submitButton = screen.getByRole('button', { name: 'Se connecter' })
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
+      const submitButton = screen.getByRole('button', { name: 'Login' })
       
       // Input attributes
       expect(emailInput).toHaveAttribute('type', 'email')
       expect(emailInput).toHaveAttribute('name', 'email')
       expect(emailInput).toHaveAttribute('required')
       expect(emailInput).toHaveAttribute('autoComplete', 'email')
-      expect(emailInput).toHaveAttribute('placeholder', 'Entrez votre email')
+      expect(emailInput).toHaveAttribute('placeholder', 'Enter your email')
       
       expect(passwordInput).toHaveAttribute('type', 'password')
       expect(passwordInput).toHaveAttribute('name', 'password')
       expect(passwordInput).toHaveAttribute('required')
       expect(passwordInput).toHaveAttribute('autoComplete', 'current-password')
-      expect(passwordInput).toHaveAttribute('placeholder', 'Entrez votre mot de passe')
+      expect(passwordInput).toHaveAttribute('placeholder', 'Enter your password')
       
       // Submit button
       expect(submitButton).toHaveAttribute('type', 'submit')
@@ -100,7 +100,7 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const emailInput = screen.getByLabelText('Adresse email')
+      const emailInput = screen.getByLabelText('Email address')
       
       await user.type(emailInput, 'test@example.com')
       
@@ -111,7 +111,7 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const passwordInput = screen.getByLabelText('Mot de passe')
+      const passwordInput = screen.getByLabelText('Password')
       
       await user.type(passwordInput, 'password123')
       
@@ -122,8 +122,8 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const emailInput = screen.getByLabelText('Adresse email')
-      const passwordInput = screen.getByLabelText('Mot de passe')
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
       
       await user.type(emailInput, 'user@test.com')
       await user.type(passwordInput, 'mypassword')
@@ -138,7 +138,7 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const passwordInput = screen.getByLabelText('Mot de passe')
+      const passwordInput = screen.getByLabelText('Password')
       const toggleButton = screen.getByRole('button', { name: '' }) // Eye toggle button has no accessible name
       
       // Initially password should be hidden
@@ -175,9 +175,9 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const emailInput = screen.getByLabelText('Adresse email')
-      const passwordInput = screen.getByLabelText('Mot de passe')
-      const submitButton = screen.getByRole('button', { name: 'Se connecter' })
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
+      const submitButton = screen.getByRole('button', { name: 'Login' })
       
       // Fill form
       await user.type(emailInput, 'test@example.com')
@@ -197,9 +197,9 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const form = screen.getByText('Se connecter').closest('form')
-      const emailInput = screen.getByLabelText('Adresse email')
-      const passwordInput = screen.getByLabelText('Mot de passe')
+      const form = screen.getByText('Login').closest('form')
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
       
       await user.type(emailInput, 'test@example.com')
       await user.type(passwordInput, 'password123')
@@ -214,7 +214,7 @@ describe('Login Component', () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
       
-      const submitButton = screen.getByRole('button', { name: 'Se connecter' })
+      const submitButton = screen.getByRole('button', { name: 'Login' })
       
       await user.click(submitButton)
       
@@ -235,11 +235,11 @@ describe('Login Component', () => {
       
       render(<LoginWrapper />)
       
-      const submitButton = screen.getByRole('button', { name: /connexion en cours/i })
+      const submitButton = screen.getByRole('button', { name: /Logging in.../i })
       
       expect(submitButton).toBeDisabled()
-      expect(screen.getByText('Connexion en cours...')).toBeInTheDocument()
-      expect(screen.queryByText('Se connecter')).not.toBeInTheDocument()
+      expect(screen.getByText('Logging in...')).toBeInTheDocument()
+      expect(screen.queryByText('Login')).not.toBeInTheDocument()
       
       // Should show loading spinner
       expect(submitButton).toContainHTML('animate-spin')
@@ -255,11 +255,11 @@ describe('Login Component', () => {
       
       render(<LoginWrapper />)
       
-      const submitButton = screen.getByRole('button', { name: 'Se connecter' })
+      const submitButton = screen.getByRole('button', { name: 'Login' })
       
       expect(submitButton).not.toBeDisabled()
-      expect(screen.getByText('Se connecter')).toBeInTheDocument()
-      expect(screen.queryByText('Connexion en cours...')).not.toBeInTheDocument()
+      expect(screen.getByText('Login')).toBeInTheDocument()
+      expect(screen.queryByText('Login en cours...')).not.toBeInTheDocument()
     })
   })
 
@@ -311,7 +311,7 @@ describe('Login Component', () => {
     test('should have correct link to register page', () => {
       render(<LoginWrapper />)
       
-      const registerLink = screen.getByText('créez un nouveau compte')
+      const registerLink = screen.getByText('create a new account')
       expect(registerLink).toHaveAttribute('href', '/register')
     })
 
@@ -325,14 +325,14 @@ describe('Login Component', () => {
     test('should have correct link to forgot password page', () => {
       render(<LoginWrapper />)
       
-      const forgotPasswordLink = screen.getByText('Mot de passe oublié ?')
+      const forgotPasswordLink = screen.getByText('Forgot password?')
       expect(forgotPasswordLink).toHaveAttribute('href', '/forgot-password')
     })
 
     test('should have proper styling for navigation links', () => {
       render(<LoginWrapper />)
       
-      const registerLink = screen.getByText('créez un nouveau compte')
+      const registerLink = screen.getByText('create a new account')
       expect(registerLink).toHaveClass('font-medium', 'text-primary-600', 'hover:text-primary-500')
       
       const homeLink = screen.getByText('RestOh!')
@@ -345,20 +345,20 @@ describe('Login Component', () => {
       render(<LoginWrapper />)
       
       // Email field
-      const emailLabel = screen.getByText('Adresse email')
-      const emailInput = screen.getByLabelText('Adresse email')
+      const emailLabel = screen.getByText('Email address')
+      const emailInput = screen.getByLabelText('Email address')
       expect(emailLabel).toHaveAttribute('for', 'email')
       expect(emailInput).toHaveAttribute('id', 'email')
       
       // Password field
-      const passwordLabel = screen.getByText('Mot de passe')
-      const passwordInput = screen.getByLabelText('Mot de passe')
+      const passwordLabel = screen.getByText('Password')
+      const passwordInput = screen.getByLabelText('Password')
       expect(passwordLabel).toHaveAttribute('for', 'password')
       expect(passwordInput).toHaveAttribute('id', 'password')
       
       // Remember me checkbox
-      const checkboxLabel = screen.getByText('Se souvenir de moi')
-      const checkbox = screen.getByLabelText('Se souvenir de moi')
+      const checkboxLabel = screen.getByText('Remember me')
+      const checkbox = screen.getByLabelText('Remember me')
       expect(checkboxLabel).toHaveAttribute('for', 'remember-me')
       expect(checkbox).toHaveAttribute('id', 'remember-me')
     })
@@ -366,7 +366,7 @@ describe('Login Component', () => {
     test('should have proper button types', () => {
       render(<LoginWrapper />)
       
-      const submitButton = screen.getByRole('button', { name: /se connecter|connexion en cours/i })
+      const submitButton = screen.getByRole('button', { name: /Login|Logging in/i })
       const toggleButton = screen.getByRole('button', { name: '' })
       
       expect(submitButton).toHaveAttribute('type', 'submit')
@@ -378,7 +378,7 @@ describe('Login Component', () => {
     test('should display demo credentials with correct formatting', () => {
       render(<LoginWrapper />)
       
-      expect(screen.getByText('Comptes de démonstration :')).toBeInTheDocument()
+      expect(screen.getByText('Demo accounts:')).toBeInTheDocument()
       expect(screen.getByText('🔐 Admin : admin@restoh.fr / admin123')).toBeInTheDocument()
       expect(screen.getByText('👤 Client : client@example.com / client123')).toBeInTheDocument()
     })
@@ -386,7 +386,7 @@ describe('Login Component', () => {
     test('should have proper styling for demo credentials section', () => {
       render(<LoginWrapper />)
       
-      const demoSection = screen.getByText('Comptes de démonstration :').closest('div')
+      const demoSection = screen.getByText('Demo accounts:').closest('div')
       expect(demoSection).toHaveClass('mt-6', 'p-4', 'bg-gray-50', 'rounded-md')
     })
   })

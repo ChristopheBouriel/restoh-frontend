@@ -10,16 +10,16 @@ export const useReservations = () => {
     updateReservationStatus
   } = useReservationsStore()
 
-  // Filtrer les réservations pour l'utilisateur connecté uniquement
-  // ✅ Utiliser allReservations directement pour la réactivité
-  const userReservations = user 
-    ? allReservations.filter(r => r.userId === user.id) 
+  // Filter reservations for logged-in user only
+  // ✅ Use allReservations directly for reactivity
+  const userReservations = user
+    ? allReservations.filter(r => r.userId === user.id)
     : []
 
 
   const handleCreateReservation = async (reservationData) => {
     if (!user) {
-      toast.error('Vous devez être connecté pour créer une réservation')
+      toast.error('You must be logged in to create a reservation')
       throw new Error('User not authenticated')
     }
 
@@ -33,106 +33,107 @@ export const useReservations = () => {
         guests: reservationData.guests,
         specialRequests: reservationData.requests || ''
       }
-      
+
+
       const result = await createReservation(fullReservationData)
       if (result.success) {
-        toast.success('Réservation créée avec succès !')
+        toast.success('Reservation created successfully!')
         return result
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast.error('Erreur lors de la création de la réservation')
+      toast.error('Error creating reservation')
       throw error
     }
   }
 
   const handleUpdateReservation = async (reservationId) => {
     if (!user) {
-      toast.error('Vous devez être connecté pour modifier une réservation')
+      toast.error('You must be logged in to update a reservation')
       throw new Error('User not authenticated')
     }
 
     try {
-      const result = await updateReservationStatus(reservationId, 'pending') // Remet en attente pour re-validation
+      const result = await updateReservationStatus(reservationId, 'pending') // Reset to pending for re-validation
       if (result.success) {
-        toast.success('Réservation modifiée avec succès !')
+        toast.success('Reservation updated successfully!')
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast.error('Erreur lors de la modification de la réservation')
+      toast.error('Error updating reservation')
       throw error
     }
   }
 
   const handleCancelReservation = async (reservationId) => {
     if (!user) {
-      toast.error('Vous devez être connecté pour annuler une réservation')
+      toast.error('You must be logged in to cancel a reservation')
       throw new Error('User not authenticated')
     }
 
     try {
       const result = await updateReservationStatus(reservationId, 'cancelled')
-      
+
       if (result.success) {
-        toast.success('Réservation annulée')
+        toast.success('Reservation cancelled')
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast.error('Erreur lors de l\'annulation de la réservation')
+      toast.error('Error cancelling reservation')
       throw error
     }
   }
 
   const handleConfirmCancellation = async (reservationId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')) {
+    if (window.confirm('Are you sure you want to cancel this reservation?')) {
       await handleCancelReservation(reservationId)
       return true
     }
     return false
   }
 
-  // Formatage des dates
+  // Date formatting
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('fr-FR')
   }
 
   const formatDateTime = (date, time) => {
-    return `${formatDate(date)} à ${time}`
+    return `${formatDate(date)} at ${time}`
   }
 
   // Validation
   const validateReservationData = (data) => {
     const errors = []
-    
+
     if (!data.date) {
-      errors.push('La date est obligatoire')
+      errors.push('Date is required')
     }
-    
+
     if (!data.time) {
-      errors.push('L\'heure est obligatoire')
+      errors.push('Time is required')
     }
-    
+
     if (!data.guests || data.guests < 1) {
-      errors.push('Le nombre de personnes doit être au moins 1')
+      errors.push('Number of guests must be at least 1')
     }
-    
-    // Vérifier que la date n'est pas dans le passé
+
+    // Check that date is not in the past
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const reservationDate = new Date(data.date)
-    
+
     if (reservationDate < today) {
-      errors.push('Impossible de réserver dans le passé')
+      errors.push('Cannot book in the past')
     }
-    
+
     return errors
   }
 
   return {
-    // État - seulement les réservations de l'utilisateur connecté
+    // State - logged-in user's reservations only
     reservations: userReservations,
     upcomingReservations: userReservations.filter(r => {
       const today = new Date()
@@ -140,18 +141,18 @@ export const useReservations = () => {
       const reservationDate = new Date(r.date)
       return reservationDate >= today && r.status !== 'cancelled'
     }).sort((a, b) => new Date(a.date) - new Date(b.date)),
-    
-    // Actions avec gestion d'erreurs
+
+    // Actions with error handling
     createReservation: handleCreateReservation,
     updateReservation: handleUpdateReservation,
     cancelReservation: handleConfirmCancellation,
-    
-    // Utilitaires
+
+    // Utilities
     formatDate,
     formatDateTime,
     validateReservationData,
-    
-    // Statistiques pour l'utilisateur
+
+    // User statistics
     totalReservations: userReservations.length,
     confirmedReservations: userReservations.filter(r => r.status === 'confirmed').length,
     pendingReservations: userReservations.filter(r => r.status === 'pending').length

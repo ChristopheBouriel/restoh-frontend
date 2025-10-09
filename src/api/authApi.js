@@ -1,71 +1,71 @@
 import apiClient from './apiClient'
 
 /**
- * API d'authentification
+ * Authentication API
  */
 
-// Inscription d'un nouvel utilisateur
+// Register a new user
 export const register = async (userData) => {
   try {
     const response = await apiClient.post('/auth/register', userData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de l\'inscription' }
+    return { success: false, error: error.error || 'Registration error' }
   }
 }
 
-// Connexion utilisateur
+// User login
 export const login = async (credentials) => {
   try {
     const response = await apiClient.post('/auth/login', credentials)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur de connexion' }
+    return { success: false, error: error.error || 'Login error' }
   }
 }
 
-// Déconnexion (optionnel si pas de refresh tokens côté serveur)
+// Logout (optional if no refresh tokens server-side)
 export const logout = async () => {
   try {
     await apiClient.post('/auth/logout')
     return { success: true }
   } catch (error) {
-    // Même en cas d'erreur, on considère la déconnexion comme réussie côté client
+    // Even on error, consider logout successful on client-side
     return { success: true }
   }
 }
 
-// Rafraîchir le token JWT
+// Refresh JWT token
 export const refreshToken = async (refreshToken) => {
   try {
     const response = await apiClient.post('/auth/refresh', { refreshToken })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors du rafraîchissement du token' }
+    return { success: false, error: error.error || 'Error refreshing token' }
   }
 }
 
-// Récupérer les infos de l'utilisateur connecté
+// Get current user info
 export const getCurrentUser = async () => {
   try {
     const response = await apiClient.get('/auth/me')
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération du profil' }
+    return { success: false, error: error.error || 'Error fetching profile' }
   }
 }
 
-// Mettre à jour le profil utilisateur
+// Update user profile
 export const updateProfile = async (profileData) => {
   try {
     const response = await apiClient.put('/auth/profile', profileData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la mise à jour du profil' }
+    return { success: false, error: error.error || 'Error updating profile' }
   }
 }
 
-// Changer le mot de passe
+// Change password
 export const changePassword = async (currentPassword, newPassword) => {
   try {
     const response = await apiClient.put('/auth/change-password', {
@@ -74,11 +74,11 @@ export const changePassword = async (currentPassword, newPassword) => {
     })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors du changement de mot de passe' }
+    return { success: false, error: error.error || 'Error changing password' }
   }
 }
 
-// Supprimer le compte (RGPD)
+// Delete account (GDPR)
 export const deleteAccount = async (password) => {
   try {
     const response = await apiClient.delete('/auth/account', {
@@ -86,6 +86,6 @@ export const deleteAccount = async (password) => {
     })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la suppression du compte' }
+    return { success: false, error: error.error || 'Error deleting account' }
   }
 }

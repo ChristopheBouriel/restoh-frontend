@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex items-center space-x-2">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          <span className="text-gray-600">Vérification de l'authentification...</span>
+          <span className="text-gray-600">Verifying authentication...</span>
         </div>
       </div>
     )
@@ -28,15 +28,15 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Accès refusé</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-8">
-            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+            You do not have the necessary permissions to access this page.
           </p>
           <button
             onClick={() => window.history.back()}
             className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
           >
-            Retour
+            Back
           </button>
         </div>
       </div>

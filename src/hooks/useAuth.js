@@ -24,11 +24,11 @@ export const useAuth = () => {
     const result = await login(credentials)
     
     if (result.success) {
-      toast.success('Connexion réussie !')
+      toast.success('Successfully logged in!')
       navigate(ROUTES.HOME)
       return true
     } else {
-      toast.error(error || 'Erreur de connexion')
+      toast.error(error || 'Login error')
       return false
     }
   }
@@ -37,18 +37,18 @@ export const useAuth = () => {
     const result = await register(userData)
     
     if (result.success) {
-      toast.success('Inscription réussie ! Bienvenue !')
+      toast.success('Registration successful! Welcome!')
       navigate(ROUTES.HOME)
       return true
     } else {
-      toast.error(error || 'Erreur lors de l\'inscription')
+      toast.error(error || 'Registration error')
       return false
     }
   }
 
   const handleLogout = () => {
     logout()
-    toast.success('Déconnexion réussie')
+    toast.success('Successfully logged out')
     navigate(ROUTES.HOME)
   }
 
@@ -56,10 +56,10 @@ export const useAuth = () => {
     const result = await updateProfile(profileData)
     
     if (result.success) {
-      toast.success('Profil mis à jour avec succès !')
+      toast.success('Profile updated successfully!')
       return true
     } else {
-      toast.error(error || 'Erreur lors de la mise à jour')
+      toast.error(error || 'Update error')
       return false
     }
   }
@@ -68,11 +68,11 @@ export const useAuth = () => {
     const result = await deleteAccount(password)
     
     if (result.success) {
-      toast.success('Compte supprimé avec succès')
+      toast.success('Account deleted successfully')
       navigate(ROUTES.HOME)
       return true
     } else {
-      toast.error(error || 'Erreur lors de la suppression du compte')
+      toast.error(error || 'Error deleting account')
       return false
     }
   }
@@ -87,12 +87,12 @@ export const useAuth = () => {
     }
   }
 
-  // Utilitaires
+  // Utilities
   const isAdmin = user?.role === 'admin'
   const isUser = user?.role === 'user'
-  
+
   return {
-    // État
+    // State
     user,
     token,
     isAuthenticated,
@@ -100,7 +100,7 @@ export const useAuth = () => {
     error,
     isAdmin,
     isUser,
-    
+
     // Actions
     login: handleLogin,
     register: handleRegister,

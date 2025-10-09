@@ -32,3 +32,5 @@ dist-ssr
 
 # Claude Code documentation (local only)
 CLAUDE.md
+
+TRANSLATION_COMPLETE_REPORT.md

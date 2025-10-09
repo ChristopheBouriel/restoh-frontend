@@ -37,23 +37,23 @@ function App() {
   const { fetchMessages } = useContactsStore()
 
   useEffect(() => {
-    // Charger les données initiales au démarrage de l'app
+    // Load initial data on app startup
     const loadInitialData = async () => {
-      // Charger le menu (public)
+      // Load menu (public)
       await fetchMenuItems()
 
-      // Si l'utilisateur est connecté, charger ses données
+      // If user is logged in, load their data
       if (user) {
         const isAdmin = user.role === 'admin'
 
         if (isAdmin) {
-          // Admin : charger toutes les données
+          // Admin: load all data
           await fetchOrders(true)
           await fetchReservations(true)
           await fetchMessages()
-          initializeUsers() // usersStore pas encore migré
+          initializeUsers() // usersStore not yet migrated
         } else {
-          // User : charger uniquement ses propres données
+          // User: load only their own data
           await fetchOrders(false)
           await fetchReservations(false)
         }
@@ -61,10 +61,10 @@ function App() {
     }
 
     loadInitialData()
-  }, [user]) // Re-charger quand l'utilisateur change (login/logout)
+  }, [user]) // Reload when user changes (login/logout)
 
   useEffect(() => {
-    // Connecter l'utilisateur au panier
+    // Connect user to cart
     if (user) {
       setCurrentUser(user.id)
     } else {
@@ -117,7 +117,7 @@ function App() {
           <Route path="messages" element={<ContactsManagement />} />
         </Route>
         
-        {/* Routes sans layout (auth) */}
+        {/* Routes without layout (auth) */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
         
@@ -126,9 +126,9 @@ function App() {
           <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="text-center">
               <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-xl text-gray-600 mb-8">Page non trouvée</p>
+              <p className="text-xl text-gray-600 mb-8">Not found</p>
               <a href="/" className="text-primary-600 hover:text-primary-500 font-medium">
-                Retourner à l'accueil
+                Return to home
               </a>
             </div>
           </div>

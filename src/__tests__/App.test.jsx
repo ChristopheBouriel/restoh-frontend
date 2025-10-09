@@ -203,18 +203,18 @@ const AppRoutes = () => (
       <Route path="messages" element={<ContactsManagement />} />
     </Route>
     
-    {/* Routes sans layout (auth) */}
+    {/* Routes without layout (auth) */}
     <Route path={ROUTES.LOGIN} element={<Login />} />
     <Route path={ROUTES.REGISTER} element={<Register />} />
-    
+
     {/* Catch all route */}
     <Route path="*" element={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
-          <p className="text-xl text-gray-600 mb-8">Page non trouvée</p>
+          <p className="text-xl text-gray-600 mb-8">Page not found</p>
           <a href="/" className="text-primary-600 hover:text-primary-500 font-medium">
-            Retourner à l'accueil
+            Return to home
           </a>
         </div>
       </div>
@@ -241,10 +241,10 @@ describe('App Component Routing', () => {
           <AppRoutes />
         </MemoryRouter>
       )
-      
+
       expect(screen.getByText('404')).toBeInTheDocument()
-      expect(screen.getByText('Page non trouvée')).toBeInTheDocument()
-      expect(screen.getByText('Retourner à l\'accueil')).toBeInTheDocument()
+      expect(screen.getByText('Page not found')).toBeInTheDocument()
+      expect(screen.getByText('Return to home')).toBeInTheDocument()
     })
   })
 

@@ -22,7 +22,7 @@ describe('ContactsManagement Component', () => {
       name: 'Marie Dubois',
       email: 'marie.dubois@email.com',
       phone: '06 12 34 56 78',
-      subject: 'Question sur les allergènes',
+      subject: 'Question about allergens',
       message: 'Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.',
       status: 'new',
       createdAt: '2024-01-20T10:00:00Z',
@@ -58,8 +58,8 @@ describe('ContactsManagement Component', () => {
       name: 'Jean Dupont',
       email: 'jean.dupont@hotmail.com',
       phone: '07 98 76 54 32',
-      subject: 'Question sur les horaires',
-      message: 'Bonjour, êtes-vous ouverts le dimanche midi ? Merci.',
+      subject: 'Question about hours',
+      message: 'Hello, are you open on Sunday at noon? Thank you.',
       status: 'new',
       createdAt: '2024-01-20T09:15:00Z',
       readAt: null,
@@ -104,20 +104,20 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Header
-      expect(screen.getByText('Gestion des Messages')).toBeInTheDocument()
-      expect(screen.getByText('Gérez les messages reçus via le formulaire de contact')).toBeInTheDocument()
+      expect(screen.getByText('Messages Management')).toBeInTheDocument()
+      expect(screen.getByText('Manage messages received via the contact form')).toBeInTheDocument()
       
       // Statistics cards
       expect(screen.getByText('Total')).toBeInTheDocument()
-      expect(screen.getByText('Nouveaux')).toBeInTheDocument()
-      expect(screen.getByText('Lus')).toBeInTheDocument()
-      expect(screen.getByText('Répondus')).toBeInTheDocument()
+      expect(screen.getByText('New')).toBeInTheDocument()
+      expect(screen.getByText('Read')).toBeInTheDocument()
+      expect(screen.getByText('Replied')).toBeInTheDocument()
       
       // Filter buttons with counts
-      expect(screen.getByText('Tous (4)')).toBeInTheDocument()
-      expect(screen.getByText('Nouveaux (2)')).toBeInTheDocument()
-      expect(screen.getByText('Lus (1)')).toBeInTheDocument()
-      expect(screen.getByText('Répondus (1)')).toBeInTheDocument()
+      expect(screen.getByText('All (4)')).toBeInTheDocument()
+      expect(screen.getByText('New (2)')).toBeInTheDocument()
+      expect(screen.getByText('Read (1)')).toBeInTheDocument()
+      expect(screen.getByText('Replied (1)')).toBeInTheDocument()
     })
 
     it('should initialize messages data on mount', () => {
@@ -129,15 +129,15 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Check that all messages are displayed with their subjects
-      expect(screen.getByText('Question sur les allergènes')).toBeInTheDocument()
+      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.getByText('Question sur les horaires')).toBeInTheDocument()
+      expect(screen.getByText('Question about hours')).toBeInTheDocument()
       
       // Check status indicators
-      expect(screen.getAllByText('Nouveau')).toHaveLength(2) // 2 new messages
-      expect(screen.getAllByText('Lu')).toHaveLength(1) // 1 read message
-      expect(screen.getAllByText('Répondu')).toHaveLength(1) // 1 replied message
+      expect(screen.getAllByText('New')).toHaveLength(2) // 2 new messages
+      expect(screen.getAllByText('Read')).toHaveLength(1) // 1 read message
+      expect(screen.getAllByText('Replied')).toHaveLength(1) // 1 replied message
       
       // Check contact information is displayed
       expect(screen.getByText('Marie Dubois')).toBeInTheDocument()
@@ -164,42 +164,42 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Initially all messages should be visible
-      expect(screen.getByText('Question sur les allergènes')).toBeInTheDocument()
+      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.getByText('Question sur les horaires')).toBeInTheDocument()
+      expect(screen.getByText('Question about hours')).toBeInTheDocument()
       
-      // Filter by "Nouveaux" - should show only new messages
-      await user.click(screen.getByText('Nouveaux (2)'))
+      // Filter by "New" - should show only new messages
+      await user.click(screen.getByText('New (2)'))
       
-      expect(screen.getByText('Question sur les allergènes')).toBeInTheDocument()
-      expect(screen.getByText('Question sur les horaires')).toBeInTheDocument()
+      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
+      expect(screen.getByText('Question about hours')).toBeInTheDocument()
       expect(screen.queryByText('Réservation événement d\'entreprise')).not.toBeInTheDocument()
       expect(screen.queryByText('Compliments sur le service')).not.toBeInTheDocument()
       
-      // Filter by "Lus" - should show only read messages
-      await user.click(screen.getByText('Lus (1)'))
+      // Filter by "Read" - should show only read messages
+      await user.click(screen.getByText('Read (1)'))
       
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
-      expect(screen.queryByText('Question sur les allergènes')).not.toBeInTheDocument()
-      expect(screen.queryByText('Question sur les horaires')).not.toBeInTheDocument()
+      expect(screen.queryByText('Question about allergens')).not.toBeInTheDocument()
+      expect(screen.queryByText('Question about hours')).not.toBeInTheDocument()
       expect(screen.queryByText('Compliments sur le service')).not.toBeInTheDocument()
       
-      // Filter by "Répondus" - should show only replied messages
-      await user.click(screen.getByText('Répondus (1)'))
+      // Filter by "Replied" - should show only replied messages
+      await user.click(screen.getByText('Replied (1)'))
       
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.queryByText('Question sur les allergènes')).not.toBeInTheDocument()
+      expect(screen.queryByText('Question about allergens')).not.toBeInTheDocument()
       expect(screen.queryByText('Réservation événement d\'entreprise')).not.toBeInTheDocument()
-      expect(screen.queryByText('Question sur les horaires')).not.toBeInTheDocument()
+      expect(screen.queryByText('Question about hours')).not.toBeInTheDocument()
       
       // Back to "Tous" - should show all messages again
-      await user.click(screen.getByText('Tous (4)'))
+      await user.click(screen.getByText('All (4)'))
       
-      expect(screen.getByText('Question sur les allergènes')).toBeInTheDocument()
+      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.getByText('Question sur les horaires')).toBeInTheDocument()
+      expect(screen.getByText('Question about hours')).toBeInTheDocument()
     })
 
     it('should show empty state when no messages match filter', () => {
@@ -217,8 +217,8 @@ describe('ContactsManagement Component', () => {
       
       renderComponent()
       
-      expect(screen.getByText('Aucun message')).toBeInTheDocument()
-      expect(screen.getByText('Aucun message reçu pour le moment.')).toBeInTheDocument()
+      expect(screen.getByText('No messages')).toBeInTheDocument()
+      expect(screen.getByText('No messages reçu pour le moment.')).toBeInTheDocument()
     })
   })
 
@@ -228,7 +228,7 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Click on the first message
-      const messageElement = screen.getByText('Question sur les allergènes').closest('div[class*="p-6"]')
+      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
       
       await waitFor(() => {
@@ -246,7 +246,7 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Click on a new message
-      const newMessageElement = screen.getByText('Question sur les allergènes').closest('div[class*="p-6"]')
+      const newMessageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(newMessageElement)
       
       await waitFor(() => {
@@ -263,11 +263,11 @@ describe('ContactsManagement Component', () => {
       await user.click(messageElement)
       
       await waitFor(() => {
-        expect(screen.getByText('Marquer comme répondu')).toBeInTheDocument()
+        expect(screen.getByText('Mark as replied')).toBeInTheDocument()
       })
       
       // Click the reply button
-      await user.click(screen.getByText('Marquer comme répondu'))
+      await user.click(screen.getByText('Mark as replied'))
       
       await waitFor(() => {
         expect(mockStoreState.markAsReplied).toHaveBeenCalledWith('msg-002')
@@ -279,18 +279,18 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Open a message modal
-      const messageElement = screen.getByText('Question sur les allergènes').closest('div[class*="p-6"]')
+      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
       
       await waitFor(() => {
-        expect(screen.getByText('Supprimer')).toBeInTheDocument()
+        expect(screen.getByText('Delete')).toBeInTheDocument()
       })
       
       // Click delete button
-      await user.click(screen.getByText('Supprimer'))
+      await user.click(screen.getByText('Delete'))
       
       // Should show confirmation dialog
-      expect(window.confirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir supprimer ce message ?')
+      expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this message?')
       
       await waitFor(() => {
         expect(mockStoreState.deleteMessage).toHaveBeenCalledWith('msg-001')
@@ -304,20 +304,20 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Open message modal
-      const messageElement = screen.getByText('Question sur les allergènes').closest('div[class*="p-6"]')
+      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
       
       await waitFor(() => {
         // Check header
-        expect(screen.getAllByText('Question sur les allergènes').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getAllByText('Nouveau').length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText('Question about allergens').length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1)
         
         // Check contact information section
-        expect(screen.getByText('Nom')).toBeInTheDocument()
+        expect(screen.getByText('Name')).toBeInTheDocument()
         expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(1)
         expect(screen.getByText('Email')).toBeInTheDocument()
         expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getByText('Téléphone')).toBeInTheDocument()
+        expect(screen.getByText('Phone')).toBeInTheDocument()
         expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(1)
         expect(screen.getByText('Date')).toBeInTheDocument()
         
@@ -331,7 +331,7 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Open modal
-      const messageElement = screen.getByText('Question sur les allergènes').closest('div[class*="p-6"]')
+      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
       
       await waitFor(() => {
@@ -349,21 +349,21 @@ describe('ContactsManagement Component', () => {
         })
       } else {
         // Skip X button test if not found, focus on close button test
-        await user.click(screen.getByText('Fermer'))
+        await user.click(screen.getByText('Close'))
         
         await waitFor(() => {
           expect(screen.queryByText('Message')).not.toBeInTheDocument()
         })
       }
       
-      // Open again and close with "Fermer" button
+      // Open again and close with "Close" button
       await user.click(messageElement)
       
       await waitFor(() => {
         expect(screen.getByText('Message')).toBeInTheDocument()
       })
       
-      const closeButton = screen.getByText('Fermer')
+      const closeButton = screen.getByText('Close')
       await user.click(closeButton)
       
       await waitFor(() => {
@@ -374,27 +374,27 @@ describe('ContactsManagement Component', () => {
     it('should show different action buttons based on message status', async () => {
       renderComponent()
       
-      // Open a new/read message - should show "Marquer comme répondu"
+      // Open a new/read message - should show "Mark as replied"
       const unRepliedMessage = screen.getByText('Réservation événement d\'entreprise').closest('div[class*="p-6"]')
       await user.click(unRepliedMessage)
       
       await waitFor(() => {
-        expect(screen.getByText('Marquer comme répondu')).toBeInTheDocument()
-        expect(screen.getByText('Supprimer')).toBeInTheDocument()
-        expect(screen.getByText('Fermer')).toBeInTheDocument()
+        expect(screen.getByText('Mark as replied')).toBeInTheDocument()
+        expect(screen.getByText('Delete')).toBeInTheDocument()
+        expect(screen.getByText('Close')).toBeInTheDocument()
       })
       
       // Close modal
-      await user.click(screen.getByText('Fermer'))
+      await user.click(screen.getByText('Close'))
       
-      // Open a replied message - should NOT show "Marquer comme répondu"
+      // Open a replied message - should NOT show "Mark as replied"
       const repliedMessage = screen.getByText('Compliments sur le service').closest('div[class*="p-6"]')
       await user.click(repliedMessage)
       
       await waitFor(() => {
-        expect(screen.queryByText('Marquer comme répondu')).not.toBeInTheDocument()
-        expect(screen.getByText('Supprimer')).toBeInTheDocument()
-        expect(screen.getByText('Fermer')).toBeInTheDocument()
+        expect(screen.queryByText('Mark as replied')).not.toBeInTheDocument()
+        expect(screen.getByText('Delete')).toBeInTheDocument()
+        expect(screen.getByText('Close')).toBeInTheDocument()
       })
     })
   })
@@ -410,7 +410,7 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Component should still render with loading state
-      expect(screen.getByText('Gestion des Messages')).toBeInTheDocument()
+      expect(screen.getByText('Messages Management')).toBeInTheDocument()
     })
 
     it('should handle empty message list gracefully', async () => {
@@ -428,14 +428,14 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Should show empty state
-      expect(screen.getByText('Aucun message')).toBeInTheDocument()
-      expect(screen.getByText('Aucun message reçu pour le moment.')).toBeInTheDocument()
+      expect(screen.getByText('No messages')).toBeInTheDocument()
+      expect(screen.getByText('No messages reçu pour le moment.')).toBeInTheDocument()
       
       // Filter buttons should show zero counts
-      expect(screen.getByText('Tous (0)')).toBeInTheDocument()
-      expect(screen.getByText('Nouveaux (0)')).toBeInTheDocument()
-      expect(screen.getByText('Lus (0)')).toBeInTheDocument()
-      expect(screen.getByText('Répondus (0)')).toBeInTheDocument()
+      expect(screen.getByText('All (0)')).toBeInTheDocument()
+      expect(screen.getByText('New (0)')).toBeInTheDocument()
+      expect(screen.getByText('Read (0)')).toBeInTheDocument()
+      expect(screen.getByText('Replied (0)')).toBeInTheDocument()
     })
 
     it('should handle message without phone number', async () => {
@@ -450,7 +450,7 @@ describe('ContactsManagement Component', () => {
         expect(screen.getAllByText('Sophie Leroy').length).toBeGreaterThanOrEqual(1)
         expect(screen.getAllByText('sophie.leroy@gmail.com').length).toBeGreaterThanOrEqual(1)
         // Phone should not be displayed in modal when null
-        expect(screen.queryByText('Téléphone')).not.toBeInTheDocument()
+        expect(screen.queryByText('Phone')).not.toBeInTheDocument()
       })
     })
 
@@ -461,18 +461,18 @@ describe('ContactsManagement Component', () => {
       renderComponent()
       
       // Open a message modal
-      const messageElement = screen.getByText('Question sur les allergènes').closest('div[class*="p-6"]')
+      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
       
       await waitFor(() => {
-        expect(screen.getByText('Supprimer')).toBeInTheDocument()
+        expect(screen.getByText('Delete')).toBeInTheDocument()
       })
       
       // Click delete button
-      await user.click(screen.getByText('Supprimer'))
+      await user.click(screen.getByText('Delete'))
       
       // Should show confirmation dialog
-      expect(window.confirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir supprimer ce message ?')
+      expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this message?')
       
       // Should NOT call deleteMessage since user cancelled
       expect(mockStoreState.deleteMessage).not.toHaveBeenCalled()

@@ -11,7 +11,7 @@ const mockMenuItems = [
   {
     id: '1',
     name: 'Pizza Margherita',
-    description: 'Pizza classique avec tomate et mozzarella',
+    description: 'Classic pizza with tomato and mozzarella',
     price: 12.50,
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
     category: 'plats',
@@ -118,10 +118,10 @@ describe('MenuManagement Component', () => {
   test('should render menu management header with stats', () => {
     render(<MenuManagementWrapper />)
     
-    expect(screen.getByRole('heading', { name: 'Gestion du Menu', level: 1 })).toBeInTheDocument()
-    expect(screen.getByText(/4 articles/)).toBeInTheDocument()
-    expect(screen.getByText(/3 disponibles/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Nouvel article/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Menu Management', level: 1 })).toBeInTheDocument()
+    expect(screen.getByText(/4 items/)).toBeInTheDocument()
+    expect(screen.getByText(/3 available/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /New item/i })).toBeInTheDocument()
   })
 
   test('should display menu items grid when data loaded', () => {
@@ -157,7 +157,7 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     // Should show skeleton cards
-    expect(screen.queryByText('Gestion du Menu')).not.toBeInTheDocument()
+    expect(screen.queryByText('Menu Management')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Pizza Margherita' })).not.toBeInTheDocument()
   })
 
@@ -166,7 +166,7 @@ describe('MenuManagement Component', () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un article...')
+    const searchInput = screen.getByPlaceholderText('Search for an item...')
     await user.type(searchInput, 'pizza')
     
     // Should show pizza items
@@ -194,12 +194,12 @@ describe('MenuManagement Component', () => {
     expect(screen.queryByRole('heading', { name: 'Salade César', level: 3 })).not.toBeInTheDocument()
   })
 
-  test('should open add modal when "Nouvel article" button clicked', async () => {
+  test('should open add modal when "New item" button clicked', async () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
     
     // Find the button specifically (not modal header)
-    const addButton = screen.getByRole('button', { name: /Nouvel article/i })
+    const addButton = screen.getByRole('button', { name: /New item/i })
     await user.click(addButton)
     
     // Modal should be visible - check for form elements
@@ -209,7 +209,7 @@ describe('MenuManagement Component', () => {
     
     // Check that form elements are present
     expect(screen.getByPlaceholderText('15.90')).toBeInTheDocument() // Price input
-    expect(screen.getByRole('button', { name: 'Ajouter' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
     
     // Check that category select in the modal has "plats" selected (get the second combobox)
     const categorySelects = screen.getAllByRole('combobox')
@@ -222,16 +222,16 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     // Find edit buttons and click the first one
-    const editButtons = screen.getAllByText('Modifier')
+    const editButtons = screen.getAllByText('Edit')
     await user.click(editButtons[0]) // Click first edit button (Pizza Margherita)
     
     // Form should be prefilled with existing data
     expect(screen.getByDisplayValue('Pizza Margherita')).toBeInTheDocument()
     expect(screen.getByDisplayValue('12.5')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Pizza classique avec tomate et mozzarella')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Classic pizza with tomato and mozzarella')).toBeInTheDocument()
     
     // Check for submit button in modal (not the card buttons)
-    const submitButton = screen.getAllByText('Modifier').find(button => 
+    const submitButton = screen.getAllByText('Edit').find(button => 
       button.type === 'submit' || button.closest('form')
     )
     expect(submitButton).toBeInTheDocument()
@@ -270,7 +270,7 @@ describe('MenuManagement Component', () => {
       await user.click(deleteButton)
     }
     
-    expect(window.confirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir supprimer "Pizza Margherita" ?')
+    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete "Pizza Margherita" ?')
     expect(mockDeleteItem).toHaveBeenCalledWith('1')
   })
 
@@ -280,7 +280,7 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     // Open add modal
-    await user.click(screen.getByRole('button', { name: /Nouvel article/i }))
+    await user.click(screen.getByRole('button', { name: /New item/i }))
     
     // Wait for modal to appear and use placeholder text to find inputs
     await waitFor(() => {
@@ -288,15 +288,15 @@ describe('MenuManagement Component', () => {
     })
     
     // Fill form using placeholder text
-    await user.type(screen.getByPlaceholderText('Ex: Pizza Margherita'), 'Nouveau Plat')
+    await user.type(screen.getByPlaceholderText('Ex: Pizza Margherita'), 'New Plat')
     await user.type(screen.getByPlaceholderText('15.90'), '15.90')
-    await user.type(screen.getByPlaceholderText('Décrivez le plat, ses ingrédients principaux...'), 'Description du nouveau plat')
+    await user.type(screen.getByPlaceholderText('Describe the dish, its main ingredients...'), 'Description du nouveau plat')
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await user.click(screen.getByRole('button', { name: 'Add' }))
     
     expect(mockAddItem).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'Nouveau Plat',
+      name: 'New Plat',
       price: 15.90,
       description: 'Description du nouveau plat',
       category: 'plats',
@@ -309,7 +309,7 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     // Open edit modal
-    const editButtons = screen.getAllByText('Modifier')
+    const editButtons = screen.getAllByText('Edit')
     await user.click(editButtons[0])
     
     // Wait for modal to appear and be populated
@@ -323,7 +323,7 @@ describe('MenuManagement Component', () => {
     await user.type(nameInput, 'Pizza Margherita Modifiée')
     
     // Submit form - find the submit button specifically
-    const submitButtons = screen.getAllByText('Modifier')
+    const submitButtons = screen.getAllByText('Edit')
     const formSubmitButton = submitButtons.find(button => 
       button.type === 'submit' || button.closest('form')
     )
@@ -356,7 +356,7 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     // Open add modal
-    await user.click(screen.getByRole('button', { name: /Nouvel article/i }))
+    await user.click(screen.getByRole('button', { name: /New item/i }))
     
     // Wait for modal to appear
     await waitFor(() => {
@@ -364,7 +364,7 @@ describe('MenuManagement Component', () => {
     })
     
     // Submit form without filling required fields
-    await user.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await user.click(screen.getByRole('button', { name: 'Add' }))
     
     // Should not call addItem since form validation should prevent it
     expect(mockAddItem).not.toHaveBeenCalled()
@@ -375,19 +375,19 @@ describe('MenuManagement Component', () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un article...')
+    const searchInput = screen.getByPlaceholderText('Search for an item...')
     await user.type(searchInput, 'nonexistent')
     
     // Should show empty state
-    expect(screen.getByText('Aucun article trouvé')).toBeInTheDocument()
-    expect(screen.getByText('Essayez de modifier vos filtres')).toBeInTheDocument()
+    expect(screen.getByText('No items found')).toBeInTheDocument()
+    expect(screen.getByText('Try changing your filters')).toBeInTheDocument()
   })
 
   test('should reset search and show all items when search is cleared', async () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un article...')
+    const searchInput = screen.getByPlaceholderText('Search for an item...')
     
     // First search for pizza
     await user.type(searchInput, 'pizza')
@@ -417,8 +417,8 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     // Should show empty state for no data
-    expect(screen.getByText('Aucun article trouvé')).toBeInTheDocument()
-    expect(screen.getByText('Commencez par ajouter votre premier article au menu')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Ajouter un article' })).toBeInTheDocument()
+    expect(screen.getByText('No items found')).toBeInTheDocument()
+    expect(screen.getByText('Start by adding your first menu item')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add an item' })).toBeInTheDocument()
   })
 })

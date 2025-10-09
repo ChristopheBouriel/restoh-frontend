@@ -28,92 +28,92 @@ const Home = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
           <div className="text-center">
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              Savourez l'Excellence Culinaire
+              Savor Culinary Excellence
             </h1>
             <p className="text-xl lg:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto">
-              Découvrez une expérience gastronomique unique avec nos plats authentiques 
-              préparés par nos chefs passionnés
+              Discover a unique gastronomic experience with our authentic dishes
+              prepared by our passionate chefs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to={ROUTES.MENU}
                 className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
-                Commander Maintenant
+                Order Now
               </Link>
               <Link
                 to={ROUTES.RESERVATIONS}
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors"
               >
-                Réserver une Table
+                Book a Table
               </Link>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Nos Atouts */}
+      
+      {/* Our Strengths */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Pourquoi Choisir RestOh! ?
+              Why Choose RestOh! ?
             </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ChefHat className="w-8 h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Chefs Expérimentés</h3>
+              <h3 className="text-xl font-semibold mb-2">Experienced Chefs</h3>
               <p className="text-gray-600">
-                Notre équipe de chefs passionnés crée des plats exceptionnels
+                Our team of passionate chefs creates exceptional dishes
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="w-8 h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Qualité Premium</h3>
+              <h3 className="text-xl font-semibold mb-2">Premium Quality</h3>
               <p className="text-gray-600">
-                Ingrédients frais et de qualité supérieure pour chaque plat
+                Fresh ingredients and superior quality for every dish
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Service Rapide</h3>
+              <h3 className="text-xl font-semibold mb-2">Fast Service</h3>
               <p className="text-gray-600">
-                Commande et livraison rapides pour votre satisfaction
+                Quick ordering and delivery for your satisfaction
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Ambiance Chaleureuse</h3>
+              <h3 className="text-xl font-semibold mb-2">Warm Atmosphere</h3>
               <p className="text-gray-600">
-                Un cadre accueillant pour tous vos repas et événements
+                A welcoming setting for all your meals and events
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Plats Populaires */}
+      {/* Popular Dishes */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Nos Plats Populaires
+              Our Popular Dishes
             </h2>
             <p className="text-xl text-gray-600">
-              Découvrez nos spécialités les plus appréciées
+              Discover our most appreciated specialties
             </p>
           </div>
           
@@ -134,7 +134,7 @@ const Home = () => {
                 </div>
               ))
             ) : (
-              // Plats populaires depuis le store
+              // Popular dishes from the store
               popularItems.slice(0, 4).map((dish) => (
                 <div key={dish.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
                   <div className="h-48 bg-gray-200 overflow-hidden">
@@ -149,11 +149,11 @@ const Home = () => {
                     <h3 className="text-lg font-semibold mb-2">{dish.name}</h3>
                     <div className="flex justify-between items-center mt-auto">
                       <span className="text-2xl font-bold text-primary-600">€{dish.price.toFixed(2)}</span>
-                      <button 
+                      <button
                         onClick={() => handleAddToCart(dish)}
                         className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition-colors"
                       >
-                        + Panier
+                        + Cart
                       </button>
                     </div>
                   </div>
@@ -167,26 +167,26 @@ const Home = () => {
               to={ROUTES.MENU}
               className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
             >
-              Voir Tout le Menu
+              View Full Menu
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Témoignages */}
+      {/* Testimonials */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Ce Que Disent Nos Clients
+              What Our Customers Say
             </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { name: 'Marie Dubois', text: 'Excellente cuisine, service parfait ! Je recommande vivement.', rating: 5 },
-              { name: 'Jean Martin', text: 'Une expérience culinaire exceptionnelle. Les saveurs sont au rendez-vous.', rating: 5 },
-              { name: 'Sophie Laurent', text: 'Ambiance chaleureuse et plats délicieux. Notre nouveau restaurant préféré !', rating: 5 },
+              { name: 'Marie Dubois', text: 'Excellent cuisine, perfect service! I highly recommend.', rating: 5 },
+              { name: 'Jean Martin', text: 'An exceptional culinary experience. The flavors are there.', rating: 5 },
+              { name: 'Sophie Laurent', text: 'Warm atmosphere and delicious dishes. Our new favorite restaurant!', rating: 5 },
             ].map((testimonial, index) => (
               <div key={index} className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex items-center mb-4">

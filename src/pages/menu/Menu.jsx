@@ -16,20 +16,20 @@ const Menu = () => {
   }
 
   const categories = [
-    { id: 'all', name: 'Tous les plats' },
+    { id: 'all', name: 'All dishes' },
     ...menuCategories.map(cat => ({ id: cat.id, name: cat.name }))
   ]
 
-  // Filtrage et tri des items du menu
+  // Filter and sort menu items
   const filteredItems = useMemo(() => {
     let filtered = availableItems
 
-    // Filtrer par catégorie
+    // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(item => item.category === selectedCategory)
     }
 
-    // Filtrer par terme de recherche
+    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,7 +37,7 @@ const Menu = () => {
       )
     }
 
-    // Trier
+    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-asc':
@@ -86,28 +86,28 @@ const Menu = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Notre Menu</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Menu</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Découvrez notre sélection de plats préparés avec des ingrédients frais et de qualité
+            Discover our selection of dishes prepared with fresh, quality ingredients
           </p>
         </div>
 
-        {/* Filtres et recherche */}
+        {/* Filters and search */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Barre de recherche */}
+            {/* Search bar */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher un plat..."
+                placeholder="Search for a dish..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
-            {/* Filtre par catégorie */}
+            {/* Filter by category */}
             <div className="relative">
               <Filter className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
               <select
@@ -123,20 +123,20 @@ const Menu = () => {
               </select>
             </div>
 
-            {/* Tri */}
+            {/* Sort */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
             >
-              <option value="name">Trier par nom</option>
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
+              <option value="name">Sort by name</option>
+              <option value="price-asc">Price ascending</option>
+              <option value="price-desc">Price descending</option>
             </select>
           </div>
         </div>
 
-        {/* Grille des plats */}
+        {/* Dishes grid */}
         {filteredItems.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
@@ -167,7 +167,7 @@ const Menu = () => {
 
                   {item.allergens && item.allergens.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-xs text-gray-500 mb-1">Allergènes:</p>
+                      <p className="text-xs text-gray-500 mb-1">Allergens:</p>
                       <div className="flex flex-wrap gap-1">
                         {item.allergens.map((allergen, idx) => (
                           <span key={idx} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
@@ -182,7 +182,7 @@ const Menu = () => {
                     onClick={() => handleAddToCart(item)}
                     className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium mt-auto"
                   >
-                    Ajouter au panier
+                    Add to cart
                   </button>
                 </div>
               </div>
@@ -191,9 +191,9 @@ const Menu = () => {
         ) : (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun plat trouvé</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No dishes found</h3>
             <p className="text-gray-600 mb-6">
-              Essayez de modifier vos critères de recherche ou filtres
+              Try modifying your search criteria or filters
             </p>
             <button
               onClick={() => {
@@ -203,26 +203,26 @@ const Menu = () => {
               }}
               className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
             >
-              Réinitialiser les filtres
+              Reset filters
             </button>
           </div>
         )}
 
-        {/* Informations supplémentaires */}
+        {/* Additional information */}
         <div className="mt-12 bg-primary-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-primary-900 mb-3">
-            Informations importantes
+            Important information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-primary-800">
             <div>
-              <strong>Livraison :</strong>
+              <strong>Delivery:</strong>
               <br />
-              Gratuite à partir de 25€ - Délai moyen 30-45 min
+              Free from 25€ - Average time 30-45 min
             </div>
             <div>
-              <strong>Allergies :</strong>
+              <strong>Allergies:</strong>
               <br />
-              Informez-nous de vos allergies lors de la commande
+              Inform us of your allergies when ordering
             </div>
           </div>
         </div>

@@ -30,7 +30,7 @@ const mockReservations = [
     guests: 4,
     status: 'confirmed',
     tableNumber: 12,
-    specialRequests: 'Table près de la fenêtre',
+    specialRequests: 'Table by the window',
     createdAt: '2024-01-20T14:30:00Z',
     updatedAt: '2024-01-20T14:30:00Z'
   },
@@ -60,7 +60,7 @@ const mockReservations = [
     guests: 6,
     status: 'completed',
     tableNumber: 8,
-    specialRequests: 'Anniversaire',
+    specialRequests: 'Birthday',
     createdAt: '2024-01-19T16:45:00Z',
     updatedAt: '2024-01-24T21:30:00Z'
   },
@@ -272,7 +272,7 @@ describe('ReservationsStore', () => {
       date: '2025-03-15',
       time: '19:00',
       guests: 4,
-      specialRequests: 'Table calme'
+      specialRequests: 'Quiet table'
     }
 
     const { createReservation } = useReservationsStore.getState()

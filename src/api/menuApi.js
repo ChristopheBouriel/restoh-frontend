@@ -1,56 +1,56 @@
 import apiClient from './apiClient'
 
 /**
- * API du menu
+ * Menu API
  */
 
-// Récupérer tous les items du menu
+// Get all menu items
 export const getMenuItems = async (category = null) => {
   try {
     const params = category ? { category } : {}
     const response = await apiClient.get('/menu', { params })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération du menu' }
+    return { success: false, error: error.error || 'Error fetching menu' }
   }
 }
 
-// Récupérer toutes les catégories
+// Get all categories
 export const getCategories = async () => {
   try {
     const response = await apiClient.get('/menu/categories')
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération des catégories' }
+    return { success: false, error: error.error || 'Error fetching categories' }
   }
 }
 
-// Créer un nouvel item (ADMIN)
+// Create a new item (ADMIN)
 export const createMenuItem = async (itemData) => {
   try {
     const response = await apiClient.post('/menu', itemData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la création de l\'item' }
+    return { success: false, error: error.error || 'Error creating item' }
   }
 }
 
-// Mettre à jour un item (ADMIN)
+// Update an item (ADMIN)
 export const updateMenuItem = async (itemId, itemData) => {
   try {
     const response = await apiClient.put(`/menu/${itemId}`, itemData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la mise à jour de l\'item' }
+    return { success: false, error: error.error || 'Error updating item' }
   }
 }
 
-// Supprimer un item (ADMIN)
+// Delete an item (ADMIN)
 export const deleteMenuItem = async (itemId) => {
   try {
     const response = await apiClient.delete(`/menu/${itemId}`)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la suppression de l\'item' }
+    return { success: false, error: error.error || 'Error deleting item' }
   }
 }

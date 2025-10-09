@@ -11,30 +11,30 @@ export const useOrders = () => {
     getOrdersStats
   } = useOrdersStore()
 
-  // Filtrer les commandes pour l'utilisateur connecté uniquement
+  // Filter orders for logged-in user only
   const userOrders = user ? getOrdersByUser(user.id) : []
 
   const handleCancelOrder = async (orderId) => {
     if (!user) {
-      toast.error('Vous devez être connecté pour annuler une commande')
+      toast.error('You must be logged in to cancel an order')
       throw new Error('User not authenticated')
     }
 
     try {
       const result = await updateOrderStatus(orderId, 'cancelled')
       if (result.success) {
-        toast.success('Commande annulée')
+        toast.success('Order cancelled')
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast.error('Erreur lors de l\'annulation de la commande')
+      toast.error('Error cancelling order')
       throw error
     }
   }
 
   const handleConfirmCancellation = (orderId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+    if (window.confirm('Are you sure you want to cancel this order?')) {
       handleCancelOrder(orderId).catch(error => {
         // Error already handled in handleCancelOrder with toast
         console.error('Order cancellation failed:', error)
@@ -44,7 +44,7 @@ export const useOrders = () => {
     return false
   }
 
-  // Formatage des prix
+  // Price formatting
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -52,7 +52,7 @@ export const useOrders = () => {
     }).format(price)
   }
 
-  // Formatage des dates
+  // Date formatting
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('fr-FR')
   }
@@ -61,13 +61,13 @@ export const useOrders = () => {
     return new Date(dateStr).toLocaleString('fr-FR')
   }
 
-  // Fonction pour déterminer si une commande peut être annulée
+  // Function to determine if an order can be cancelled
   const canCancelOrder = (order) => {
     const cancelableStatuses = ['pending', 'confirmed', 'preparing']
     return cancelableStatuses.includes(order.status)
   }
 
-  // Fonction pour obtenir les commandes récentes (30 derniers jours)
+  // Function to get recent orders (last 30 days)
   const getRecentOrders = () => {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -79,20 +79,20 @@ export const useOrders = () => {
   }
 
   return {
-    // État - seulement les commandes de l'utilisateur connecté
+    // State - logged-in user's orders only
     orders: userOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
     recentOrders: getRecentOrders(),
-    
-    // Actions avec gestion d'erreurs
+
+    // Actions with error handling
     cancelOrder: handleConfirmCancellation,
-    
-    // Utilitaires
+
+    // Utilities
     formatPrice,
     formatDate,
     formatDateTime,
     canCancelOrder,
-    
-    // Statistiques pour l'utilisateur
+
+    // User statistics
     totalOrders: userOrders.length,
     deliveredOrders: userOrders.filter(o => o.status === 'delivered').length,
     pendingOrders: userOrders.filter(o => o.status === 'pending').length,

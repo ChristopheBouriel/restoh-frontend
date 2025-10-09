@@ -22,7 +22,7 @@ const mockReservations = [
     time: '19:00',
     guests: 4,
     status: 'confirmed',
-    specialRequests: 'Table près de la fenêtre'
+    specialRequests: 'Table by the window'
   },
   {
     id: '2',
@@ -40,7 +40,7 @@ const mockReservations = [
     time: '18:30',
     guests: 6,
     status: 'cancelled',
-    specialRequests: 'Anniversaire'
+    specialRequests: 'Birthday'
   },
   {
     id: '4',
@@ -155,7 +155,7 @@ describe('useReservations Hook', () => {
       date: '2025-03-15',
       time: '19:00',
       guests: 4,
-      requests: 'Table calme'
+      requests: 'Quiet table'
     }
 
     let createResult
@@ -167,15 +167,15 @@ describe('useReservations Hook', () => {
       date: '2025-03-15',
       time: '19:00',
       guests: 4,
-      requests: 'Table calme',
-      specialRequests: 'Table calme',
+      requests: 'Quiet table',
+      specialRequests: 'Quiet table',
       userId: 'user-1',
       userEmail: 'test@example.com',
       userName: 'Test User',
       phone: '123456789'
     })
 
-    expect(toast.success).toHaveBeenCalledWith('Réservation créée avec succès !')
+    expect(toast.success).toHaveBeenCalledWith('Reservation created successfully!')
     expect(createResult).toEqual({ success: true })
   })
 
@@ -195,7 +195,7 @@ describe('useReservations Hook', () => {
         .rejects.toThrow('User not authenticated')
     })
 
-    expect(toast.error).toHaveBeenCalledWith('Vous devez être connecté pour créer une réservation')
+    expect(toast.error).toHaveBeenCalledWith('You must be logged in to create a reservation')
     expect(mockCreateReservation).not.toHaveBeenCalled()
   })
 
@@ -214,7 +214,7 @@ describe('useReservations Hook', () => {
     })
 
     expect(mockUpdateReservationStatus).toHaveBeenCalledWith('1', 'pending')
-    expect(toast.success).toHaveBeenCalledWith('Réservation modifiée avec succès !')
+    expect(toast.success).toHaveBeenCalledWith('Reservation updated successfully!')
   })
 
   test('should cancel reservation with confirmation', async () => {
@@ -229,10 +229,10 @@ describe('useReservations Hook', () => {
       cancelResult = await result.current.cancelReservation('1')
     })
 
-    expect(mockConfirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir annuler cette réservation ?')
+    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
     expect(cancelResult).toBe(true)
     expect(mockUpdateReservationStatus).toHaveBeenCalledWith('1', 'cancelled')
-    expect(toast.success).toHaveBeenCalledWith('Réservation annulée')
+    expect(toast.success).toHaveBeenCalledWith('Reservation cancelled')
   })
 
   // 3. VALIDATION ET GESTION D'ERREURS (3 tests) 
@@ -254,9 +254,9 @@ describe('useReservations Hook', () => {
       guests: 0
     }
     const errors = result.current.validateReservationData(invalidData)
-    expect(errors).toContain('La date est obligatoire')
-    expect(errors).toContain('L\'heure est obligatoire')
-    expect(errors).toContain('Le nombre de personnes doit être au moins 1')
+    expect(errors).toContain('Date is required')
+    expect(errors).toContain('Time is required')
+    expect(errors).toContain('Number of guests must be at least 1')
   })
 
   test('should reject past dates in validation', () => {
@@ -269,7 +269,7 @@ describe('useReservations Hook', () => {
     }
 
     const errors = result.current.validateReservationData(pastData)
-    expect(errors).toContain('Impossible de réserver dans le passé')
+    expect(errors).toContain('Cannot book in the past')
   })
 
   test('should handle store errors gracefully', async () => {
@@ -288,7 +288,7 @@ describe('useReservations Hook', () => {
         .rejects.toThrow('Store error')
     })
 
-    expect(toast.error).toHaveBeenCalledWith('Erreur lors de la création de la réservation')
+    expect(toast.error).toHaveBeenCalledWith('Error creating reservation')
   })
 
   // 4. UTILITAIRES ET FORMATAGE (2 tests)
@@ -302,8 +302,8 @@ describe('useReservations Hook', () => {
   test('should format date and time correctly', () => {
     const { result } = renderHook(() => useReservations())
 
-    expect(result.current.formatDateTime('2025-03-15', '19:00')).toBe('15/03/2025 à 19:00')
-    expect(result.current.formatDateTime('2025-12-25', '20:30')).toBe('25/12/2025 à 20:30')
+    expect(result.current.formatDateTime('2025-03-15', '19:00')).toBe('15/03/2025 at 19:00')
+    expect(result.current.formatDateTime('2025-12-25', '20:30')).toBe('25/12/2025 at 20:30')
   })
 
   // 5. CAS LIMITES (2 tests)
@@ -319,7 +319,7 @@ describe('useReservations Hook', () => {
       cancelResult = await result.current.cancelReservation('1')
     })
 
-    expect(mockConfirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir annuler cette réservation ?')
+    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
     expect(cancelResult).toBe(false)
     expect(mockUpdateReservationStatus).not.toHaveBeenCalled()
   })
@@ -328,9 +328,9 @@ describe('useReservations Hook', () => {
     const { result } = renderHook(() => useReservations())
 
     const errors = result.current.validateReservationData({})
-    expect(errors).toContain('La date est obligatoire')
-    expect(errors).toContain('L\'heure est obligatoire')
-    expect(errors).toContain('Le nombre de personnes doit être au moins 1')
+    expect(errors).toContain('Date is required')
+    expect(errors).toContain('Time is required')
+    expect(errors).toContain('Number of guests must be at least 1')
   })
 
   // 6. TESTS D'AUTHENTIFICATION POUR TOUTES LES ACTIONS (1 test additionnel)
@@ -345,6 +345,6 @@ describe('useReservations Hook', () => {
         .rejects.toThrow('User not authenticated')
     })
 
-    expect(toast.error).toHaveBeenCalledWith('Vous devez être connecté pour modifier une réservation')
+    expect(toast.error).toHaveBeenCalledWith('You must be logged in to update a reservation')
   })
 })

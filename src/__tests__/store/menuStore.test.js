@@ -275,7 +275,7 @@ describe('menuStore', () => {
 
     it('should add new item with auto-generated ID and timestamps', () => {
       const itemData = {
-        name: 'Nouvelle Pizza',
+        name: 'New Pizza',
         category: 'plats',
         price: 16.50,
         description: 'Une délicieuse nouvelle pizza',
@@ -433,7 +433,7 @@ describe('menuStore', () => {
       store.getState().deleteItem(newItem.id)
       expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(4)
 
-      // Vérifier que c'est toujours la bonne clé
+      // Check que c'est toujours la bonne clé
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith('admin-menu-items', expect.any(String))
     })
   })

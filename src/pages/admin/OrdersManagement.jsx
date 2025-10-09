@@ -86,22 +86,22 @@ const OrdersManagement = () => {
   // Statistiques
   const stats = getOrdersStats()
 
-  // Gestion du changement de statut
+  // Handle status change
   const handleStatusChange = async (orderId, newStatus) => {
     const result = await updateOrderStatus(orderId, newStatus)
     if (result.success) {
-      console.log('✅ Statut mis à jour')
+      console.log('✅ Status updated')
     }
   }
 
-  // Configuration des statuts
+  // Status configuration
   const statusConfig = {
-    pending: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    confirmed: { label: 'Confirmée', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-    preparing: { label: 'En préparation', color: 'bg-orange-100 text-orange-800', icon: Package },
-    ready: { label: 'Prête', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-    delivered: { label: 'Livrée', color: 'bg-gray-100 text-gray-800', icon: Truck },
-    cancelled: { label: 'Annulée', color: 'bg-red-100 text-red-800', icon: XCircle }
+    pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+    confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
+    preparing: { label: 'Preparing', color: 'bg-orange-100 text-orange-800', icon: Package },
+    ready: { label: 'Ready', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+    delivered: { label: 'Delivered', color: 'bg-gray-100 text-gray-800', icon: Truck },
+    cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle }
   }
 
   const formatPrice = (price) => {
@@ -131,15 +131,15 @@ const OrdersManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* En-tête */}
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des Commandes</h1>
-        <p className="text-gray-600">Visualisez et gérez toutes les commandes des clients</p>
+        <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+        <p className="text-gray-600">View and manage all customer orders</p>
         <div className="mt-3 text-xs text-gray-500">
-          <strong>Codes couleur :</strong>
-          <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gris</span>Utilisateur supprimé - Livrée/Annulée
-          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Utilisateur supprimé - Payée en cours
-          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Rouge</span>Utilisateur supprimé - Non payée
+          <strong>Color codes:</strong>
+          <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Delivered/Cancelled
+          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Paid in progress
+          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid
         </div>
       </div>
 
@@ -148,7 +148,7 @@ const OrdersManagement = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total commandes</p>
+              <p className="text-sm font-medium text-gray-600">Total orders</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
             <Package className="h-8 w-8 text-gray-400" />
@@ -158,7 +158,7 @@ const OrdersManagement = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">En attente</p>
+              <p className="text-sm font-medium text-gray-600">Pending</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
             </div>
             <Clock className="h-8 w-8 text-yellow-400" />
@@ -168,7 +168,7 @@ const OrdersManagement = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">En cours</p>
+              <p className="text-sm font-medium text-gray-600">In progress</p>
               <p className="text-2xl font-bold text-blue-600">{stats.confirmed + stats.preparing}</p>
             </div>
             <CheckCircle className="h-8 w-8 text-blue-400" />
@@ -178,7 +178,7 @@ const OrdersManagement = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Chiffre d'affaires</p>
+              <p className="text-sm font-medium text-gray-600">Revenue</p>
               <p className="text-2xl font-bold text-green-600">{formatPrice(stats.totalRevenue)}</p>
             </div>
             <Truck className="h-8 w-8 text-green-400" />
@@ -188,46 +188,46 @@ const OrdersManagement = () => {
 
       {/* Filtres */}
       <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filtres</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut
+              Status
             </label>
             <SimpleSelect
               value={filterStatus}
               onChange={setFilterStatus}
               options={[
-                { value: 'all', label: 'Toutes les commandes' },
-                { value: 'pending', label: 'En attente' },
-                { value: 'confirmed', label: 'Confirmées' },
-                { value: 'preparing', label: 'Préparation' },
-                { value: 'ready', label: 'Prêtes' },
-                { value: 'delivered', label: 'Livrées' },
-                { value: 'cancelled', label: 'Annulées' }
+                { value: 'all', label: 'All orders' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'confirmed', label: 'Confirmed' },
+                { value: 'preparing', label: 'Preparing' },
+                { value: 'ready', label: 'Ready' },
+                { value: 'delivered', label: 'Delivered' },
+                { value: 'cancelled', label: 'Cancelled' }
               ]}
               className="w-full"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date de début
+              Start date
             </label>
             <CustomDatePicker
               value={startDate}
               onChange={handleStartDateChange}
-              placeholder="Sélectionner une date de début"
+              placeholder="Select a start date"
               className="w-full"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date de fin
+              End date
             </label>
             <CustomDatePicker
               value={endDate}
               onChange={handleEndDateChange}
-              placeholder="Sélectionner une date de fin"
+              placeholder="Select an end date"
               minDate={startDate || undefined}
               className="w-full"
             />
@@ -244,12 +244,12 @@ const OrdersManagement = () => {
                 }}
                 className="text-sm text-orange-600 hover:text-orange-800 underline"
               >
-                Effacer les filtres
+                Clear filters
               </button>
             )}
           </div>
           <span className="text-sm text-gray-500">
-            {filteredOrders.length} commande(s) affichée(s)
+            {filteredOrders.length} order(s) displayed
           </span>
         </div>
       </div>
@@ -259,11 +259,11 @@ const OrdersManagement = () => {
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune commande</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No orders</h3>
             <p className="text-gray-500">
-              {filterStatus === 'all' 
-                ? 'Aucune commande n\'a été passée pour le moment.'
-                : `Aucune commande avec le statut "${statusConfig[filterStatus]?.label.toLowerCase()}".`
+              {filterStatus === 'all'
+                ? 'No orders have been placed yet.'
+                : `No orders with status "${statusConfig[filterStatus]?.label.toLowerCase()}".`
               }
             </p>
           </div>
@@ -275,19 +275,19 @@ const OrdersManagement = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Commande
+                      Order
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client
+                      Customer
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Articles
+                      Items
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Statut
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date
@@ -315,7 +315,7 @@ const OrdersManagement = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {order.items.length} article(s)
+                            {order.items.length} item(s)
                           </div>
                           <div className="text-xs text-gray-500">
                             {order.items.slice(0, 2).map(item => item.name).join(', ')}
@@ -350,12 +350,12 @@ const OrdersManagement = () => {
                                 onChange={(newStatus) => handleStatusChange(order.id, newStatus)}
                                 className="w-[110px]"
                                 options={[
-                                  { value: 'pending', label: 'En attente' },
-                                  { value: 'confirmed', label: 'Confirmée' },
-                                  { value: 'preparing', label: 'Préparation' },
-                                  { value: 'ready', label: 'Prête' },
-                                  { value: 'delivered', label: 'Livrée' },
-                                  { value: 'cancelled', label: 'Annulée' }
+                                  { value: 'pending', label: 'Pending' },
+                                  { value: 'confirmed', label: 'Confirmed' },
+                                  { value: 'preparing', label: 'Preparing' },
+                                  { value: 'ready', label: 'Ready' },
+                                  { value: 'delivered', label: 'Delivered' },
+                                  { value: 'cancelled', label: 'Cancelled' }
                                 ]}
                               />
                             )}
@@ -396,7 +396,7 @@ const OrdersManagement = () => {
 
                     {/* Articles et date */}
                     <div className="flex justify-between items-center mb-3 text-xs text-gray-500">
-                      <span>{order.items.length} article(s)</span>
+                      <span>{order.items.length} item(s)</span>
                       <span>{formatDate(order.createdAt)}</span>
                     </div>
 
@@ -415,7 +415,7 @@ const OrdersManagement = () => {
                         className="flex items-center space-x-2 text-orange-600 hover:text-orange-900 text-sm"
                       >
                         <Eye className="h-4 w-4" />
-                        <span>Détails</span>
+                        <span>Details</span>
                       </button>
                       
                       {order.status !== 'delivered' && order.status !== 'cancelled' && (
@@ -424,12 +424,12 @@ const OrdersManagement = () => {
                           onChange={(newStatus) => handleStatusChange(order.id, newStatus)}
                           className="w-[140px]"
                           options={[
-                            { value: 'pending', label: 'En attente' },
-                            { value: 'confirmed', label: 'Confirmée' },
-                            { value: 'preparing', label: 'Préparation' },
-                            { value: 'ready', label: 'Prête' },
-                            { value: 'delivered', label: 'Livrée' },
-                            { value: 'cancelled', label: 'Annulée' }
+                            { value: 'pending', label: 'Pending' },
+                            { value: 'confirmed', label: 'Confirmed' },
+                            { value: 'preparing', label: 'Preparing' },
+                            { value: 'ready', label: 'Ready' },
+                            { value: 'delivered', label: 'Delivered' },
+                            { value: 'cancelled', label: 'Cancelled' }
                           ]}
                         />
                       )}
@@ -449,7 +449,7 @@ const OrdersManagement = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">
-                  Détail de la commande {selectedOrder.id}
+                  Order details {selectedOrder.id}
                 </h2>
                 <button
                   onClick={() => setSelectedOrder(null)}
@@ -462,9 +462,9 @@ const OrdersManagement = () => {
               <div className="space-y-6">
                 {/* Info client */}
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Informations client</h3>
+                  <h3 className="font-medium text-gray-900 mb-2">Customer information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p><strong>Nom:</strong> {selectedOrder.userName}</p>
+                    <p><strong>Name:</strong> {selectedOrder.userName}</p>
                     <p><strong>Email:</strong> {selectedOrder.userEmail}</p>
                     <p><strong>Date:</strong> {formatDate(selectedOrder.createdAt)}</p>
                   </div>
@@ -472,7 +472,7 @@ const OrdersManagement = () => {
 
                 {/* Articles */}
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Articles commandés</h3>
+                  <h3 className="font-medium text-gray-900 mb-2">Ordered items</h3>
                   <div className="space-y-3">
                     {selectedOrder.items.map((item, index) => (
                       <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
@@ -501,26 +501,26 @@ const OrdersManagement = () => {
 
                 {/* Paiement */}
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Paiement</h3>
+                  <h3 className="font-medium text-gray-900 mb-2">Payment</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Moyen de paiement:</span>
+                      <span className="text-sm text-gray-600">Payment method:</span>
                       <span className="text-sm font-medium">
-                        {selectedOrder.paymentMethod === 'card' ? '💳 Carte bancaire' : '💰 Espèces'}
+                        {selectedOrder.paymentMethod === 'card' ? '💳 Credit card' : '💰 Cash'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Statut du règlement:</span>
+                      <span className="text-sm text-gray-600">Payment status:</span>
                       <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                        selectedOrder.isPaid 
-                          ? 'bg-green-100 text-green-700' 
+                        selectedOrder.isPaid
+                          ? 'bg-green-100 text-green-700'
                           : 'bg-orange-100 text-orange-700'
                       }`}>
-                        {selectedOrder.isPaid 
-                          ? '✅ Payé' 
-                          : selectedOrder.paymentMethod === 'cash' 
-                            ? '💰 À payer à la réception'
-                            : '⏳ En attente'
+                        {selectedOrder.isPaid
+                          ? '✅ Paid'
+                          : selectedOrder.paymentMethod === 'cash'
+                            ? '💰 To pay on delivery'
+                            : '⏳ Pending'
                         }
                       </span>
                     </div>

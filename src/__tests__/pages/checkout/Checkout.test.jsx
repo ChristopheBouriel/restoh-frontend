@@ -117,9 +117,9 @@ describe('Checkout Component', () => {
   test('should render checkout form when user is authenticated with cart items', () => {
     render(<CheckoutWrapper />)
     
-    expect(screen.getByText('Finaliser la commande')).toBeInTheDocument()
-    expect(screen.getByText('Complétez vos informations de livraison')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Commander - 44.30€/i })).toBeInTheDocument()
+    expect(screen.getByText('Complete your order')).toBeInTheDocument()
+    expect(screen.getByText('Complete your delivery information')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Order - 44.30€/i })).toBeInTheDocument()
   })
 
   // 2. FORM MANAGEMENT (3 tests)
@@ -129,23 +129,23 @@ describe('Checkout Component', () => {
     
     const addressField = screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris')
     const phoneField = screen.getByPlaceholderText('06 12 34 56 78')
-    const notesField = screen.getByPlaceholderText('Étage, code d\'accès, instructions spéciales...')
+    const notesField = screen.getByPlaceholderText('Floor, access code, special instructions...')
     
     await user.type(addressField, '123 Rue de la Paix')
     await user.type(phoneField, '0123456789')
-    await user.type(notesField, 'Sonnez au 2ème étage')
+    await user.type(notesField, 'Ring at 2nd floor')
     
     expect(addressField).toHaveValue('123 Rue de la Paix')
     expect(phoneField).toHaveValue('0123456789')
-    expect(notesField).toHaveValue('Sonnez au 2ème étage')
+    expect(notesField).toHaveValue('Ring at 2nd floor')
   })
 
   test('should change payment method when user selects different option', async () => {
     const user = userEvent.setup()
     render(<CheckoutWrapper />)
     
-    const cardOption = screen.getByRole('radio', { name: /Carte bancaire/i })
-    const cashOption = screen.getByRole('radio', { name: /Espèces à la livraison/i })
+    const cardOption = screen.getByRole('radio', { name: /Credit card/i })
+    const cashOption = screen.getByRole('radio', { name: /Cash on delivery/i })
     
     // Card should be selected by default
     expect(cardOption).toBeChecked()
@@ -162,7 +162,7 @@ describe('Checkout Component', () => {
     const user = userEvent.setup()
     render(<CheckoutWrapper />)
     
-    const submitButton = screen.getByRole('button', { name: /Commander - 44.30€/i })
+    const submitButton = screen.getByRole('button', { name: /Order - 44.30€/i })
     
     // Try to submit without filling required fields
     await user.click(submitButton)
@@ -186,10 +186,10 @@ describe('Checkout Component', () => {
     // Fill required fields
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
-    await user.type(screen.getByPlaceholderText('Étage, code d\'accès, instructions spéciales...'), 'Sonnez au 2ème')
+    await user.type(screen.getByPlaceholderText('Floor, access code, special instructions...'), 'Ring at 2nd')
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /Commander - 44.30€/i }))
+    await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
     
     // Wait for async operations to complete
     await vi.waitFor(() => {
@@ -204,12 +204,12 @@ describe('Checkout Component', () => {
       totalAmount: 44.30,
       deliveryAddress: '123 Rue de la Paix',
       phone: '0123456789',
-      notes: 'Sonnez au 2ème',
+      notes: 'Ring at 2nd',
       paymentMethod: 'card'
     })
     
     expect(mockClearCart).toHaveBeenCalled()
-    expect(toast.success).toHaveBeenCalledWith('🎉 Commande passée avec succès !')
+    expect(toast.success).toHaveBeenCalledWith('🎉 Order placed successfully!')
   })
 
   test('should show loading state during order processing', async () => {
@@ -229,11 +229,11 @@ describe('Checkout Component', () => {
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /Commander - 44.30€/i }))
+    await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
     
     // Should show loading state
-    expect(screen.getByText('Traitement en cours...')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Traitement en cours.../i })).toBeDisabled()
+    expect(screen.getByText('Processing...')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Processing.../i })).toBeDisabled()
     
     // Resolve the promise to cleanup
     resolveOrder({ success: true, orderId: 'ORDER123' })
@@ -253,7 +253,7 @@ describe('Checkout Component', () => {
     // Fill required fields and submit
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
-    await user.click(screen.getByRole('button', { name: /Commander - 44.30€/i }))
+    await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
     
     // Wait for order processing to complete and error to be handled
     await vi.waitFor(() => {
@@ -261,7 +261,7 @@ describe('Checkout Component', () => {
     }, { timeout: 3000 })
     
     await vi.waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Erreur lors du traitement de la commande')
+      expect(toast.error).toHaveBeenCalledWith('Error processing order')
     }, { timeout: 3000 })
     
     // Should not clear cart on error
@@ -289,11 +289,11 @@ describe('Checkout Component', () => {
     render(<CheckoutWrapper />)
     
     // Check total in summary section
-    expect(screen.getByText('Total (3 articles)')).toBeInTheDocument()
+    expect(screen.getByText('Total (3 items)')).toBeInTheDocument()
     expect(screen.getByText('44.30€')).toBeInTheDocument()
     
     // Check total in submit button
-    expect(screen.getByRole('button', { name: /Commander - 44.30€/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Order - 44.30€/i })).toBeInTheDocument()
   })
 
   // 5. SUCCESS CONFIRMATION (1 test)
@@ -304,21 +304,21 @@ describe('Checkout Component', () => {
     // Fill form and submit
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
-    await user.click(screen.getByRole('button', { name: /Commander - 44.30€/i }))
+    await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
     
     // Wait for success state
     await vi.waitFor(() => {
-      expect(screen.getByText('Commande confirmée !')).toBeInTheDocument()
+      expect(screen.getByText('Order confirmed!')).toBeInTheDocument()
     }, { timeout: 3000 })
     
     // Check order confirmation details
-    expect(screen.getByText(/Votre commande/)).toBeInTheDocument()
+    expect(screen.getByText(/Your order/)).toBeInTheDocument()
     expect(screen.getByText('#ORDER123')).toBeInTheDocument()
-    expect(screen.getByText('Total payé:')).toBeInTheDocument()
-    expect(screen.getByText('Articles:')).toBeInTheDocument()
+    expect(screen.getByText('Total paid:')).toBeInTheDocument()
+    expect(screen.getByText('Items:')).toBeInTheDocument()
     
     // Check navigation buttons
-    expect(screen.getByRole('button', { name: 'Voir mes commandes' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Continuer mes achats' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View my orders' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue shopping' })).toBeInTheDocument()
   })
 })

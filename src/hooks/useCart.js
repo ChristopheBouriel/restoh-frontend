@@ -23,38 +23,39 @@ export const useCart = () => {
     getItemQuantity,
     syncWithMenu
   } = useCartStore()
-  
-  // Obtenir le panier de l'utilisateur courant
+
+
+  // Get current user's cart
   const currentCart = getCurrentUserCart()
   const items = currentCart.items
-  
-  // Nouvelles données enrichies avec synchronisation menu
+
+  // New enriched data with menu synchronization
   const enrichedItems = getEnrichedItems()
   const availableItems = getAvailableItems()
   const unavailableItems = getUnavailableItems()
   const totalPriceAvailable = getTotalPriceAvailable()
   const totalItemsAvailable = getTotalItemsAvailable()
-  
-  // État UI du panier depuis le contexte
+
+  // Cart UI state from context
   const { isCartOpen: isOpen, openCart, closeCart, toggleCart } = useCartUI()
 
   const totalItems = getTotalItems()
   const totalPrice = getTotalPrice()
 
   const handleAddItem = (product) => {
-    // Vérifier si l'utilisateur est connecté
+    // Check if user is logged in
     const { isAuthenticated } = useAuthStore.getState()
-    
+
     if (!isAuthenticated) {
-      // Afficher un message d'erreur si non connecté
-      toast.error('Veuillez vous connecter avant d\'alimenter votre panier')
+      // Show error message if not logged in
+      toast.error('Please log in before adding items to your cart')
       return
     }
-    
-    // Ajouter l'article si connecté
+
+    // Add item if logged in
     addItem(product)
-    toast.success(`${product.name} ajouté au panier`)
-    // Ouvrir brièvement le panier pour feedback visuel
+    toast.success(`${product.name} added to cart`)
+    // Briefly open cart for visual feedback
     setTimeout(() => {
       if (!isOpen) openCart()
       setTimeout(() => closeCart(), 2000)
@@ -63,7 +64,7 @@ export const useCart = () => {
 
   const handleRemoveItem = (productId, productName) => {
     removeItem(productId)
-    toast.success(`${productName} retiré du panier`)
+    toast.success(`${productName} removed from cart`)
   }
 
   const handleUpdateQuantity = (productId, quantity) => {
@@ -79,16 +80,16 @@ export const useCart = () => {
 
   const handleClearCart = () => {
     clearCart()
-    toast.success('Panier vidé')
+    toast.success('Cart cleared')
     closeCart()
   }
 
   const handleSyncWithMenu = () => {
     syncWithMenu()
-    console.log('🔄 Panier synchronisé avec le menu')
+    console.log('🔄 Cart synced with menu')
   }
 
-  // Formatage du prix
+  // Price formatting
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -97,7 +98,7 @@ export const useCart = () => {
   }
 
   return {
-    // État original
+    // Original state
     items,
     isOpen,
     totalItems,
@@ -105,7 +106,7 @@ export const useCart = () => {
     formattedTotalPrice: formatPrice(totalPrice),
     isEmpty: items.length === 0,
 
-    // Nouvel état enrichi avec synchronisation menu
+    // New enriched state with menu synchronization
     enrichedItems,
     availableItems,
     unavailableItems,
@@ -114,7 +115,7 @@ export const useCart = () => {
     formattedTotalPriceAvailable: formatPrice(totalPriceAvailable),
     hasUnavailableItems: unavailableItems.length > 0,
 
-    // Actions avec feedback
+    // Actions with feedback
     addItem: handleAddItem,
     removeItem: handleRemoveItem,
     updateQuantity: handleUpdateQuantity,
@@ -127,8 +128,8 @@ export const useCart = () => {
     toggleCart,
     openCart,
     closeCart,
-    
-    // Utilitaires
+
+    // Utilities
     isItemInCart,
     getItemQuantity,
     formatPrice

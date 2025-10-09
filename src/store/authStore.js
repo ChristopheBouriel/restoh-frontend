@@ -5,7 +5,7 @@ import * as authApi from '../api/authApi'
 const useAuthStore = create(
   persist(
     (set, get) => ({
-      // État
+      // State
       user: null,
       token: null,
       isAuthenticated: false,
@@ -46,7 +46,7 @@ const useAuthStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur de connexion'
+          const errorMessage = error.error || 'Connection error'
           set({
             error: errorMessage,
             isLoading: false
@@ -78,7 +78,7 @@ const useAuthStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de l\'inscription'
+          const errorMessage = error.error || 'Registration error'
           set({
             error: errorMessage,
             isLoading: false
@@ -89,13 +89,13 @@ const useAuthStore = create(
 
       logout: async () => {
         try {
-          // Appeler l'API de logout (pour invalider le token côté backend)
+          // Call logout API (to invalidate token on backend)
           await authApi.logout()
         } catch (error) {
-          console.error('Erreur lors du logout:', error)
-          // On continue quand même la déconnexion côté client
+          console.error('Logout error:', error)
+          // Continue with client-side logout anyway
         } finally {
-          // Toujours nettoyer l'état local
+          // Always clear local state
           set({
             user: null,
             token: null,
@@ -126,7 +126,7 @@ const useAuthStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la mise à jour'
+          const errorMessage = error.error || 'Update error'
           set({
             error: errorMessage,
             isLoading: false
@@ -155,7 +155,7 @@ const useAuthStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du changement de mot de passe'
+          const errorMessage = error.error || 'Password change error'
           set({
             error: errorMessage,
             isLoading: false
@@ -171,7 +171,7 @@ const useAuthStore = create(
           const result = await authApi.deleteAccount({ password })
 
           if (result.success) {
-            // Déconnecter l'utilisateur après suppression du compte
+            // Logout user after account deletion
             set({
               user: null,
               token: null,
@@ -188,7 +188,7 @@ const useAuthStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la suppression du compte'
+          const errorMessage = error.error || 'Account deletion error'
           set({
             error: errorMessage,
             isLoading: false
@@ -197,7 +197,7 @@ const useAuthStore = create(
         }
       },
 
-      // Récupérer le profil utilisateur actuel (optionnel, utile au chargement de l'app)
+      // Fetch current user profile (optional, useful at app load)
       fetchCurrentUser: async () => {
         set({ isLoading: true, error: null })
 
@@ -213,7 +213,7 @@ const useAuthStore = create(
             })
             return { success: true }
           } else {
-            // Si le token n'est plus valide, déconnecter
+            // If token is no longer valid, logout
             set({
               user: null,
               token: null,

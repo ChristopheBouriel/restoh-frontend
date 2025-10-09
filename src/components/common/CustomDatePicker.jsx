@@ -393,7 +393,7 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
               onClick={goToToday}
               className="text-xs text-orange-600 hover:text-orange-800 font-medium"
             >
-              Aujourd'hui
+              Today
             </button>
             
             {selectedDate && (
@@ -402,7 +402,7 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
                 className="text-xs text-gray-500 hover:text-gray-700 font-medium flex items-center space-x-1"
               >
                 <X className="h-3 w-3" />
-                <span>Effacer</span>
+                <span>Cancel</span>
               </button>
             )}
           </div>

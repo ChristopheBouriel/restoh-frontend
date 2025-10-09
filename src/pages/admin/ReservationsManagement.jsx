@@ -97,7 +97,7 @@ const ReservationsManagement = () => {
     setEndDate('')
   }
 
-  // Gestion du changement de statut
+  // Handle status change
   const handleStatusChange = async (reservationId, newStatus) => {
     await updateReservationStatus(reservationId, newStatus)
   }
@@ -151,8 +151,8 @@ const ReservationsManagement = () => {
     <div className="p-6">
       {/* En-tête */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Gestion des Réservations</h1>
-        <p className="text-gray-600">Gérez toutes les réservations du restaurant</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Reservations Management</h1>
+        <p className="text-gray-600">Manage all restaurant reservations</p>
       </div>
 
       {/* Statistiques */}
@@ -292,7 +292,7 @@ const ReservationsManagement = () => {
       <div className="bg-white rounded-lg border">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            Réservations ({filteredReservations.length})
+            Reservations ({filteredReservations.length})
           </h2>
         </div>
 
@@ -492,7 +492,7 @@ const ReservationsManagement = () => {
 
                 {/* Informations réservation */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Réservation</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Reservation</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <p><strong>ID:</strong> {selectedReservation.id}</p>
                     <p><strong>Date:</strong> {formatDate(selectedReservation.date)}</p>

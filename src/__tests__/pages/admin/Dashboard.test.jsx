@@ -55,7 +55,7 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('€28,500 ce mois')).toBeInTheDocument()
         
         // Orders card
-        expect(screen.getByText('Commandes aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText('Orders aujourd\'hui')).toBeInTheDocument()
         expect(screen.getByText('25')).toBeInTheDocument()
         expect(screen.getByText('634 ce mois')).toBeInTheDocument()
         
@@ -65,7 +65,7 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('+89 nouveaux')).toBeInTheDocument()
         
         // Reservations card
-        expect(screen.getByText('Réservations aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText('Reservations aujourd\'hui')).toBeInTheDocument()
         expect(screen.getByText('12')).toBeInTheDocument()
         expect(screen.getByText('67 cette semaine')).toBeInTheDocument()
       }, { timeout: 2000 })
@@ -110,7 +110,7 @@ describe('Dashboard Component', () => {
       renderComponent()
       
       await waitFor(() => {
-        expect(screen.getByText('Commandes récentes')).toBeInTheDocument()
+        expect(screen.getByText('Orders récentes')).toBeInTheDocument()
         expect(screen.getAllByText('Voir tout')).toHaveLength(2) // Orders and reservations sections
       }, { timeout: 2000 })
     })
@@ -136,10 +136,10 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('Pierre Durand')).toBeInTheDocument()
         
         // Check order status badges
-        expect(screen.getByText('En préparation')).toBeInTheDocument()
-        expect(screen.getByText('Prêt')).toBeInTheDocument()
-        expect(screen.getByText('Livré')).toBeInTheDocument()
-        expect(screen.getByText('Confirmé')).toBeInTheDocument()
+        expect(screen.getByText('Preparing')).toBeInTheDocument()
+        expect(screen.getByText('Ready')).toBeInTheDocument()
+        expect(screen.getByText('Delivered')).toBeInTheDocument()
+        expect(screen.getByText('Confirmed')).toBeInTheDocument()
       }, { timeout: 2000 })
     })
   })
@@ -150,7 +150,7 @@ describe('Dashboard Component', () => {
       renderComponent()
       
       await waitFor(() => {
-        expect(screen.getByText('Réservations récentes')).toBeInTheDocument()
+        expect(screen.getByText('Reservations récentes')).toBeInTheDocument()
       }, { timeout: 2000 })
     })
 
@@ -163,7 +163,7 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('22/01/2024 à 19:30')).toBeInTheDocument()
         expect(screen.getByText('4 personnes')).toBeInTheDocument()
         
-        expect(screen.getByText('Lucas Bernard')).toBeInTheDocument()
+        expect(screen.getByText('Readcas Bernard')).toBeInTheDocument()
         expect(screen.getByText('22/01/2024 à 20:00')).toBeInTheDocument()
         expect(screen.getByText('2 personnes')).toBeInTheDocument()
         
@@ -172,8 +172,8 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('6 personnes')).toBeInTheDocument()
         
         // Check reservation status badges
-        expect(screen.getAllByText('Confirmée')).toHaveLength(2) // Emma and Camille
-        expect(screen.getByText('En attente')).toBeInTheDocument() // Lucas
+        expect(screen.getAllByText('Confirmed')).toHaveLength(2) // Emma and Camille
+        expect(screen.getByText('Pending')).toBeInTheDocument() // Readcas
       }, { timeout: 2000 })
     })
 
@@ -196,10 +196,10 @@ describe('Dashboard Component', () => {
       
       await waitFor(() => {
         // All order statuses should be properly mapped and displayed
-        expect(screen.getByText('En préparation')).toBeInTheDocument() // preparing
-        expect(screen.getByText('Prêt')).toBeInTheDocument() // ready
-        expect(screen.getByText('Livré')).toBeInTheDocument() // delivered
-        expect(screen.getByText('Confirmé')).toBeInTheDocument() // confirmed
+        expect(screen.getByText('Preparing')).toBeInTheDocument() // preparing
+        expect(screen.getByText('Ready')).toBeInTheDocument() // ready
+        expect(screen.getByText('Delivered')).toBeInTheDocument() // delivered
+        expect(screen.getByText('Confirmed')).toBeInTheDocument() // confirmed
       }, { timeout: 2000 })
     })
 
@@ -208,8 +208,8 @@ describe('Dashboard Component', () => {
       
       await waitFor(() => {
         // All reservation statuses should be properly mapped and displayed
-        expect(screen.getAllByText('Confirmée')).toHaveLength(2) // confirmed (2 reservations)
-        expect(screen.getByText('En attente')).toBeInTheDocument() // pending
+        expect(screen.getAllByText('Confirmed')).toHaveLength(2) // confirmed (2 reservations)
+        expect(screen.getByText('Pending')).toBeInTheDocument() // pending
       }, { timeout: 2000 })
     })
   })
@@ -226,13 +226,13 @@ describe('Dashboard Component', () => {
         
         // Statistics section (4 cards)
         expect(screen.getByText('Revenus du jour')).toBeInTheDocument()
-        expect(screen.getByText('Commandes aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText('Orders aujourd\'hui')).toBeInTheDocument()
         expect(screen.getByText('Total clients')).toBeInTheDocument()
-        expect(screen.getByText('Réservations aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText('Reservations aujourd\'hui')).toBeInTheDocument()
         
         // Recent activity section
-        expect(screen.getByText('Commandes récentes')).toBeInTheDocument()
-        expect(screen.getByText('Réservations récentes')).toBeInTheDocument()
+        expect(screen.getByText('Orders récentes')).toBeInTheDocument()
+        expect(screen.getByText('Reservations récentes')).toBeInTheDocument()
         
         // "Voir tout" buttons
         expect(screen.getAllByText('Voir tout')).toHaveLength(2)

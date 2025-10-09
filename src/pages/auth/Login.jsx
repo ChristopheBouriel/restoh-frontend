@@ -31,15 +31,15 @@ const Login = () => {
           <span className="text-4xl font-bold text-primary-600">RestOh!</span>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Connectez-vous à votre compte
+          Log in to your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Ou{' '}
+          Or{' '}
           <Link
             to={ROUTES.REGISTER}
             className="font-medium text-primary-600 hover:text-primary-500"
           >
-            créez un nouveau compte
+            create a new account
           </Link>
         </p>
       </div>
@@ -57,7 +57,7 @@ const Login = () => {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Adresse email
+                Email address
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -72,7 +72,7 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="Entrez votre email"
+                  placeholder="Enter your email"
                 />
               </div>
             </div>
@@ -80,7 +80,7 @@ const Login = () => {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Mot de passe
+                Password
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -95,7 +95,7 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="Entrez votre mot de passe"
+                  placeholder="Enter your password"
                 />
                 <button
                   type="button"
@@ -121,7 +121,7 @@ const Login = () => {
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Se souvenir de moi
+                  Remember me
                 </label>
               </div>
 
@@ -130,7 +130,7 @@ const Login = () => {
                   to="/forgot-password"
                   className="font-medium text-primary-600 hover:text-primary-500"
                 >
-                  Mot de passe oublié ?
+                  Forgot password?
                 </Link>
               </div>
             </div>
@@ -145,10 +145,10 @@ const Login = () => {
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Connexion en cours...
+                    Logging in...
                   </div>
                 ) : (
-                  'Se connecter'
+                  'Login'
                 )}
               </button>
             </div>
@@ -157,7 +157,7 @@ const Login = () => {
           {/* Demo credentials */}
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
             <p className="text-sm text-gray-600 mb-2">
-              <strong>Comptes de démonstration :</strong>
+              <strong>Demo accounts:</strong>
             </p>
             <div className="text-xs text-gray-500 space-y-1">
               <p>🔐 Admin : admin@restoh.fr / admin123</p>

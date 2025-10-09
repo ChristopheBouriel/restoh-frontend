@@ -57,10 +57,10 @@ const useUsersStore = create(
           }
         ]
 
-        // Fusionner les utilisateurs par défaut avec les utilisateurs enregistrés
+        // Merge default users with registered users
         const allBaseUsers = [...defaultUsers]
-        
-        // Ajouter les utilisateurs enregistrés qui ne sont pas déjà dans les defaults
+
+        // Add registered users that are not already in defaults
         registeredUsers.forEach(regUser => {
           if (!allBaseUsers.find(u => u.email === regUser.email)) {
             allBaseUsers.push({

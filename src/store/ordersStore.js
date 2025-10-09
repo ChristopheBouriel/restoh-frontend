@@ -5,7 +5,7 @@ import * as ordersApi from '../api/ordersApi'
 const useOrdersStore = create(
   persist(
     (set, get) => ({
-      // État
+      // State
       orders: [],
       isLoading: false,
       error: null,
@@ -17,7 +17,7 @@ const useOrdersStore = create(
 
       clearError: () => set({ error: null }),
 
-      // Récupérer les commandes selon le rôle
+      // Fetch orders based on role
       fetchOrders: async (isAdmin = false) => {
         set({ isLoading: true, error: null })
 
@@ -41,7 +41,7 @@ const useOrdersStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du chargement des commandes'
+          const errorMessage = error.error || 'Error loading orders'
           set({
             error: errorMessage,
             isLoading: false
@@ -50,7 +50,7 @@ const useOrdersStore = create(
         }
       },
 
-      // Récupérer une commande spécifique
+      // Fetch specific order
       fetchOrderById: async (orderId) => {
         set({ isLoading: true, error: null })
 
@@ -68,7 +68,7 @@ const useOrdersStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du chargement de la commande'
+          const errorMessage = error.error || 'Error loading order'
           set({
             error: errorMessage,
             isLoading: false
@@ -77,17 +77,17 @@ const useOrdersStore = create(
         }
       },
 
-      // Créer une nouvelle commande (appelé depuis le panier)
+      // Create new order (called from cart)
       createOrder: async (orderData) => {
         set({ isLoading: true, error: null })
 
         try {
-          // Note: La logique de paiement automatique (card = paid, cash = unpaid)
-          // est maintenant gérée côté BACKEND
+          // Note: Automatic payment logic (card = paid, cash = unpaid)
+          // is now handled on the BACKEND
           const result = await ordersApi.createOrder(orderData)
 
           if (result.success) {
-            // Recharger les commandes après création
+            // Reload orders after creation
             await get().fetchOrders()
             set({ isLoading: false })
             return { success: true, orderId: result.data._id || result.data.id }
@@ -99,7 +99,7 @@ const useOrdersStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la création de la commande'
+          const errorMessage = error.error || 'Error creating order'
           set({
             error: errorMessage,
             isLoading: false
@@ -108,17 +108,17 @@ const useOrdersStore = create(
         }
       },
 
-      // Mettre à jour le statut d'une commande (admin)
+      // Update order status (admin)
       updateOrderStatus: async (orderId, newStatus) => {
         set({ isLoading: true, error: null })
 
         try {
-          // Note: La logique de paiement automatique cash->paid quand delivered
-          // est maintenant gérée côté BACKEND
+          // Note: Automatic payment logic cash->paid when delivered
+          // is now handled on the BACKEND
           const result = await ordersApi.updateOrderStatus(orderId, newStatus)
 
           if (result.success) {
-            // Recharger les commandes après mise à jour
+            // Reload orders after update
             await get().fetchOrders(true) // true = admin
             set({ isLoading: false })
             return { success: true }
@@ -130,7 +130,7 @@ const useOrdersStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la mise à jour du statut'
+          const errorMessage = error.error || 'Error updating status'
           set({
             error: errorMessage,
             isLoading: false
@@ -139,7 +139,7 @@ const useOrdersStore = create(
         }
       },
 
-      // Getters (calculs locaux sur les données chargées)
+      // Getters (local computations on loaded data)
       getOrdersByStatus: (status) => {
         return get().orders.filter(order => order.status === status)
       },
@@ -157,7 +157,7 @@ const useOrdersStore = create(
         )
       },
 
-      // Statistiques (calculées localement)
+      // Statistics (computed locally)
       getOrdersStats: () => {
         const orders = get().orders
         return {

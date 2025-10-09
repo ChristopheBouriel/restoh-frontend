@@ -69,9 +69,9 @@ describe('Header Component', () => {
   }
 
   const expectedNavItems = [
-    { label: 'Accueil', path: '/' },
+    { label: 'Home', path: '/' },
     { label: 'Menu', path: '/menu' },
-    { label: 'Réservations', path: '/reservations' },
+    { label: 'Reservations', path: '/reservations' },
     { label: 'Contact', path: '/contact' }
   ]
 
@@ -137,88 +137,88 @@ describe('Header Component', () => {
       
       const menuLink = screen.getByRole('link', { name: 'Menu' })
       expect(menuLink).toHaveClass('text-primary-600', 'border-2', 'border-primary-600')
-      
-      const homeLink = screen.getByRole('link', { name: 'Accueil' })
+
+      const homeLink = screen.getByRole('link', { name: 'Home' })
       expect(homeLink).toHaveClass('text-gray-700', 'hover:text-primary-600')
       expect(homeLink).not.toHaveClass('text-primary-600', 'border-2')
     })
 
     it('should handle home route highlighting correctly', () => {
       renderComponent(null, '/')
-      
-      const homeLink = screen.getByRole('link', { name: 'Accueil' })
+
+      const homeLink = screen.getByRole('link', { name: 'Home' })
       expect(homeLink).toHaveClass('text-primary-600', 'border-2', 'border-primary-600')
-      
+
       const menuLink = screen.getByRole('link', { name: 'Menu' })
       expect(menuLink).toHaveClass('text-gray-700', 'hover:text-primary-600')
     })
 
     it('should highlight menu navigation for menu sub-routes', () => {
       renderComponent(null, '/menu/pizza-margherita')
-      
+
       const menuLink = screen.getByRole('link', { name: 'Menu' })
       expect(menuLink).toHaveClass('text-primary-600', 'border-2', 'border-primary-600')
-      
-      const homeLink = screen.getByRole('link', { name: 'Accueil' })
+
+      const homeLink = screen.getByRole('link', { name: 'Home' })
       expect(homeLink).not.toHaveClass('text-primary-600')
     })
   })
 
   // 3. Authentication States Tests
   describe('Authentication States', () => {
-    it('should show "Se connecter" button when user is not authenticated', () => {
+    it('should show "Login" button when user is not authenticated', () => {
       renderComponent()
-      
-      const loginButton = screen.getByRole('button', { name: /Se connecter/ })
+
+      const loginButton = screen.getByRole('button', { name: /Login/ })
       expect(loginButton).toBeInTheDocument()
-      expect(screen.queryByText(/Utilisateur/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/User/)).not.toBeInTheDocument()
     })
 
     it('should show user menu with name when user is authenticated', () => {
       renderComponent(regularUser)
-      
+
       expect(screen.getByText('John Doe')).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /Se connecter/ })).not.toBeInTheDocument()
-      
+      expect(screen.queryByRole('button', { name: /Login/ })).not.toBeInTheDocument()
+
       const userButton = screen.getByRole('button', { name: /John Doe/ })
       expect(userButton).toBeInTheDocument()
     })
 
     it('should display admin panel link for admin users only', async () => {
       renderComponent(adminUser)
-      
+
       // Open user menu
       const userButton = screen.getByRole('button', { name: /Admin User/ })
       await user.click(userButton)
-      
+
       await waitFor(() => {
-        expect(screen.getByRole('link', { name: /Panel Admin/ })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /Admin Panel/ })).toBeInTheDocument()
       })
     })
 
     it('should not display admin panel link for regular users', async () => {
       renderComponent(regularUser)
-      
+
       // Open user menu
       const userButton = screen.getByRole('button', { name: /John Doe/ })
       await user.click(userButton)
-      
+
       await waitFor(() => {
-        expect(screen.queryByRole('link', { name: /Panel Admin/ })).not.toBeInTheDocument()
+        expect(screen.queryByRole('link', { name: /Admin Panel/ })).not.toBeInTheDocument()
       })
     })
 
     it('should call logout function when logout button clicked', async () => {
       renderComponent(regularUser)
-      
+
       // Open user menu
       const userButton = screen.getByRole('button', { name: /John Doe/ })
       await user.click(userButton)
-      
+
       // Click logout button
-      const logoutButton = await screen.findByRole('button', { name: /Se déconnecter/ })
+      const logoutButton = await screen.findByRole('button', { name: /Logout/ })
       await user.click(logoutButton)
-      
+
       expect(mockLogout).toHaveBeenCalled()
     })
   })
@@ -231,39 +231,39 @@ describe('Header Component', () => {
       const userButton = screen.getByRole('button', { name: /John Doe/ })
       
       // Initially menu should be closed
-      expect(screen.queryByRole('link', { name: /Mon Profil/ })).not.toBeInTheDocument()
-      
+      expect(screen.queryByRole('link', { name: /My Profile/ })).not.toBeInTheDocument()
+
       // Open menu
       await user.click(userButton)
-      
+
       await waitFor(() => {
-        expect(screen.getByRole('link', { name: /Mon Profil/ })).toBeInTheDocument()
-        expect(screen.getByRole('link', { name: /Mes Commandes/ })).toBeInTheDocument()
-        expect(screen.getByRole('link', { name: /Mes Réservations/ })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /My Profile/ })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /My Orders/ })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /My Reservations/ })).toBeInTheDocument()
       })
-      
+
       // Close menu by clicking button again
       await user.click(userButton)
-      
+
       await waitFor(() => {
-        expect(screen.queryByRole('link', { name: /Mon Profil/ })).not.toBeInTheDocument()
+        expect(screen.queryByRole('link', { name: /My Profile/ })).not.toBeInTheDocument()
       })
     })
 
     it('should close user menu when menu items are clicked', async () => {
       renderComponent(regularUser)
-      
+
       // Open menu
       const userButton = screen.getByRole('button', { name: /John Doe/ })
       await user.click(userButton)
-      
+
       // Click on a menu item
-      const profileLink = await screen.findByRole('link', { name: /Mon Profil/ })
+      const profileLink = await screen.findByRole('link', { name: /My Profile/ })
       await user.click(profileLink)
-      
+
       // Menu should close
       await waitFor(() => {
-        expect(screen.queryByRole('link', { name: /Mes Commandes/ })).not.toBeInTheDocument()
+        expect(screen.queryByRole('link', { name: /My Orders/ })).not.toBeInTheDocument()
       })
     })
   })
@@ -341,49 +341,49 @@ describe('Header Component', () => {
       // Find hamburger menu button (Menu icon)
       const menuButton = document.querySelector('button.md\\:hidden')
       expect(menuButton).toBeInTheDocument()
-      
+
       // Initially mobile menu should not be visible
-      expect(screen.queryByText('Panier (0)')).not.toBeInTheDocument()
-      
+      expect(screen.queryByText('Cart (0)')).not.toBeInTheDocument()
+
       // Open mobile menu
       await user.click(menuButton)
-      
+
       // Mobile menu should be visible
       await waitFor(() => {
-        expect(screen.getByText('Panier (0)')).toBeInTheDocument()
+        expect(screen.getByText('Cart (0)')).toBeInTheDocument()
         expectedNavItems.forEach(item => {
           expect(screen.getAllByText(item.label)).toHaveLength(2) // Desktop + mobile
         })
       })
-      
+
       // Close menu by clicking hamburger again
       await user.click(menuButton)
-      
+
       await waitFor(() => {
-        expect(screen.queryByText('Panier (0)')).not.toBeInTheDocument()
+        expect(screen.queryByText('Cart (0)')).not.toBeInTheDocument()
       })
     })
 
     it('should close mobile menu when navigation items clicked', async () => {
       renderComponent()
-      
+
       // Open mobile menu
       const menuButton = document.querySelector('button.md\\:hidden')
       await user.click(menuButton)
-      
+
       // Wait for menu to open
       await waitFor(() => {
-        expect(screen.getByText('Panier (0)')).toBeInTheDocument()
+        expect(screen.getByText('Cart (0)')).toBeInTheDocument()
       })
-      
+
       // Click on a mobile navigation item (get the second instance - mobile version)
       const mobileMenuLinks = screen.getAllByRole('link', { name: 'Menu' })
       const mobileMenuLink = mobileMenuLinks[1] // Second instance is mobile
       await user.click(mobileMenuLink)
-      
+
       // Mobile menu should close
       await waitFor(() => {
-        expect(screen.queryByText('Panier (0)')).not.toBeInTheDocument()
+        expect(screen.queryByText('Cart (0)')).not.toBeInTheDocument()
       })
     })
   })

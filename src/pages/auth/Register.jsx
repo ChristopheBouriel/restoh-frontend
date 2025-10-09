@@ -36,25 +36,25 @@ const Register = () => {
     const errors = {}
     
     if (!formData.name.trim()) {
-      errors.name = 'Le nom est requis'
+      errors.name = 'Name is required'
     }
-    
+
     if (!formData.email.trim()) {
-      errors.email = 'L\'email est requis'
+      errors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email invalide'
+      errors.email = 'Invalid email'
     }
-    
+
     if (!formData.password) {
-      errors.password = 'Le mot de passe est requis'
+      errors.password = 'Password is required'
     } else if (formData.password.length < 6) {
-      errors.password = 'Le mot de passe doit contenir au moins 6 caractères'
+      errors.password = 'Password must be at least 6 characters'
     }
-    
+
     if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Veuillez confirmer votre mot de passe'
+      errors.confirmPassword = 'Please confirm your password'
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Les mots de passe ne correspondent pas'
+      errors.confirmPassword = 'Passwords do not match'
     }
     
     setFormErrors(errors)
@@ -84,15 +84,15 @@ const Register = () => {
           <span className="text-4xl font-bold text-primary-600">RestOh!</span>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Créez votre compte
+          Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Ou{' '}
+          Or{' '}
           <Link
             to={ROUTES.LOGIN}
             className="font-medium text-primary-600 hover:text-primary-500"
           >
-            connectez-vous à votre compte existant
+            log in to your existing account
           </Link>
         </p>
       </div>
@@ -110,7 +110,7 @@ const Register = () => {
             {/* Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Nom complet
+                Full name
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -127,7 +127,7 @@ const Register = () => {
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
                     formErrors.name ? 'border-red-300' : 'border-gray-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
-                  placeholder="Votre nom complet"
+                  placeholder="Your full name"
                 />
               </div>
               {formErrors.name && (
@@ -138,7 +138,7 @@ const Register = () => {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Adresse email
+                Email address
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -166,7 +166,7 @@ const Register = () => {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Mot de passe
+                Password
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -183,7 +183,7 @@ const Register = () => {
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
                     formErrors.password ? 'border-red-300' : 'border-gray-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
-                  placeholder="Minimum 6 caractères"
+                  placeholder="Minimum 6 characters"
                 />
                 <button
                   type="button"
@@ -205,7 +205,7 @@ const Register = () => {
             {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirmer le mot de passe
+                Confirm password
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -222,7 +222,7 @@ const Register = () => {
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
                     formErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
-                  placeholder="Confirmez votre mot de passe"
+                  placeholder="Confirm your password"
                 />
                 <button
                   type="button"
@@ -251,13 +251,13 @@ const Register = () => {
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
-                J'accepte les{' '}
+                I accept the{' '}
                 <Link to="/terms" className="text-primary-600 hover:text-primary-500">
-                  conditions d'utilisation
+                  terms of use
                 </Link>{' '}
-                et la{' '}
+                and the{' '}
                 <Link to="/privacy" className="text-primary-600 hover:text-primary-500">
-                  politique de confidentialité
+                  privacy policy
                 </Link>
               </label>
             </div>
@@ -272,10 +272,10 @@ const Register = () => {
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Création du compte...
+                    Creating account...
                   </div>
                 ) : (
-                  'Créer mon compte'
+                  'Create my account'
                 )}
               </button>
             </div>

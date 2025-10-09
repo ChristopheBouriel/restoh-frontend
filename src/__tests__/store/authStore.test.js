@@ -155,7 +155,7 @@ describe('Auth Store', () => {
       expect(result.current.user).toEqual({
         id: 'admin',
         email: 'admin@restoh.fr',
-        name: 'Administrateur',
+        name: 'Administrator',
         role: 'admin'
       })
       expect(result.current.isAuthenticated).toBe(true)
@@ -202,7 +202,7 @@ describe('Auth Store', () => {
 
       expect(result.current.user).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
-      expect(result.current.error).toBe('Mot de passe incorrect')
+      expect(result.current.error).toBe('Password incorrect')
       expect(loginResult.success).toBe(false)
     })
   })
@@ -225,7 +225,7 @@ describe('Auth Store', () => {
 
       expect(mockHashPassword).toHaveBeenCalledWith('password123')
       
-      // Vérifier que l'utilisateur a été ajouté au localStorage
+      // Check que l'utilisateur a été ajouté au localStorage
       const storedUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
       expect(storedUsers).toHaveLength(1)
       expect(storedUsers[0]).toMatchObject({
@@ -348,19 +348,19 @@ describe('Auth Store', () => {
 
       expect(mockVerifyPassword).toHaveBeenCalledWith('password123', 'hashedPassword123')
       
-      // Vérifier que l'utilisateur a été supprimé de registered-users
+      // Check que l'utilisateur a été supprimé de registered-users
       const remainingUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
       expect(remainingUsers).toHaveLength(0)
       
-      // Vérifier l'anonymisation des commandes
+      // Check l'anonymisation des commandes
       const anonymizedOrders = JSON.parse(mockLocalStorage.getItem('admin-orders-v2') || '[]')
       expect(anonymizedOrders[0]).toMatchObject({
         userId: 'deleted-user',
         userEmail: 'deleted@account.com',
-        userName: 'Utilisateur supprimé'
+        userName: 'User supprimé'
       })
       
-      // Vérifier la déconnexion
+      // Check la déconnexion
       expect(result.current.user).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
       expect(deleteResult.success).toBe(true)
@@ -374,7 +374,7 @@ describe('Auth Store', () => {
         result.current.setUser({
           id: 'admin',
           email: 'admin@restoh.fr',
-          name: 'Administrateur'
+          name: 'Administrator'
         })
       })
 
@@ -421,7 +421,7 @@ describe('Auth Store', () => {
       expect(mockVerifyPassword).toHaveBeenCalledWith('oldPassword', 'oldHashedPassword')
       expect(mockHashPassword).toHaveBeenCalledWith('newPassword')
       
-      // Vérifier que le mot de passe a été mis à jour dans localStorage
+      // Check que le mot de passe a été mis à jour dans localStorage
       const updatedUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
       expect(updatedUsers[0].password).toBe('newHashedPassword')
       
@@ -436,7 +436,7 @@ describe('Auth Store', () => {
         result.current.setUser({
           id: 'admin',
           email: 'admin@restoh.fr',
-          name: 'Administrateur',
+          name: 'Administrator',
           role: 'admin'
         })
       })
@@ -451,13 +451,13 @@ describe('Auth Store', () => {
       expect(mockVerifyPassword).toHaveBeenCalledWith('admin123', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9')
       expect(mockHashPassword).toHaveBeenCalledWith('newPassword')
       
-      // Vérifier que l'utilisateur a été ajouté à registered-users
+      // Check que l'utilisateur a été ajouté à registered-users
       const registeredUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
       expect(registeredUsers).toHaveLength(1)
       expect(registeredUsers[0]).toMatchObject({
         id: 'admin',
         email: 'admin@restoh.fr',
-        name: 'Administrateur',
+        name: 'Administrator',
         role: 'admin',
         password: 'newHashedPassword'
       })
@@ -481,7 +481,7 @@ describe('Auth Store', () => {
         loginResult = await result.current.login(credentials)
       })
 
-      expect(result.current.error).toBe('Utilisateur non trouvé. Veuillez vous inscrire d\'abord.')
+      expect(result.current.error).toBe('User non trouvé. Veuillez vous inscrire d\'abord.')
       expect(result.current.isAuthenticated).toBe(false)
       expect(loginResult.success).toBe(false)
     })
@@ -501,16 +501,16 @@ describe('Auth Store', () => {
         result.current.setUser({ id: 123, email: 'user@example.com' })
       })
 
-      mockVerifyPassword.mockResolvedValue(false) // Mot de passe incorrect
+      mockVerifyPassword.mockResolvedValue(false) // Password incorrect
 
       let changeResult
       await act(async () => {
         changeResult = await result.current.changePassword('wrongPassword', 'newPassword')
       })
 
-      expect(result.current.error).toBe('Mot de passe actuel incorrect')
+      expect(result.current.error).toBe('Current password is incorrect')
       expect(changeResult.success).toBe(false)
-      expect(changeResult.error).toBe('Mot de passe actuel incorrect')
+      expect(changeResult.error).toBe('Current password is incorrect')
     })
   })
 })

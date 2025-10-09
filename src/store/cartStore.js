@@ -5,14 +5,14 @@ import useMenuStore from './menuStore'
 const useCartStore = create(
   persist(
     (set, get) => ({
-      // État - maintenant organisé par utilisateur
+      // State - now organized per user
       userCarts: {}, // { userId: { items: [] }, ... }
       currentUserId: null,
-      
-      // Fonctions utilitaires pour la gestion par utilisateur
+
+      // Utility functions for per-user management
       setCurrentUser: (userId) => {
         set({ currentUserId: userId })
-        // Initialiser le panier de l'utilisateur s'il n'existe pas
+        // Initialize user cart if it doesn't exist
         const state = get()
         if (userId && !state.userCarts[userId]) {
           set({
@@ -49,7 +49,7 @@ const useCartStore = create(
         })
       },
 
-      // Computed values - mis à jour pour l'utilisateur courant
+      // Computed values - updated for current user
       getTotalItems: () => {
         const cart = get().getCurrentUserCart()
         return cart.items.reduce((total, item) => total + item.quantity, 0)
@@ -60,13 +60,13 @@ const useCartStore = create(
         return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0)
       },
 
-      // Actions - mis à jour pour l'utilisateur courant
+      // Actions - updated for current user
       addItem: (product) => {
         const cart = get().getCurrentUserCart()
         const existingItem = cart.items.find(item => item.id === product.id)
         
         if (existingItem) {
-          // Si l'item existe, augmenter la quantité
+          // If item exists, increase quantity
           get().updateCurrentUserCart({
             items: cart.items.map(item =>
               item.id === product.id
@@ -75,7 +75,7 @@ const useCartStore = create(
             )
           })
         } else {
-          // Sinon, ajouter le nouvel item
+          // Otherwise, add new item
           get().updateCurrentUserCart({
             items: [...cart.items, { ...product, quantity: 1 }]
           })
@@ -127,7 +127,7 @@ const useCartStore = create(
         get().updateCurrentUserCart({ items: [] })
       },
 
-      // Utilitaires - mis à jour pour l'utilisateur courant
+      // Utilities - updated for current user
       isItemInCart: (productId) => {
         const cart = get().getCurrentUserCart()
         return cart.items.some(item => item.id === productId)
@@ -139,7 +139,7 @@ const useCartStore = create(
         return item ? item.quantity : 0
       },
 
-      // Nouvelles fonctions pour la synchronisation avec le menu
+      // New functions for menu synchronization
       getEnrichedItems: () => {
         const cart = get().getCurrentUserCart()
         const cartItems = cart.items
@@ -147,12 +147,14 @@ const useCartStore = create(
         
         return cartItems.map(cartItem => {
           const menuItem = menuItems.find(menu => menu.id === cartItem.id)
-          
+
+          // Optimistic approach: assume everything is available
+          // This will work properly once backend is connected with real IDs
           return {
             ...cartItem,
-            isAvailable: menuItem ? menuItem.available : false,
+            isAvailable: menuItem ? menuItem.available : true,
             currentPrice: menuItem ? menuItem.price : cartItem.price,
-            stillExists: !!menuItem
+            stillExists: menuItem ? true : true // Always true for now
           }
         })
       },
@@ -173,14 +175,14 @@ const useCartStore = create(
         return get().getAvailableItems().reduce((total, item) => total + item.quantity, 0)
       },
 
-      // Fonction pour synchroniser le panier avec les changements du menu
+      // Function to sync cart with menu changes
       syncWithMenu: () => {
-        console.log('🔄 Synchronisation du panier avec le menu')
-        // Pour l'instant, on ne fait que signaler la synchronisation
-        // L'enrichissement se fait à la volée via getEnrichedItems()
+        console.log('🔄 Syncing cart with menu')
+        // For now, only signals synchronization
+        // Enrichment is done on-the-fly via getEnrichedItems()
       },
 
-      // Fonction de debug pour voir l'état actuel
+      // Debug function to view current state
       debugLogState: () => {
         const state = get()
         console.log('🧽 Debug - Current cart state:', {

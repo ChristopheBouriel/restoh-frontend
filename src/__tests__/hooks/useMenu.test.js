@@ -11,17 +11,18 @@ describe('useMenu', () => {
     items: [],
     categories: ['pizza', 'pasta', 'dessert'],
     isLoading: false,
+    error: null,
     setLoading: vi.fn(),
-    initializeMenu: vi.fn(),
+    fetchMenuItems: vi.fn(),
+    fetchCategories: vi.fn(),
     getAvailableItems: vi.fn(),
     getPopularItems: vi.fn(),
     getItemsByCategory: vi.fn(),
     getItemById: vi.fn(),
-    addItem: vi.fn(),
+    createItem: vi.fn(),
     updateItem: vi.fn(),
     deleteItem: vi.fn(),
-    toggleAvailability: vi.fn(),
-    syncFromLocalStorage: vi.fn()
+    toggleAvailability: vi.fn()
   }
 
   beforeEach(() => {
@@ -32,24 +33,26 @@ describe('useMenu', () => {
   })
 
   describe('Initialisation et État', () => {
-    it('should initialize menu automatically when items array is empty', async () => {
+    it('should fetch menu automatically when items array is empty', async () => {
       // Setup: items vide pour déclencher l'initialisation
       mockMenuStore.items = []
-      
+
       renderHook(() => useMenu())
 
-      expect(mockMenuStore.initializeMenu).toHaveBeenCalledOnce()
+      expect(mockMenuStore.fetchMenuItems).toHaveBeenCalledOnce()
+      expect(mockMenuStore.fetchCategories).toHaveBeenCalledOnce()
     })
 
-    it('should not initialize menu when items already exist', async () => {
+    it('should not fetch menu when items already exist', async () => {
       // Setup: items non-vide pour éviter l'initialisation
       mockMenuStore.items = [
         { id: '1', name: 'Pizza Margherita', available: true }
       ]
-      
+
       renderHook(() => useMenu())
 
-      expect(mockMenuStore.initializeMenu).not.toHaveBeenCalled()
+      expect(mockMenuStore.fetchMenuItems).not.toHaveBeenCalled()
+      expect(mockMenuStore.fetchCategories).not.toHaveBeenCalled()
     })
 
     it('should return correct state from store', () => {
@@ -128,104 +131,96 @@ describe('useMenu', () => {
   })
 
   describe('Actions Admin CRUD', () => {
-    it('should add item successfully', () => {
+    it('should add item successfully', async () => {
       const itemData = { name: 'New Pizza', price: 12.99, category: 'pizza' }
       const newItem = { id: '123', ...itemData }
-      mockMenuStore.addItem.mockReturnValue(newItem)
+      mockMenuStore.createItem.mockResolvedValue({ success: true, item: newItem })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.addItem(itemData)
+      const response = await result.current.addItem(itemData)
 
-      expect(mockMenuStore.addItem).toHaveBeenCalledWith(itemData)
+      expect(mockMenuStore.createItem).toHaveBeenCalledWith(itemData)
       expect(response).toEqual({ success: true, item: newItem })
     })
 
-    it('should update item successfully', () => {
+    it('should update item successfully', async () => {
       const itemData = { name: 'Updated Pizza', price: 15.99 }
-      mockMenuStore.updateItem.mockImplementation(() => {}) // Void function
+      mockMenuStore.updateItem.mockResolvedValue({ success: true })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.updateItem('123', itemData)
+      const response = await result.current.updateItem('123', itemData)
 
       expect(mockMenuStore.updateItem).toHaveBeenCalledWith('123', itemData)
       expect(response).toEqual({ success: true })
     })
 
-    it('should delete item successfully', () => {
-      mockMenuStore.deleteItem.mockImplementation(() => {}) // Void function
+    it('should delete item successfully', async () => {
+      mockMenuStore.deleteItem.mockResolvedValue({ success: true })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.deleteItem('123')
+      const response = await result.current.deleteItem('123')
 
       expect(mockMenuStore.deleteItem).toHaveBeenCalledWith('123')
       expect(response).toEqual({ success: true })
     })
 
-    it('should toggle availability successfully', () => {
+    it('should toggle availability successfully', async () => {
       const updatedItem = { id: '123', name: 'Pizza', available: false }
-      mockMenuStore.toggleAvailability.mockReturnValue(updatedItem)
+      mockMenuStore.toggleAvailability.mockResolvedValue({ success: true, item: updatedItem })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.toggleAvailability('123')
+      const response = await result.current.toggleAvailability('123')
 
       expect(mockMenuStore.toggleAvailability).toHaveBeenCalledWith('123')
       expect(response).toEqual({ success: true, item: updatedItem })
     })
   })
 
-  describe('Gestion d\'Erreurs', () => {
-    it('should handle addItem error gracefully', () => {
+  describe('Error Management', () => {
+    it('should handle addItem error gracefully', async () => {
       const errorMessage = 'Invalid item data'
-      mockMenuStore.addItem.mockImplementation(() => {
-        throw new Error(errorMessage)
-      })
+      mockMenuStore.createItem.mockResolvedValue({ success: false, error: errorMessage })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.addItem({ name: 'Bad Item' })
+      const response = await result.current.addItem({ name: 'Bad Item' })
 
       expect(response).toEqual({ success: false, error: errorMessage })
     })
 
-    it('should handle updateItem error gracefully', () => {
+    it('should handle updateItem error gracefully', async () => {
       const errorMessage = 'Item not found'
-      mockMenuStore.updateItem.mockImplementation(() => {
-        throw new Error(errorMessage)
-      })
+      mockMenuStore.updateItem.mockResolvedValue({ success: false, error: errorMessage })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.updateItem('nonexistent', { name: 'Test' })
+      const response = await result.current.updateItem('nonexistent', { name: 'Test' })
 
       expect(response).toEqual({ success: false, error: errorMessage })
     })
 
-    it('should handle deleteItem error gracefully', () => {
+    it('should handle deleteItem error gracefully', async () => {
       const errorMessage = 'Cannot delete item'
-      mockMenuStore.deleteItem.mockImplementation(() => {
-        throw new Error(errorMessage)
-      })
+      mockMenuStore.deleteItem.mockResolvedValue({ success: false, error: errorMessage })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.deleteItem('123')
+      const response = await result.current.deleteItem('123')
 
       expect(response).toEqual({ success: false, error: errorMessage })
     })
 
-    it('should handle toggleAvailability error gracefully', () => {
+    it('should handle toggleAvailability error gracefully', async () => {
       const errorMessage = 'Toggle failed'
-      mockMenuStore.toggleAvailability.mockImplementation(() => {
-        throw new Error(errorMessage)
-      })
+      mockMenuStore.toggleAvailability.mockResolvedValue({ success: false, error: errorMessage })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = result.current.toggleAvailability('123')
+      const response = await result.current.toggleAvailability('123')
 
       expect(response).toEqual({ success: false, error: errorMessage })
     })
@@ -236,7 +231,7 @@ describe('useMenu', () => {
       const { result } = renderHook(() => useMenu())
 
       expect(result.current.setLoading).toBe(mockMenuStore.setLoading)
-      expect(result.current.syncFromLocalStorage).toBe(mockMenuStore.syncFromLocalStorage)
+      expect(result.current.fetchMenuItems).toBe(mockMenuStore.fetchMenuItems)
       expect(result.current.getItemById).toBe(mockMenuStore.getItemById)
     })
 
@@ -250,14 +245,14 @@ describe('useMenu', () => {
       expect(mockMenuStore.setLoading).toHaveBeenCalledWith(true)
     })
 
-    it('should call syncFromLocalStorage when exposed', () => {
+    it('should call fetchMenuItems when exposed', () => {
       const { result } = renderHook(() => useMenu())
 
       act(() => {
-        result.current.syncFromLocalStorage()
+        result.current.fetchMenuItems()
       })
 
-      expect(mockMenuStore.syncFromLocalStorage).toHaveBeenCalledOnce()
+      expect(mockMenuStore.fetchMenuItems).toHaveBeenCalledOnce()
     })
   })
 })

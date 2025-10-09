@@ -21,14 +21,14 @@ export const useMenu = () => {
   } = useMenuStore()
 
   useEffect(() => {
-    // Charger le menu au premier chargement si vide
+    // Load menu on first load if empty
     if (items.length === 0) {
       fetchMenuItems()
       fetchCategories()
     }
   }, [items.length, fetchMenuItems, fetchCategories])
 
-  // Pour les pages publiques
+  // For public pages
   const getPublicMenu = () => {
     return getAvailableItems()
   }
@@ -41,12 +41,12 @@ export const useMenu = () => {
     return getItemsByCategory(category)
   }
 
-  // Pour l'admin
+  // For admin
   const getAllItems = () => {
     return items
   }
 
-  // Les fonctions CRUD retournent déjà des promesses avec { success, ... }
+  // CRUD functions already return promises with { success, ... }
   const handleAddItem = async (itemData) => {
     return await createItem(itemData)
   }
@@ -64,7 +64,7 @@ export const useMenu = () => {
   }
 
   return {
-    // État
+    // State
     items: getAllItems(),
     availableItems: getPublicMenu(),
     popularItems: getPublicPopularItems(),
@@ -72,23 +72,23 @@ export const useMenu = () => {
     isLoading,
     error,
 
-    // Getters publics
+    // Public getters
     getPublicMenu,
     getPublicPopularItems,
     getPublicItemsByCategory,
     getItemById,
 
-    // Actions admin
+    // Admin actions
     addItem: handleAddItem,
     updateItem: handleUpdateItem,
     deleteItem: handleDeleteItem,
     toggleAvailability: handleToggleAvailability,
 
-    // Actions de chargement
+    // Loading actions
     fetchMenuItems,
     fetchCategories,
 
-    // Utilitaires
+    // Utilities
     setLoading
   }
 }

@@ -105,7 +105,7 @@ describe('CartModal Component', () => {
       isCartOpen: true,
       closeCart: mockCloseCart
     })
-    
+
     vi.mocked(useCart).mockReturnValue({
       isEmpty: false,
       totalItems: 3,
@@ -115,8 +115,8 @@ describe('CartModal Component', () => {
     })
 
     render(<CartModalWrapper />)
-    
-    expect(screen.getByText('Mon Panier (3)')).toBeInTheDocument()
+
+    expect(screen.getByText('My Cart (3)')).toBeInTheDocument()
     // Check X button exists by looking for the close button in header
     const closeButton = document.querySelector('.hover\\:bg-gray-100')
     expect(closeButton).toBeInTheDocument()
@@ -145,7 +145,7 @@ describe('CartModal Component', () => {
       isCartOpen: true,
       closeCart: mockCloseCart
     })
-    
+
     vi.mocked(useCart).mockReturnValue({
       isEmpty: true,
       totalItems: 0,
@@ -153,20 +153,20 @@ describe('CartModal Component', () => {
     })
 
     render(<CartModalWrapper />)
-    
-    expect(screen.getByText('Votre panier est vide')).toBeInTheDocument()
-    expect(screen.getByText('Découvrez nos délicieux plats et ajoutez-les à votre panier !')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Voir le menu' })).toBeInTheDocument()
+
+    expect(screen.getByText('Your cart is empty')).toBeInTheDocument()
+    expect(screen.getByText('Discover our delicious dishes and add them to your cart!')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View menu' })).toBeInTheDocument()
   })
 
-  test('should navigate to menu when "Voir le menu" button is clicked', async () => {
+  test('should navigate to menu when "View menu" button is clicked', async () => {
     const user = userEvent.setup()
-    
+
     vi.mocked(useCartUI).mockReturnValue({
       isCartOpen: true,
       closeCart: mockCloseCart
     })
-    
+
     vi.mocked(useCart).mockReturnValue({
       isEmpty: true,
       totalItems: 0,
@@ -174,10 +174,10 @@ describe('CartModal Component', () => {
     })
 
     render(<CartModalWrapper />)
-    
-    const menuButton = screen.getByRole('button', { name: 'Voir le menu' })
+
+    const menuButton = screen.getByRole('button', { name: 'View menu' })
     await user.click(menuButton)
-    
+
     expect(mockCloseCart).toHaveBeenCalledTimes(1)
     expect(mockNavigate).toHaveBeenCalledWith('/menu')
   })
@@ -206,7 +206,7 @@ describe('CartModal Component', () => {
     // Check item information using more specific selectors
     const itemName = document.querySelector('h3.font-medium')
     expect(itemName).toHaveTextContent('Pizza Margherita')
-    expect(screen.getByText('12.50€ l\'unité')).toBeInTheDocument()
+    expect(screen.getByText('12.50€ each')).toBeInTheDocument()
     expect(screen.getByText('25.00€')).toBeInTheDocument() // 12.50 * 2
     expect(screen.getByText('2')).toBeInTheDocument() // quantity
     
@@ -234,11 +234,11 @@ describe('CartModal Component', () => {
     })
 
     render(<CartModalWrapper />)
-    
+
     // Check unavailable item styling
-    expect(screen.getByText('INDISPO')).toBeInTheDocument()
-    expect(screen.getByText('SUPPRIMÉ')).toBeInTheDocument()
-    expect(screen.getAllByText('Non inclus dans le total')).toHaveLength(2)
+    expect(screen.getByText('UNAVAILABLE')).toBeInTheDocument()
+    expect(screen.getByText('DELETED')).toBeInTheDocument()
+    expect(screen.getAllByText('Not included in total')).toHaveLength(2)
     
     // Check that item names have line-through styling
     const unavailableElements = document.querySelectorAll('.line-through')
@@ -266,7 +266,7 @@ describe('CartModal Component', () => {
 
     render(<CartModalWrapper />)
     
-    expect(screen.getByText('1 article(s) non disponible(s) dans votre panier')).toBeInTheDocument()
+    expect(screen.getByText('1 unavailable item(s) in your cart')).toBeInTheDocument()
   })
 
   // 4. QUANTITY CONTROLS (3 tests)
@@ -381,10 +381,10 @@ describe('CartModal Component', () => {
     render(<CartModalWrapper />)
     
     // Check detailed totals display
-    expect(screen.getByText('Total original:')).toBeInTheDocument()
+    expect(screen.getByText('Original total:')).toBeInTheDocument()
     expect(screen.getByText('40.50€')).toBeInTheDocument()
-    expect(screen.getByText('Total disponible (2 articles):')).toBeInTheDocument()
-    expect(screen.getByText('Total à payer:')).toBeInTheDocument()
+    expect(screen.getByText('Available total (2 items):')).toBeInTheDocument()
+    expect(screen.getByText('Total to pay:')).toBeInTheDocument()
     
     // Check that multiple 25.00€ are present (item total, available total, final total)
     const priceElements = screen.getAllByText('25.00€')
@@ -414,7 +414,7 @@ describe('CartModal Component', () => {
     render(<CartModalWrapper />)
     
     // Check checkout button is enabled and shows correct text
-    const checkoutButton = screen.getByRole('button', { name: /Commander - 25.00€/ })
+    const checkoutButton = screen.getByRole('button', { name: /Order - 25.00€/ })
     expect(checkoutButton).toBeInTheDocument()
     expect(checkoutButton).not.toBeDisabled()
     
@@ -456,7 +456,7 @@ describe('CartModal Component', () => {
     expect(mockCloseCart).toHaveBeenCalledTimes(2)
     
     // Test continue shopping button
-    const continueButton = screen.getByRole('button', { name: 'Continuer mes achats' })
+    const continueButton = screen.getByRole('button', { name: 'Continue shopping' })
     await user.click(continueButton)
     expect(mockCloseCart).toHaveBeenCalledTimes(3)
     expect(mockNavigate).toHaveBeenCalledWith('/menu')
@@ -483,7 +483,7 @@ describe('CartModal Component', () => {
 
     render(<CartModalWrapper />)
     
-    const clearButton = screen.getByRole('button', { name: 'Vider le panier' })
+    const clearButton = screen.getByRole('button', { name: 'Empty cart' })
     await user.click(clearButton)
     
     expect(mockClearCart).toHaveBeenCalledTimes(1)

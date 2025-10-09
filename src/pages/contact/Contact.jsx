@@ -17,12 +17,12 @@ const Contact = () => {
 
 
   const contactReasons = [
-    { value: 'general', label: 'Demande générale' },
-    { value: 'reservation', label: 'Réservation' },
-    { value: 'catering', label: 'Traiteur' },
-    { value: 'complaint', label: 'Réclamation' },
+    { value: 'general', label: 'General inquiry' },
+    { value: 'reservation', label: 'Reservation' },
+    { value: 'catering', label: 'Catering' },
+    { value: 'complaint', label: 'Complaint' },
     { value: 'compliment', label: 'Compliment' },
-    { value: 'job', label: 'Candidature' }
+    { value: 'job', label: 'Job application' }
   ]
 
   const handleChange = (e) => {
@@ -37,29 +37,29 @@ const Contact = () => {
     const errors = []
     
     if (!formData.name.trim()) {
-      errors.push('Le nom est obligatoire')
+      errors.push('Name is required')
     }
-    
+
     if (!formData.email.trim()) {
-      errors.push('L\'email est obligatoire')
+      errors.push('Email is required')
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.push('L\'email n\'est pas valide')
+      errors.push('Email is not valid')
     }
-    
+
     if (!formData.subject.trim()) {
-      errors.push('L\'objet est obligatoire')
+      errors.push('Subject is required')
     }
-    
+
     if (!formData.message.trim()) {
-      errors.push('Le message est obligatoire')
+      errors.push('Message is required')
     } else if (formData.message.trim().length < 10) {
-      errors.push('Le message doit contenir au moins 10 caractères')
+      errors.push('Message must contain at least 10 characters')
     }
     
     return errors
   }
 
-  // Vérifier si le formulaire est valide pour activer/désactiver le bouton
+  // Check if form is valid to enable/disable button
   const isFormValid = () => {
     return formData.name.trim() && 
            formData.email.trim() && 
@@ -78,7 +78,7 @@ const Contact = () => {
     }
     
     try {
-      // Envoyer le message via le store
+      // Send message via store
       const result = await createMessage({
         name: formData.name,
         email: formData.email,
@@ -88,7 +88,7 @@ const Contact = () => {
       })
       
       if (result.success) {
-        toast.success('Message envoyé avec succès ! Nous vous répondrons rapidement.')
+        toast.success('Message sent successfully! We will respond quickly.')
         
         // Reset form
         setFormData({
@@ -100,10 +100,10 @@ const Contact = () => {
           contactReason: 'general'
         })
       } else {
-        toast.error('Erreur lors de l\'envoi du message. Veuillez réessayer.')
+        toast.error('Error sending message. Please try again.')
       }
     } catch (error) {
-      toast.error('Erreur lors de l\'envoi du message. Veuillez réessayer.')
+      toast.error('Error sending message. Please try again.')
     }
   }
 
@@ -112,18 +112,18 @@ const Contact = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contactez-nous</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact us</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Une question ? Une suggestion ? Nous sommes là pour vous écouter et vous aider.
+            A question? A suggestion? We're here to listen and help you.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Informations de contact */}
+          {/* Contact information */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                Nos coordonnées
+                Our contact information
               </h2>
               
               <div className="space-y-6">
@@ -132,20 +132,20 @@ const Contact = () => {
                     <MapPin className="w-6 h-6 text-primary-600 mt-1" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Adresse</h3>
+                    <h3 className="font-medium text-gray-900">Address</h3>
                     <p className="text-gray-600 mt-1">
                       123 Rue de la Gastronomie<br />
                       75001 Paris, France
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <Phone className="w-6 h-6 text-primary-600 mt-1" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Téléphone</h3>
+                    <h3 className="font-medium text-gray-900">Phone</h3>
                     <p className="text-gray-600 mt-1">01 42 34 56 78</p>
                   </div>
                 </div>
@@ -162,43 +162,43 @@ const Contact = () => {
               </div>
             </div>
             
-            {/* Horaires */}
+            {/* Opening hours */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                 <Clock className="w-6 h-6 mr-2" />
-                Horaires d'ouverture
+                Opening hours
               </h2>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Lundi - Vendredi</span>
+                  <span className="text-gray-600">Monday - Friday</span>
                   <span className="font-medium">11h30 - 14h30<br />18h30 - 22h30</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Samedi</span>
+                  <span className="text-gray-600">Saturday</span>
                   <span className="font-medium">12h00 - 23h00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Dimanche</span>
+                  <span className="text-gray-600">Sunday</span>
                   <span className="font-medium">12h00 - 22h00</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Formulaire de contact */}
+          {/* Contact form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                 <MessageSquare className="w-6 h-6 mr-2" />
-                Envoyez-nous un message
+                Send us a message
               </h2>
               
               <form onSubmit={handleSubmit} className="space-y-6" role="form">
-                {/* Raison du contact */}
+                {/* Contact reason */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Motif de contact
+                    Reason for contact
                   </label>
                   <select
                     name="contactReason"
@@ -215,10 +215,10 @@ const Contact = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Nom */}
+                  {/* Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom complet *
+                      Full name *
                     </label>
                     <input
                       type="text"
@@ -227,7 +227,7 @@ const Contact = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Votre nom"
+                      placeholder="Your name"
                     />
                   </div>
 
@@ -243,15 +243,15 @@ const Contact = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="votre@email.com"
+                      placeholder="your@email.com"
                     />
                   </div>
                 </div>
 
-                {/* Téléphone */}
+                {/* Phone */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone (optionnel)
+                    Phone (optional)
                   </label>
                   <input
                     type="tel"
@@ -263,10 +263,10 @@ const Contact = () => {
                   />
                 </div>
 
-                {/* Objet */}
+                {/* Subject */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Objet *
+                    Subject *
                   </label>
                   <input
                     type="text"
@@ -275,7 +275,7 @@ const Contact = () => {
                     onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="L'objet de votre message"
+                    placeholder="The subject of your message"
                   />
                 </div>
 
@@ -291,14 +291,14 @@ const Contact = () => {
                     required
                     rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Votre message..."
+                    placeholder="Your message..."
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    {formData.message.length} caractères (minimum 10)
+                    {formData.message.length} characters (minimum 10)
                   </p>
                 </div>
 
-                {/* Bouton submit */}
+                {/* Submit button */}
                 <div>
                   <button
                     type="submit"
@@ -312,66 +312,66 @@ const Contact = () => {
                     {isLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Envoi en cours...
+                        Sending...
                       </>
                     ) : (
                       <>
                         <Send className="w-5 h-5 mr-2" />
-                        Envoyer le message
+                        Send message
                       </>
                     )}
                   </button>
                 </div>
 
                 <p className="text-sm text-gray-500 text-center">
-                  * Champs obligatoires
+                  * Required fields
                 </p>
               </form>
             </div>
           </div>
         </div>
 
-        {/* Section FAQ rapide */}
+        {/* FAQ section */}
         <div className="mt-12">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Questions fréquentes
+              Frequently asked questions
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">
-                  Comment réserver une table ?
+                  How to book a table?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Vous pouvez réserver directement en ligne via notre page de réservations ou nous appeler au 01 42 34 56 78.
+                  You can book directly online via our reservations page or call us at 01 42 34 56 78.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">
-                  Proposez-vous la livraison ?
+                  Do you offer delivery?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Oui, nous livrons dans un rayon de 5km autour du restaurant. Commandez en ligne ou par téléphone.
+                  Yes, we deliver within a 5km radius around the restaurant. Order online or by phone.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">
-                  Avez-vous des options végétariennes ?
+                  Do you have vegetarian options?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Absolument ! Notre carte propose de nombreuses options végétariennes et véganes. Consultez notre menu en ligne.
+                  Absolutely! Our menu offers numerous vegetarian and vegan options. Check out our online menu.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">
-                  Puis-je annuler ma commande ?
+                  Can I cancel my order?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Les commandes peuvent être annulées gratuitement jusqu'à 15 minutes après la confirmation.
+                  Orders can be cancelled free of charge up to 15 minutes after confirmation.
                 </p>
               </div>
             </div>

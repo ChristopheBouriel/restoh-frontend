@@ -22,7 +22,7 @@ describe('ReservationsManagement Component', () => {
       guests: 4,
       status: 'confirmed',
       tableNumber: 12,
-      specialRequests: 'Table près de la fenêtre',
+      specialRequests: 'Table by the window',
       createdAt: '2024-01-20T14:30:00Z',
       updatedAt: '2024-01-20T14:30:00Z'
     },
@@ -60,7 +60,7 @@ describe('ReservationsManagement Component', () => {
       guests: 6,
       status: 'completed',
       tableNumber: 8,
-      specialRequests: 'Anniversaire - décoration table',
+      specialRequests: 'Birthday - décoration table',
       createdAt: '2024-01-19T09:00:00Z',
       updatedAt: '2024-01-19T20:30:00Z'
     },
@@ -121,19 +121,19 @@ describe('ReservationsManagement Component', () => {
       renderComponent()
       
       // Header
-      expect(screen.getByText('Gestion des Réservations')).toBeInTheDocument()
-      expect(screen.getByText('Gérez toutes les réservations du restaurant')).toBeInTheDocument()
+      expect(screen.getByText('Reservations Management')).toBeInTheDocument()
+      expect(screen.getByText('Manage all restaurant reservations')).toBeInTheDocument()
       
       // Statistics cards
       expect(screen.getByText('Total')).toBeInTheDocument()
-      expect(screen.getAllByText('En attente').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText('Confirmées')).toBeInTheDocument()
+      expect(screen.getAllByText('Pending').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByText('Confirmed')).toBeInTheDocument()
       expect(screen.getByText('Aujourd\'hui')).toBeInTheDocument()
-      expect(screen.getByText('Couverts total')).toBeInTheDocument()
+      expect(screen.getByText('Total seats')).toBeInTheDocument()
       expect(screen.getByText('Couverts aujourd\'hui')).toBeInTheDocument()
       
       // Reservations list with count
-      expect(screen.getByText('Réservations (4)')).toBeInTheDocument()
+      expect(screen.getByText('Reservations (4)')).toBeInTheDocument()
     })
 
     it('should initialize reservations data on mount', () => {
@@ -163,12 +163,12 @@ describe('ReservationsManagement Component', () => {
       
       // Find status filter dropdown
       const statusFilterButton = screen.getAllByRole('button').find(button => 
-        button.textContent?.includes('Tous les statuts')
+        button.textContent?.includes('All statuses')
       )
       expect(statusFilterButton).toBeInTheDocument()
       
       // Verify filter options are available (may appear in multiple places)
-      expect(screen.getAllByText('Statut').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Status').length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByText('Date').length).toBeGreaterThanOrEqual(1)
     })
 
@@ -189,7 +189,7 @@ describe('ReservationsManagement Component', () => {
       renderComponent()
       
       // Should show all 4 reservations by default
-      expect(screen.getByText('Réservations (4)')).toBeInTheDocument()
+      expect(screen.getByText('Reservations (4)')).toBeInTheDocument()
       expect(screen.getAllByText('Jean Dupont')).toHaveLength(2) // Desktop + mobile
       expect(screen.getAllByText('Marie Martin')).toHaveLength(2)
       expect(screen.getAllByText('Pierre Durand')).toHaveLength(2)
@@ -205,7 +205,7 @@ describe('ReservationsManagement Component', () => {
       
       renderComponent()
       
-      expect(screen.getByText('Réservations (0)')).toBeInTheDocument()
+      expect(screen.getByText('Reservations (0)')).toBeInTheDocument()
       expect(screen.getByText('Aucune réservation trouvée avec ces filtres.')).toBeInTheDocument()
     })
   })
@@ -217,8 +217,8 @@ describe('ReservationsManagement Component', () => {
       
       // Find status dropdowns for reservations
       const statusDropdowns = screen.getAllByRole('button').filter(button => 
-        button.textContent?.includes('En attente') || 
-        button.textContent?.includes('Confirmée') ||
+        button.textContent?.includes('Pending') || 
+        button.textContent?.includes('Confirmed') ||
         button.textContent?.includes('Installée')
       )
       expect(statusDropdowns.length).toBeGreaterThan(0)
@@ -297,7 +297,7 @@ describe('ReservationsManagement Component', () => {
         expect(screen.getByText('reservation-001')).toBeInTheDocument() // ID
         expect(screen.getAllByText('19:30').length).toBeGreaterThanOrEqual(1) // Time
         expect(screen.getAllByText('Table 12').length).toBeGreaterThanOrEqual(1) // Table assignment
-        expect(screen.getAllByText('Confirmée').length).toBeGreaterThanOrEqual(1) // Status
+        expect(screen.getAllByText('Confirmed').length).toBeGreaterThanOrEqual(1) // Status
       })
     })
 
@@ -310,7 +310,7 @@ describe('ReservationsManagement Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Demandes spéciales')).toBeInTheDocument()
-        expect(screen.getAllByText('Table près de la fenêtre').length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText('Table by the window').length).toBeGreaterThanOrEqual(1)
         expect(screen.getByText('Historique')).toBeInTheDocument()
         expect(screen.getByText('Créée le:')).toBeInTheDocument()
         expect(screen.getByText('Modifiée le:')).toBeInTheDocument()
@@ -346,7 +346,7 @@ describe('ReservationsManagement Component', () => {
       expect(screen.getAllByText(stats.todayGuests.toString()).length).toBeGreaterThanOrEqual(1) // Today guests: 7
       
       // Check reservation count in header
-      expect(screen.getByText(`Réservations (${mockReservations.length})`)).toBeInTheDocument()
+      expect(screen.getByText(`Reservations (${mockReservations.length})`)).toBeInTheDocument()
     })
 
     it('should handle loading state appropriately', () => {
@@ -358,7 +358,7 @@ describe('ReservationsManagement Component', () => {
       renderComponent()
       
       // Component should still render with loading state
-      expect(screen.getByText('Gestion des Réservations')).toBeInTheDocument()
+      expect(screen.getByText('Reservations Management')).toBeInTheDocument()
     })
 
     it('should handle status change errors gracefully', async () => {

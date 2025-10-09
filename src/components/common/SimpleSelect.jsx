@@ -5,7 +5,7 @@ const SimpleSelect = ({ value, onChange, options = [], className = '', disabled 
   const selectRef = useRef(null)
   const buttonRef = useRef(null)
 
-  // Fermer le dropdown quand on clique ailleurs
+  // Close the dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -17,7 +17,7 @@ const SimpleSelect = ({ value, onChange, options = [], className = '', disabled 
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Remettre le focus quand le dropdown se ferme
+  // Restore focus when the dropdown closes
   useEffect(() => {
     if (!isOpen && buttonRef.current) {
       buttonRef.current.focus()

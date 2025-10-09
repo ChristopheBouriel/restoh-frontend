@@ -57,11 +57,11 @@ describe('AdminLayout Component', () => {
 
   const expectedNavigationItems = [
     { name: 'Dashboard', href: '/admin' },
-    { name: 'Gestion Menu', href: '/admin/menu' },
-    { name: 'Commandes', href: '/admin/orders' },
-    { name: 'Réservations', href: '/admin/reservations' },
-    { name: 'Utilisateurs', href: '/admin/users' },
-    { name: 'Messages Contact', href: '/admin/messages' }
+    { name: 'Menu Management', href: '/admin/menu' },
+    { name: 'Orders', href: '/admin/orders' },
+    { name: 'Reservations', href: '/admin/reservations' },
+    { name: 'Users', href: '/admin/users' },
+    { name: 'Contact Messages', href: '/admin/messages' }
   ]
 
   beforeEach(() => {
@@ -90,17 +90,17 @@ describe('AdminLayout Component', () => {
   describe('Access Control and Authorization', () => {
     it('should show access denied when user is not admin', () => {
       renderComponent(regularUser)
-      
-      expect(screen.getByText('Accès refusé')).toBeInTheDocument()
-      expect(screen.getByText('Vous n\'avez pas les permissions pour accéder au panel admin.')).toBeInTheDocument()
+
+      expect(screen.getByText('Access denied')).toBeInTheDocument()
+      expect(screen.getByText('You do not have permission to access the admin panel.')).toBeInTheDocument()
     })
 
     it('should display access denied with home navigation button for non-admin', async () => {
       renderComponent(regularUser)
-      
-      const homeButton = screen.getByText('Retour à l\'accueil')
+
+      const homeButton = screen.getByText('Return to Home')
       expect(homeButton).toBeInTheDocument()
-      
+
       await user.click(homeButton)
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
@@ -110,7 +110,7 @@ describe('AdminLayout Component', () => {
       
       expect(screen.getByText('RestOh Admin')).toBeInTheDocument()
       expect(screen.getByTestId('outlet-content')).toBeInTheDocument()
-      expect(screen.queryByText('Accès refusé')).not.toBeInTheDocument()
+      expect(screen.queryByText('Access denied')).not.toBeInTheDocument()
     })
   })
 
@@ -118,7 +118,7 @@ describe('AdminLayout Component', () => {
   describe('Navigation and Routing', () => {
     it('should display all navigation items with correct links', () => {
       renderComponent(adminUser)
-      
+
       expectedNavigationItems.forEach(item => {
         const navLink = screen.getByRole('link', { name: new RegExp(item.name) })
         expect(navLink).toBeInTheDocument()
@@ -128,10 +128,10 @@ describe('AdminLayout Component', () => {
 
     it('should highlight current active navigation item based on location', () => {
       renderComponent(adminUser, '/admin/orders')
-      
-      const ordersLink = screen.getByRole('link', { name: /Commandes/ })
+
+      const ordersLink = screen.getByRole('link', { name: /Orders/ })
       expect(ordersLink).toHaveClass('bg-gray-800', 'border-r-2', 'border-primary-500', 'text-white')
-      
+
       const dashboardLink = screen.getByRole('link', { name: /Dashboard/ })
       expect(dashboardLink).toHaveClass('text-gray-300', 'hover:text-white', 'hover:bg-gray-800')
     })
@@ -151,10 +151,10 @@ describe('AdminLayout Component', () => {
       })
     })
 
-    it('should navigate to home when clicking "Retour au site" link', () => {
+    it('should navigate to home when clicking "Return to site" link', () => {
       renderComponent(adminUser)
-      
-      const homeLink = screen.getByRole('link', { name: /Retour au site/ })
+
+      const homeLink = screen.getByRole('link', { name: /Return to site/ })
       expect(homeLink).toBeInTheDocument()
       expect(homeLink).toHaveAttribute('href', '/')
     })
@@ -234,10 +234,10 @@ describe('AdminLayout Component', () => {
     it('should display badge with count when there are new messages', () => {
       mockGetNewMessagesCount.mockReturnValue(3)
       renderComponent(adminUser)
-      
-      const messagesLink = screen.getByRole('link', { name: /Messages Contact/ })
+
+      const messagesLink = screen.getByRole('link', { name: /Contact Messages/ })
       expect(messagesLink.textContent).toContain('3')
-      
+
       // Badge should be visible
       const badge = messagesLink.querySelector('.bg-red-600.rounded-full')
       expect(badge).toBeInTheDocument()
@@ -247,9 +247,9 @@ describe('AdminLayout Component', () => {
     it('should not display badge when no new messages exist', () => {
       mockGetNewMessagesCount.mockReturnValue(0)
       renderComponent(adminUser)
-      
-      const messagesLink = screen.getByRole('link', { name: /Messages Contact/ })
-      
+
+      const messagesLink = screen.getByRole('link', { name: /Contact Messages/ })
+
       // Badge should not be visible
       const badge = messagesLink.querySelector('.bg-red-600.rounded-full')
       expect(badge).not.toBeInTheDocument()
@@ -260,23 +260,23 @@ describe('AdminLayout Component', () => {
   describe('User Info and Logout', () => {
     it('should display admin user information correctly', () => {
       renderComponent(adminUser)
-      
+
       // Check user avatar initial
       expect(screen.getByText('A')).toBeInTheDocument() // First letter of "Admin Test"
-      
+
       // Check user name and role
       expect(screen.getByText('Admin Test')).toBeInTheDocument()
-      expect(screen.getByText('Administrateur')).toBeInTheDocument()
+      expect(screen.getByText('Admin')).toBeInTheDocument()
     })
 
     it('should call logout and navigate home when logout button clicked', async () => {
       renderComponent(adminUser)
-      
-      const logoutButton = screen.getByRole('button', { name: /Se déconnecter/ })
+
+      const logoutButton = screen.getByRole('button', { name: /Log out/ })
       expect(logoutButton).toBeInTheDocument()
-      
+
       await user.click(logoutButton)
-      
+
       expect(mockLogout).toHaveBeenCalled()
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })

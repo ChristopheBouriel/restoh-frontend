@@ -1,10 +1,10 @@
-// Utilitaires cryptographiques pour la démo
-// Dans une vraie application, cela serait fait côté serveur avec bcrypt
+// Cryptographic utilities for demo
+// In a real application, this would be done server-side with bcrypt
 
 /**
- * Hash un mot de passe avec SHA-256
- * @param {string} password - Le mot de passe en texte clair
- * @returns {Promise<string>} - Le hash en hexadécimal
+ * Hash a password with SHA-256
+ * @param {string} password - The password in plain text
+ * @returns {Promise<string>} - The hash in hexadecimal
  */
 export const hashPassword = async (password) => {
   const encoder = new TextEncoder()
@@ -16,10 +16,10 @@ export const hashPassword = async (password) => {
 }
 
 /**
- * Vérifie si un mot de passe correspond au hash
- * @param {string} password - Le mot de passe en texte clair
- * @param {string} hash - Le hash stocké
- * @returns {Promise<boolean>} - True si le mot de passe est correct
+ * Verify if a password matches the hash
+ * @param {string} password - The password in plain text
+ * @param {string} hash - The stored hash
+ * @returns {Promise<boolean>} - True if password is correct
  */
 export const verifyPassword = async (password, hash) => {
   const passwordHash = await hashPassword(password)

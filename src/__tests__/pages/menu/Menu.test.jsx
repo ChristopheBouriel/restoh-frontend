@@ -95,16 +95,16 @@ describe('Menu Component', () => {
   test('should render menu header and description', () => {
     render(<MenuWrapper />)
     
-    expect(screen.getByText('Notre Menu')).toBeInTheDocument()
-    expect(screen.getByText(/Découvrez notre sélection de plats préparés avec des ingrédients frais/)).toBeInTheDocument()
+    expect(screen.getByText('Our Menu')).toBeInTheDocument()
+    expect(screen.getByText(/Discover our selection of dishes prepared with fresh, quality ingredients/)).toBeInTheDocument()
   })
 
   test('should render search and filter controls', () => {
     render(<MenuWrapper />)
     
-    expect(screen.getByPlaceholderText('Rechercher un plat...')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Tous les plats')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Trier par nom')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search for a dish...')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('All dishes')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Sort by name')).toBeInTheDocument()
   })
 
   test('should display menu items with essential information', () => {
@@ -121,7 +121,7 @@ describe('Menu Component', () => {
     expect(screen.getByText('€6.50')).toBeInTheDocument()
     
     // Check add to cart buttons are present
-    const addButtons = screen.getAllByText('Ajouter au panier')
+    const addButtons = screen.getAllByText('Add to cart')
     expect(addButtons).toHaveLength(4)
   })
 
@@ -130,7 +130,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un plat...')
+    const searchInput = screen.getByPlaceholderText('Search for a dish...')
     await user.type(searchInput, 'pizza')
     
     // Should show pizza items
@@ -146,7 +146,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un plat...')
+    const searchInput = screen.getByPlaceholderText('Search for a dish...')
     await user.type(searchInput, 'italien')
     
     // Should show items with "italien" in description
@@ -161,7 +161,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un plat...')
+    const searchInput = screen.getByPlaceholderText('Search for a dish...')
     await user.type(searchInput, 'PIZZA')
     
     // Should still find pizza items despite uppercase
@@ -174,7 +174,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const categorySelect = screen.getByDisplayValue('Tous les plats')
+    const categorySelect = screen.getByDisplayValue('All dishes')
     await user.selectOptions(categorySelect, 'pizza')
     
     // Should show only pizza items
@@ -186,11 +186,11 @@ describe('Menu Component', () => {
     expect(screen.queryByRole('heading', { name: 'Tiramisu', level: 3 })).not.toBeInTheDocument()
   })
 
-  test('should show all items when "Tous les plats" is selected', async () => {
+  test('should show all items when "All dishes" is selected', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const categorySelect = screen.getByDisplayValue('Tous les plats')
+    const categorySelect = screen.getByDisplayValue('All dishes')
     
     // First filter by pizza
     await user.selectOptions(categorySelect, 'pizza')
@@ -210,7 +210,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const sortSelect = screen.getByDisplayValue('Trier par nom')
+    const sortSelect = screen.getByDisplayValue('Sort by name')
     await user.selectOptions(sortSelect, 'price-asc')
     
     // Check prices appear in ascending order
@@ -229,7 +229,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const sortSelect = screen.getByDisplayValue('Trier par nom')
+    const sortSelect = screen.getByDisplayValue('Sort by name')
     await user.selectOptions(sortSelect, 'price-desc')
     
     // Check prices appear in descending order
@@ -249,7 +249,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const addButtons = screen.getAllByText('Ajouter au panier')
+    const addButtons = screen.getAllByText('Add to cart')
     await user.click(addButtons[0])
     
     expect(mockAddItem).toHaveBeenCalledTimes(1)
@@ -262,8 +262,8 @@ describe('Menu Component', () => {
     render(<MenuWrapper />)
     
     // Search for "pizza" and filter by pizza category
-    const searchInput = screen.getByPlaceholderText('Rechercher un plat...')
-    const categorySelect = screen.getByDisplayValue('Tous les plats')
+    const searchInput = screen.getByPlaceholderText('Search for a dish...')
+    const categorySelect = screen.getByDisplayValue('All dishes')
     
     await user.type(searchInput, 'pizza')
     await user.selectOptions(categorySelect, 'pizza')
@@ -288,7 +288,7 @@ describe('Menu Component', () => {
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument()
     
     // Should not show main content
-    expect(screen.queryByPlaceholderText('Rechercher un plat...')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Search for a dish...')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Pizza Margherita', level: 3 })).not.toBeInTheDocument()
   })
 
@@ -296,14 +296,14 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
     
-    const searchInput = screen.getByPlaceholderText('Rechercher un plat...')
+    const searchInput = screen.getByPlaceholderText('Search for a dish...')
     await user.type(searchInput, 'nonexistentdish')
     
     // Should show empty state message
     expect(screen.getByText('🔍')).toBeInTheDocument()
-    expect(screen.getByText('Aucun plat trouvé')).toBeInTheDocument()
-    expect(screen.getByText(/Essayez de modifier vos critères/)).toBeInTheDocument()
-    expect(screen.getByText('Réinitialiser les filtres')).toBeInTheDocument()
+    expect(screen.getByText('No dishes found')).toBeInTheDocument()
+    expect(screen.getByText(/Try modifying your search criteria or filters/)).toBeInTheDocument()
+    expect(screen.getByText('Reset filters')).toBeInTheDocument()
   })
 
   test('should reset all filters when reset button is clicked', async () => {
@@ -311,9 +311,9 @@ describe('Menu Component', () => {
     render(<MenuWrapper />)
     
     // Apply filters first
-    const searchInput = screen.getByPlaceholderText('Rechercher un plat...')
-    const categorySelect = screen.getByDisplayValue('Tous les plats')
-    const sortSelect = screen.getByDisplayValue('Trier par nom')
+    const searchInput = screen.getByPlaceholderText('Search for a dish...')
+    const categorySelect = screen.getByDisplayValue('All dishes')
+    const sortSelect = screen.getByDisplayValue('Sort by name')
     
     await user.type(searchInput, 'pizza')
     await user.selectOptions(categorySelect, 'pasta')
@@ -324,7 +324,7 @@ describe('Menu Component', () => {
     await user.type(searchInput, 'nonexistent')
     
     // Click reset button
-    const resetButton = screen.getByText('Réinitialiser les filtres')
+    const resetButton = screen.getByText('Reset filters')
     await user.click(resetButton)
     
     // All filters should be reset to default values
@@ -342,10 +342,10 @@ describe('Menu Component', () => {
   test('should display information section with delivery and allergy info', () => {
     render(<MenuWrapper />)
     
-    expect(screen.getByText('Informations importantes')).toBeInTheDocument()
-    expect(screen.getByText(/Livraison :/)).toBeInTheDocument()
-    expect(screen.getByText(/Gratuite à partir de 25€/)).toBeInTheDocument()
-    expect(screen.getByText(/Allergies :/)).toBeInTheDocument()
-    expect(screen.getByText(/Informez-nous de vos allergies/)).toBeInTheDocument()
+    expect(screen.getByText('Important information')).toBeInTheDocument()
+    expect(screen.getByText(/Delivery:/)).toBeInTheDocument()
+    expect(screen.getByText(/Free from 25€/)).toBeInTheDocument()
+    expect(screen.getByText(/Allergies:/)).toBeInTheDocument()
+    expect(screen.getByText(/Inform us of your allergies/)).toBeInTheDocument()
   })
 })

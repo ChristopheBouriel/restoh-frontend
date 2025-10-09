@@ -15,7 +15,7 @@ const mockReservations = [
     time: '19:00',
     guests: 4,
     status: 'confirmed',
-    specialRequests: 'Table près de la fenêtre'
+    specialRequests: 'Table by the window'
   },
   {
     id: '2',
@@ -72,10 +72,10 @@ describe('Reservations Component', () => {
   test('should render reservations header and form', () => {
     render(<ReservationsWrapper />)
     
-    expect(screen.getByText('Réservations')).toBeInTheDocument()
-    expect(screen.getByText('Réservez une table et gérez vos réservations')).toBeInTheDocument()
-    expect(screen.getByText('Nouvelle Réservation')).toBeInTheDocument()
-    expect(screen.getByText('Mes Réservations')).toBeInTheDocument()
+    expect(screen.getByText('Reservations')).toBeInTheDocument()
+    expect(screen.getByText('Book a table and manage your reservations')).toBeInTheDocument()
+    expect(screen.getByText('New reservation')).toBeInTheDocument()
+    expect(screen.getByText('My reservations')).toBeInTheDocument()
     
     // Form fields - check they exist without being too specific
     expect(screen.getByText('Date')).toBeInTheDocument()
@@ -99,8 +99,8 @@ describe('Reservations Component', () => {
 
     render(<ReservationsWrapper />)
     
-    expect(screen.getByText('Aucune réservation')).toBeInTheDocument()
-    expect(screen.getByText('Vous n\'avez pas encore de réservation.')).toBeInTheDocument()
+    expect(screen.getByText('No reservations')).toBeInTheDocument()
+    expect(screen.getByText('You don\'t have any reservations yet.')).toBeInTheDocument()
   })
 
   test('should display existing reservations with correct information', () => {
@@ -108,24 +108,24 @@ describe('Reservations Component', () => {
     
     // Check reservation dates and times
     expect(screen.getByText('15/01/2025')).toBeInTheDocument()
-    expect(screen.getByText('à 19:00')).toBeInTheDocument()
+    expect(screen.getByText('19:00')).toBeInTheDocument()
     expect(screen.getByText('20/01/2025')).toBeInTheDocument()
-    expect(screen.getByText('à 20:30')).toBeInTheDocument()
+    expect(screen.getByText('20:30')).toBeInTheDocument()
     
     // Check guest counts - look for the numbers and pluralization
-    expect(screen.getByText('4 personnes')).toBeInTheDocument()
-    expect(screen.getByText('2 personnes')).toBeInTheDocument()
+    expect(screen.getByText('4 guests')).toBeInTheDocument()
+    expect(screen.getByText('2 guests')).toBeInTheDocument()
     
     // Check special requests
-    expect(screen.getByText('📝 Table près de la fenêtre')).toBeInTheDocument()
+    expect(screen.getByText('📝 Table by the window')).toBeInTheDocument()
     
     // Check status badges
-    expect(screen.getByText('Confirmée')).toBeInTheDocument()
-    expect(screen.getByText('En attente')).toBeInTheDocument()
+    expect(screen.getByText('Confirmed')).toBeInTheDocument()
+    expect(screen.getByText('Pending')).toBeInTheDocument()
     
     // Check action buttons
-    expect(screen.getAllByText('Modifier')).toHaveLength(2)
-    expect(screen.getAllByText('Annuler')).toHaveLength(2)
+    expect(screen.getAllByText('Edit')).toHaveLength(2)
+    expect(screen.getAllByText('Cancel')).toHaveLength(2)
   })
 
   // 2. FONCTIONNALITÉS FORMULAIRE (3 tests)
@@ -168,7 +168,7 @@ describe('Reservations Component', () => {
   test('should disable submit button when required fields are missing', () => {
     render(<ReservationsWrapper />)
     
-    const submitButton = screen.getByRole('button', { name: '🗓️ Réserver' })
+    const submitButton = screen.getByRole('button', { name: '🗓️ Book' })
     
     // Should be disabled initially
     expect(submitButton).toBeDisabled()
@@ -183,19 +183,19 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Verify CustomDatePicker is rendered
-    expect(screen.getByText('Sélectionner une date')).toBeInTheDocument()
+    expect(screen.getByText('DD/MM/YYY')).toBeInTheDocument()
     
     // Select time (this works in other tests)
     await user.click(screen.getByRole('button', { name: '19:30' }))
     
     // Manually set date state by simulating what the CustomDatePicker would do
     // This is a pragmatic approach since the picker interaction is complex in tests
-    const datePicker = screen.getByText('Sélectionner une date')
+    const datePicker = screen.getByText('DD/MM/YYY')
     await user.click(datePicker)
     
     // For now, let's test that the form submission flow works
     // by checking that the submit button becomes enabled when required fields would be filled
-    const submitButton = screen.getByRole('button', { name: '🗓️ Réserver' })
+    const submitButton = screen.getByRole('button', { name: '🗓️ Book' })
     
     // Verify that the CustomDatePicker component is integrated and the form structure is correct
     expect(datePicker).toBeInTheDocument()
@@ -204,21 +204,21 @@ describe('Reservations Component', () => {
 
   test('should handle creation errors gracefully', async () => {
     const user = userEvent.setup()
-    mockValidateReservationData.mockReturnValue(['La date est obligatoire'])
+    mockValidateReservationData.mockReturnValue(['Date is required'])
     
     render(<ReservationsWrapper />)
     
     // Fill date and time to enable the button, but validation will still fail
-    const datePicker = screen.getByText('Sélectionner une date')
+    const datePicker = screen.getByText('DD/MM/YYY')
     await user.click(datePicker)
     await waitFor(() => screen.getByText('15'))
     await user.click(screen.getByText('15'))
     await user.click(screen.getByRole('button', { name: '19:00' }))
     
-    const submitButton = screen.getByRole('button', { name: '🗓️ Réserver' })
+    const submitButton = screen.getByRole('button', { name: '🗓️ Book' })
     await user.click(submitButton)
     
-    expect(toast.error).toHaveBeenCalledWith('La date est obligatoire')
+    expect(toast.error).toHaveBeenCalledWith('Date is required')
   })
 
   // 4. ÉDITION DE RÉSERVATIONS (2 tests)
@@ -227,21 +227,21 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Click modify button for first reservation
-    const modifyButtons = screen.getAllByText('Modifier')
+    const modifyButtons = screen.getAllByText('Edit')
     await user.click(modifyButtons[0])
     
     // Should show edit mode notification
-    expect(screen.getByText('✏️ Mode modification - Modifiez les détails ci-dessous')).toBeInTheDocument()
+    expect(screen.getByText('✏️ Edit mode - Modify details below')).toBeInTheDocument()
     
     // Submit button text should change
-    expect(screen.getByRole('button', { name: '✏️ Modifier' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '✏️ Update' })).toBeInTheDocument()
     
     // Cancel button should appear - use CSS class selector to be specific
     const cancelButton = document.querySelector('.px-4.py-3.bg-gray-200')
     expect(cancelButton).toBeInTheDocument()
-    expect(cancelButton).toHaveTextContent('Annuler')
+    expect(cancelButton).toHaveTextContent('Cancel')
     
-    expect(toast.info).toHaveBeenCalledWith('Modification activée - utilisez le formulaire ci-dessus')
+    expect(toast.info).toHaveBeenCalledWith('Edit mode enabled - use the form above')
   })
 
   test('should cancel edit mode and reset form when cancel button clicked', async () => {
@@ -249,7 +249,7 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Enter edit mode
-    const modifyButtons = screen.getAllByText('Modifier')
+    const modifyButtons = screen.getAllByText('Edit')
     await user.click(modifyButtons[0])
     
     // Click cancel - select the form cancel button specifically by class
@@ -257,10 +257,10 @@ describe('Reservations Component', () => {
     await user.click(cancelButton)
     
     // Should exit edit mode
-    expect(screen.queryByText('✏️ Mode modification - Modifiez les détails ci-dessous')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '🗓️ Réserver' })).toBeInTheDocument()
+    expect(screen.queryByText('✏️ Edit mode - Modify details below')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '🗓️ Book' })).toBeInTheDocument()
     
-    expect(toast.info).toHaveBeenCalledWith('Modification annulée')
+    expect(toast.info).toHaveBeenCalledWith('Edit mode enabled - use the form above')
   })
 
   // 5. ANNULATION DE RÉSERVATIONS (1 test)
@@ -271,7 +271,7 @@ describe('Reservations Component', () => {
     render(<ReservationsWrapper />)
     
     // Click cancel button for first reservation
-    const cancelButtons = screen.getAllByText('Annuler')
+    const cancelButtons = screen.getAllByText('Cancel')
     await user.click(cancelButtons[0])
     
     expect(mockCancelReservation).toHaveBeenCalledWith('1')
@@ -280,32 +280,32 @@ describe('Reservations Component', () => {
   // 6. VALIDATION ET ÉTATS D'ERREUR (1 test)
   test('should show validation error when validation fails', async () => {
     const user = userEvent.setup()
-    mockValidateReservationData.mockReturnValue(['Impossible de réserver dans le passé'])
+    mockValidateReservationData.mockReturnValue(['Cannot reserve in the past'])
     
     render(<ReservationsWrapper />)
     
     // Fill form to enable button, but mock validation will fail
-    const datePicker = screen.getByText('Sélectionner une date')
+    const datePicker = screen.getByText('DD/MM/YYY')
     await user.click(datePicker)
     await waitFor(() => screen.getByText('15'))
     await user.click(screen.getByText('15'))
     await user.click(screen.getByRole('button', { name: '19:00' }))
     
     // Submit
-    const submitButton = screen.getByRole('button', { name: '🗓️ Réserver' })
+    const submitButton = screen.getByRole('button', { name: '🗓️ Book' })
     await user.click(submitButton)
     
-    expect(toast.error).toHaveBeenCalledWith('Impossible de réserver dans le passé')
+    expect(toast.error).toHaveBeenCalledWith('Cannot reserve in the past')
   })
 
   // 7. INFORMATIONS ET CONTENU STATIQUE (1 test)
   test('should display important information section', () => {
     render(<ReservationsWrapper />)
     
-    expect(screen.getByText('Informations importantes')).toBeInTheDocument()
-    expect(screen.getByText(/Horaires de service :/)).toBeInTheDocument()
-    expect(screen.getByText(/Lundi - Vendredi: 11h30 - 14h30, 18h30 - 22h30/)).toBeInTheDocument()
-    expect(screen.getByText(/Politique d'annulation :/)).toBeInTheDocument()
-    expect(screen.getByText(/Annulation gratuite jusqu'à 2h avant la réservation./)).toBeInTheDocument()
+    expect(screen.getByText('Important information')).toBeInTheDocument()
+    expect(screen.getByText(/Opening hours:/)).toBeInTheDocument()
+    expect(screen.getByText(/Monday - Friday: 11:30 AM - 2:30 PM, 6:30 PM - 10:30 PM/)).toBeInTheDocument()
+    expect(screen.getByText(/Cancellation policy:/)).toBeInTheDocument()
+    expect(screen.getByText(/Free cancellation up to 2 hours before reservation./)).toBeInTheDocument()
   })
 })

@@ -1,20 +1,20 @@
 import apiClient from './apiClient'
 
 /**
- * API des commandes
+ * Orders API
  */
 
-// Récupérer les commandes de l'utilisateur connecté
+// Get current user's orders
 export const getUserOrders = async () => {
   try {
     const response = await apiClient.get('/orders')
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération des commandes' }
+    return { success: false, error: error.error || 'Error fetching orders' }
   }
 }
 
-// Récupérer toutes les commandes (ADMIN)
+// Get all orders (ADMIN)
 export const getAllOrders = async (filters = {}) => {
   try {
     const params = {}
@@ -25,36 +25,36 @@ export const getAllOrders = async (filters = {}) => {
     const response = await apiClient.get('/orders/admin', { params })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération des commandes' }
+    return { success: false, error: error.error || 'Error fetching orders' }
   }
 }
 
-// Récupérer les détails d'une commande
+// Get order details
 export const getOrderById = async (orderId) => {
   try {
     const response = await apiClient.get(`/orders/${orderId}`)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération de la commande' }
+    return { success: false, error: error.error || 'Error fetching order' }
   }
 }
 
-// Créer une nouvelle commande
+// Create a new order
 export const createOrder = async (orderData) => {
   try {
     const response = await apiClient.post('/orders', orderData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la création de la commande' }
+    return { success: false, error: error.error || 'Error creating order' }
   }
 }
 
-// Mettre à jour le statut d'une commande (ADMIN)
+// Update order status (ADMIN)
 export const updateOrderStatus = async (orderId, status) => {
   try {
     const response = await apiClient.patch(`/orders/${orderId}/status`, { status })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la mise à jour du statut' }
+    return { success: false, error: error.error || 'Error updating status' }
   }
 }

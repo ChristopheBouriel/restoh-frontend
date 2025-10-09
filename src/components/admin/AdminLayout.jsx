@@ -23,21 +23,21 @@ const AdminLayout = () => {
   const { user, logout } = useAuth()
   const { getNewMessagesCount } = useContactsStore()
 
-  // Vérifier si l'utilisateur est admin (simulation)
+  // Check if user is admin (simulation)
   const isAdmin = user?.role === 'admin' || user?.email === 'admin@restoh.fr'
 
   if (!isAdmin) {
-    // Afficher un message au lieu de rediriger directement
+    // Show message instead of redirecting directly
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Accès refusé</h1>
-          <p className="text-gray-600 mb-6">Vous n'avez pas les permissions pour accéder au panel admin.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access denied</h1>
+          <p className="text-gray-600 mb-6">You do not have permission to access the admin panel.</p>
           <button
             onClick={() => navigate(ROUTES.HOME)}
             className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
           >
-            Retour à l'accueil
+            Return to Home
           </button>
         </div>
       </div>
@@ -52,31 +52,31 @@ const AdminLayout = () => {
       current: location.pathname === '/admin'
     },
     {
-      name: 'Gestion Menu',
+      name: 'Menu Management',
       href: '/admin/menu',
       icon: MenuIcon,
       current: location.pathname === '/admin/menu'
     },
     {
-      name: 'Commandes',
+      name: 'Orders',
       href: '/admin/orders',
       icon: ShoppingBag,
       current: location.pathname === '/admin/orders'
     },
     {
-      name: 'Réservations',
+      name: 'Reservations',
       href: '/admin/reservations',
       icon: Calendar,
       current: location.pathname === '/admin/reservations'
     },
     {
-      name: 'Utilisateurs',
+      name: 'Users',
       href: '/admin/users',
       icon: Users,
       current: location.pathname === '/admin/users'
     },
     {
-      name: 'Messages Contact',
+      name: 'Contact Messages',
       href: '/admin/messages',
       icon: MessageSquare,
       current: location.pathname === '/admin/messages'
@@ -130,8 +130,8 @@ const AdminLayout = () => {
               >
                 <Icon className="mr-3 h-5 w-5" />
                 {item.name}
-                {/* Badge pour les nouveaux messages */}
-                {item.name === 'Messages Contact' && getNewMessagesCount() > 0 && (
+                {/* Badge for new messages */}
+                {item.name === 'Contact Messages' && getNewMessagesCount() > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 bg-red-600 rounded-full">
                     {getNewMessagesCount()}
                   </span>
@@ -151,7 +151,7 @@ const AdminLayout = () => {
             </div>
             <div className="text-sm">
               <p className="text-white font-medium">{user?.name || 'Admin'}</p>
-              <p className="text-gray-400 text-xs">Administrateur</p>
+              <p className="text-gray-400 text-xs">Admin</p>
             </div>
           </div>
           
@@ -160,7 +160,7 @@ const AdminLayout = () => {
             className="flex items-center space-x-2 text-gray-300 hover:text-white text-sm w-full"
           >
             <LogOut size={16} />
-            <span>Se déconnecter</span>
+            <span>Log out</span>
           </button>
         </div>
       </div>
@@ -182,7 +182,7 @@ const AdminLayout = () => {
                 to={ROUTES.HOME}
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
-                ← Retour au site
+                ← Return to site
               </Link>
               
               <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">

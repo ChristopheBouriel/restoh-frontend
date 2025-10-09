@@ -60,7 +60,7 @@ const mockOrders = [
     isPaid: true,
     createdAt: '2024-01-15T10:30:00Z',
     updatedAt: '2024-01-15T10:30:00Z',
-    notes: 'Commande en cours'
+    notes: 'Order in progress'
   },
   {
     id: 'order-002',
@@ -78,13 +78,13 @@ const mockOrders = [
     isPaid: true,
     createdAt: '2024-01-14T14:20:00Z',
     updatedAt: '2024-01-14T15:00:00Z',
-    notes: 'Livré'
+    notes: 'Delivered'
   },
   {
     id: 'order-003',
     userId: 'deleted-user',
     userEmail: 'deleted@account.com',
-    userName: 'Utilisateur supprimé',
+    userName: 'Deleted user',
     deliveryAddress: 'Adresse supprimée',
     phone: 'Téléphone supprimé',
     items: [
@@ -96,13 +96,13 @@ const mockOrders = [
     isPaid: true,
     createdAt: '2024-01-13T12:00:00Z',
     updatedAt: '2024-01-13T12:00:00Z',
-    notes: 'Utilisateur supprimé - payée'
+    notes: 'Deleted user - payée'
   },
   {
     id: 'order-004',
     userId: 'deleted-user',
     userEmail: 'deleted@account.com',
-    userName: 'Utilisateur supprimé',
+    userName: 'Deleted user',
     deliveryAddress: 'Adresse supprimée',
     phone: 'Téléphone supprimé',
     items: [
@@ -114,7 +114,7 @@ const mockOrders = [
     isPaid: false,
     createdAt: '2024-01-13T11:00:00Z',
     updatedAt: '2024-01-13T11:00:00Z',
-    notes: 'Utilisateur supprimé - non payée'
+    notes: 'Deleted user - non payée'
   }
 ]
 
@@ -158,20 +158,20 @@ describe('OrdersManagement Component', () => {
     render(<OrdersManagementWrapper />)
     
     // Main heading and description
-    expect(screen.getByText('Gestion des Commandes')).toBeInTheDocument()
-    expect(screen.getByText('Visualisez et gérez toutes les commandes des clients')).toBeInTheDocument()
+    expect(screen.getByText('Orders Management')).toBeInTheDocument()
+    expect(screen.getByText('View and manage all customer orders')).toBeInTheDocument()
     
     // Color coding legend (use regex for broken text)
-    expect(screen.getByText('Codes couleur :')).toBeInTheDocument()
-    expect(screen.getByText(/Utilisateur supprimé.*Livrée\/Annulée/)).toBeInTheDocument()
-    expect(screen.getByText(/Utilisateur supprimé.*Payée en cours/)).toBeInTheDocument()
-    expect(screen.getByText(/Utilisateur supprimé.*Non payée/)).toBeInTheDocument()
+    expect(screen.getByText('Color codes:')).toBeInTheDocument()
+    expect(screen.getByText(/Deleted user.*Delivered\/Cancelled/)).toBeInTheDocument()
+    expect(screen.getByText(/Deleted user.*Paid in progress/)).toBeInTheDocument()
+    expect(screen.getByText(/Deleted user.*Not paid/)).toBeInTheDocument()
     
     // Statistics cards
-    expect(screen.getByText('Total commandes')).toBeInTheDocument()
+    expect(screen.getByText('Total orders')).toBeInTheDocument()
     expect(screen.getByText('4')).toBeInTheDocument() // Total orders
-    expect(screen.getAllByText('En attente')).toHaveLength(8) // Appears in stats + filter options + order selects
-    expect(screen.getByText('En cours')).toBeInTheDocument()
+    expect(screen.getAllByText('Pending')).toHaveLength(8) // Appears in stats + filter options + order selects
+    expect(screen.getByText('In progress')).toBeInTheDocument()
     expect(screen.getByText('Chiffre d\'affaires')).toBeInTheDocument()
     expect(screen.getAllByText('18,00 €')).toHaveLength(3) // Revenue appears in stats + order totals
   })
@@ -191,7 +191,7 @@ describe('OrdersManagement Component', () => {
     expect(document.querySelector('.animate-spin')).toBeInTheDocument()
     
     // Should not show main content
-    expect(screen.queryByText('Gestion des Commandes')).not.toBeInTheDocument()
+    expect(screen.queryByText('Orders Management')).not.toBeInTheDocument()
   })
 
   test('should show empty state when no orders match filters', async () => {
@@ -308,11 +308,11 @@ describe('OrdersManagement Component', () => {
     render(<OrdersManagementWrapper />)
     
     // Should show table headers
-    expect(screen.getByText('Commande')).toBeInTheDocument()
+    expect(screen.getByText('Order')).toBeInTheDocument()
     expect(screen.getByText('Client')).toBeInTheDocument()
     expect(screen.getByText('Articles')).toBeInTheDocument()
     expect(screen.getByText('Total')).toBeInTheDocument()
-    expect(screen.getAllByText('Statut')).toHaveLength(2) // Filter label + table header
+    expect(screen.getAllByText('Status')).toHaveLength(2) // Filter label + table header
     expect(screen.getByText('Date')).toBeInTheDocument()
     expect(screen.getByText('Actions')).toBeInTheDocument()
     
@@ -324,9 +324,9 @@ describe('OrdersManagement Component', () => {
     expect(screen.getAllByText('44,30 €')).toHaveLength(2) // Desktop + mobile view
     
     // Should show status badges (appears in multiple orders and both views)
-    expect(screen.getAllByText('En préparation')).toHaveLength(4) // 2 orders * 2 views (desktop + mobile)
-    expect(screen.getAllByText('Livrée')).toHaveLength(8) // Badge (2 views) + select options (6 selects)
-    expect(screen.getAllByText('Confirmée')).toHaveLength(8) // Badge (2 views) + select options (6 selects)
+    expect(screen.getAllByText('Preparing')).toHaveLength(4) // 2 orders * 2 views (desktop + mobile)
+    expect(screen.getAllByText('Delivered')).toHaveLength(8) // Badge (2 views) + select options (6 selects)
+    expect(screen.getAllByText('Confirmed')).toHaveLength(8) // Badge (2 views) + select options (6 selects)
   })
 
   test('should handle order status updates correctly', async () => {
@@ -360,8 +360,8 @@ describe('OrdersManagement Component', () => {
       })
     } else {
       // If we can't find the select, at least verify the data is displayed
-      expect(screen.getByText('En préparation')).toBeInTheDocument()
-      expect(screen.getByText('Confirmée')).toBeInTheDocument()
+      expect(screen.getByText('Preparing')).toBeInTheDocument()
+      expect(screen.getByText('Confirmed')).toBeInTheDocument()
     }
   })
 
@@ -387,7 +387,7 @@ describe('OrdersManagement Component', () => {
         expect(screen.getByText(/Détail de la commande/)).toBeInTheDocument()
         expect(screen.getByText('Informations client')).toBeInTheDocument()
         expect(screen.getByText('Articles commandés')).toBeInTheDocument()
-        expect(screen.getByText('Paiement')).toBeInTheDocument()
+        expect(screen.getByText('Payment')).toBeInTheDocument()
       })
       
       // Close modal by clicking X
@@ -415,7 +415,7 @@ describe('OrdersManagement Component', () => {
       
       // Find rows for deleted users (order-003 and order-004)
       const deletedUserRows = rows.filter(row => 
-        row.textContent?.includes('Utilisateur supprimé')
+        row.textContent?.includes('Deleted user')
       )
       
       expect(deletedUserRows.length).toBeGreaterThan(0)

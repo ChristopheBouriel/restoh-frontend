@@ -12,12 +12,12 @@ const Orders = () => {
   const { orders, cancelOrder, canCancelOrder, formatPrice, formatDate } = useOrders()
 
   useEffect(() => {
-    // Charger les commandes de l'utilisateur connecté
-    fetchOrders(false) // false = user (pas admin)
+    // Load orders for the logged-in user
+    fetchOrders(false) // false = user (not admin)
   }, [fetchOrders])
 
   const handleLeaveReview = () => {
-    toast.success('Fonctionnalité d\'avis en cours de développement')
+    toast.success('Review feature under development')
   }
 
   const filteredOrders = orders.filter(order => 
@@ -27,44 +27,44 @@ const Orders = () => {
   const getStatusInfo = (status) => {
     switch (status) {
       case 'delivered':
-        return { 
-          label: 'Livrée', 
+        return {
+          label: 'Delivered',
           color: 'text-green-600 bg-green-50',
           icon: CheckCircle
         }
       case 'preparing':
-        return { 
-          label: 'En préparation', 
+        return {
+          label: 'Preparing',
           color: 'text-yellow-600 bg-yellow-50',
           icon: Clock
         }
       case 'ready':
-        return { 
-          label: 'Prête', 
+        return {
+          label: 'Ready',
           color: 'text-blue-600 bg-blue-50',
           icon: Package
         }
       case 'confirmed':
-        return { 
-          label: 'Confirmée', 
+        return {
+          label: 'Confirmed',
           color: 'text-indigo-600 bg-indigo-50',
           icon: CheckCircle
         }
       case 'pending':
-        return { 
-          label: 'En attente', 
+        return {
+          label: 'Pending',
           color: 'text-orange-600 bg-orange-50',
           icon: Clock
         }
       case 'cancelled':
-        return { 
-          label: 'Annulée', 
+        return {
+          label: 'Cancelled',
           color: 'text-red-600 bg-red-50',
           icon: XCircle
         }
       default:
-        return { 
-          label: 'En cours', 
+        return {
+          label: 'In progress',
           color: 'text-blue-600 bg-blue-50',
           icon: Package
         }
@@ -76,21 +76,21 @@ const Orders = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes Commandes</h1>
-          <p className="text-gray-600">Suivez l'état de vos commandes</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
+          <p className="text-gray-600">Track the status of your orders</p>
         </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-wrap gap-2">
             {[
-              { key: 'all', label: 'Toutes les commandes' },
-              { key: 'pending', label: 'En attente' },
-              { key: 'confirmed', label: 'Confirmées' },
-              { key: 'preparing', label: 'En préparation' },
-              { key: 'ready', label: 'Prêtes' },
-              { key: 'delivered', label: 'Livrées' },
-              { key: 'cancelled', label: 'Annulées' }
+              { key: 'all', label: 'All orders' },
+              { key: 'pending', label: 'Pending' },
+              { key: 'confirmed', label: 'Confirmed' },
+              { key: 'preparing', label: 'Preparing' },
+              { key: 'ready', label: 'Ready' },
+              { key: 'delivered', label: 'Delivered' },
+              { key: 'cancelled', label: 'Cancelled' }
             ].map(({ key, label }) => (
               <button
                 key={key}
@@ -120,7 +120,7 @@ const Orders = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Commande #{order.id}
+                          Command #{order.id}
                         </h3>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
@@ -131,25 +131,25 @@ const Orders = () => {
                       <p className="text-sm text-gray-600 mb-2">
                         {formatDate(order.createdAt)}
                       </p>
-                      
+
                       <p className="text-sm text-gray-700 mb-2">
-                        {order.items.map(item => 
+                        {order.items.map(item =>
                           `${item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`
                         ).join(', ')}
                       </p>
-                      
+
                       <p className="text-lg font-bold text-primary-600">
                         {formatPrice(order.totalAmount)}
                       </p>
                     </div>
 
                     <div className="mt-4 md:mt-0 flex flex-col space-y-2">
-                      <button 
+                      <button
                         onClick={() => setShowDetails(showDetails === order.id ? null : order.id)}
                         className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
-                        <span>{showDetails === order.id ? 'Masquer' : 'Voir détails'}</span>
+                        <span>{showDetails === order.id ? 'Hide' : 'View details'}</span>
                       </button>
                       
                       {order.status === 'delivered' && (
@@ -158,35 +158,35 @@ const Orders = () => {
                           className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
                         >
                           <Star className="w-4 h-4" />
-                          <span>Laisser un avis</span>
+                          <span>Leave a review</span>
                         </button>
                       )}
-                      
+
                       {['preparing', 'ready'].includes(order.status) && (
                         <button className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
                           <MapPin className="w-4 h-4" />
-                          <span>Suivre</span>
+                          <span>Track</span>
                         </button>
                       )}
 
                       {canCancelOrder(order) && (
-                        <button 
+                        <button
                           onClick={() => cancelOrder(order.id)}
                           className="flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                         >
                           <XCircle className="w-4 h-4" />
-                          <span>Annuler</span>
+                          <span>Cancel</span>
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* Détails étendus */}
+                  {/* Extended details */}
                   {showDetails === order.id && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Détails de la commande</h4>
+                          <h4 className="font-semibold text-gray-900 mb-2">Order details</h4>
                           <div className="space-y-1">
                             {order.items.map((item, idx) => (
                               <div key={idx} className="flex justify-between text-sm">
@@ -202,18 +202,18 @@ const Orders = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Informations de livraison</h4>
+                          <h4 className="font-semibold text-gray-900 mb-2">Delivery information</h4>
                           <div className="text-sm text-gray-600 space-y-1">
                             {order.deliveryAddress && (
-                              <p><strong>Adresse:</strong> {order.deliveryAddress}</p>
+                              <p><strong>Address:</strong> {order.deliveryAddress}</p>
                             )}
                             {order.phone && (
-                              <p><strong>Téléphone:</strong> {order.phone}</p>
+                              <p><strong>Phone:</strong> {order.phone}</p>
                             )}
                             {order.paymentMethod && (
-                              <p><strong>Paiement:</strong> {order.paymentMethod === 'card' ? 'Carte bancaire' : 'Espèces'}</p>
+                              <p><strong>Payment:</strong> {order.paymentMethod === 'card' ? 'Card' : 'Cash'}</p>
                             )}
                             {order.notes && (
                               <p><strong>Notes:</strong> {order.notes}</p>
@@ -230,16 +230,16 @@ const Orders = () => {
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucune commande trouvée
+                No orders found
               </h3>
               <p className="text-gray-600 mb-6">
-                Vous n'avez pas encore passé de commande avec ces filtres.
+                You haven't placed any orders with these filters yet.
               </p>
               <button
                 onClick={() => window.location.href = '/menu'}
                 className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
               >
-                Découvrir le menu
+                Discover the menu
               </button>
             </div>
           )}
@@ -249,7 +249,7 @@ const Orders = () => {
         {filteredOrders.length > 0 && (
           <div className="text-center mt-8">
             <button className="bg-white text-primary-600 border-2 border-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-600 hover:text-white transition-colors">
-              Charger plus...
+              Load more...
             </button>
           </div>
         )}

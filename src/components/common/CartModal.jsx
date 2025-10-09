@@ -29,7 +29,7 @@ const CartModal = () => {
   
   const { isCartOpen: isOpen, closeCart } = useCartUI()
   
-  // Synchroniser avec le menu à l'ouverture du panier
+  // Sync with menu when opening the cart
   React.useEffect(() => {
     if (isOpen) {
       syncWithMenu()
@@ -57,7 +57,7 @@ const CartModal = () => {
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold flex items-center">
             <ShoppingBag className="w-5 h-5 mr-2" />
-            Mon Panier ({totalItems})
+            My Cart ({totalItems})
           </h2>
           <button
             onClick={closeCart}
@@ -73,10 +73,10 @@ const CartModal = () => {
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Votre panier est vide
+                Your cart is empty
               </h3>
               <p className="text-gray-500 mb-6">
-                Découvrez nos délicieux plats et ajoutez-les à votre panier !
+                Discover our delicious dishes and add them to your cart!
               </p>
               <button
                 onClick={() => {
@@ -85,18 +85,18 @@ const CartModal = () => {
                 }}
                 className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
               >
-                Voir le menu
+                View menu
               </button>
             </div>
           ) : (
             <div className="p-4 space-y-4">
-              {/* Alert si articles indisponibles */}
+              {/* Alert for unavailable items */}
               {hasUnavailableItems && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
                   <div className="flex items-center">
                     <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
                     <p className="text-sm text-red-700">
-                      {unavailableItems.length} article(s) non disponible(s) dans votre panier
+                      {unavailableItems.length} unavailable item(s) in your cart
                     </p>
                   </div>
                 </div>
@@ -123,7 +123,7 @@ const CartModal = () => {
                     {(!item.isAvailable || !item.stillExists) && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <span className="bg-red-500 text-white text-xs px-1 py-0.5 rounded">
-                          {!item.stillExists ? 'SUPPRIMÉ' : 'INDISPO'}
+                          {!item.stillExists ? 'DELETED' : 'UNAVAILABLE'}
                         </span>
                       </div>
                     )}
@@ -139,11 +139,11 @@ const CartModal = () => {
                       {item.name}
                     </h3>
                     <p className={`text-sm ${
-                      !item.isAvailable || !item.stillExists 
-                        ? 'text-red-500' 
+                      !item.isAvailable || !item.stillExists
+                        ? 'text-red-500'
                         : 'text-gray-500'
                     }`}>
-                      {formatPrice(item.currentPrice)} l'unité
+                      {formatPrice(item.currentPrice)} each
                     </p>
                     {(item.isAvailable && item.stillExists) ? (
                       <p className="text-sm font-medium text-primary-600">
@@ -151,7 +151,7 @@ const CartModal = () => {
                       </p>
                     ) : (
                       <p className="text-sm font-medium text-red-500">
-                        Non inclus dans le total
+                        Not included in total
                       </p>
                     )}
                   </div>
@@ -207,7 +207,7 @@ const CartModal = () => {
                 onClick={clearCart}
                 className="w-full text-sm text-gray-500 hover:text-red-500 transition-colors border-t pt-4 mt-4"
               >
-                Vider le panier
+                Empty cart
               </button>
             </div>
           )}
@@ -216,23 +216,23 @@ const CartModal = () => {
         {/* Footer */}
         {!isEmpty && (
           <div className="border-t p-4 space-y-4">
-            {/* Totaux détaillés */}
+            {/* Detailed totals */}
             <div className="space-y-2">
               {hasUnavailableItems && (
                 <>
                   <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span>Total original:</span>
+                    <span>Original total:</span>
                     <span className="line-through">{formattedTotalPrice}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm text-green-600">
-                    <span>Total disponible ({totalItemsAvailable} articles):</span>
+                    <span>Available total ({totalItemsAvailable} items):</span>
                     <span>{formattedTotalPriceAvailable}</span>
                   </div>
                 </>
               )}
-              
+
               <div className="flex justify-between items-center text-lg font-semibold border-t pt-2">
-                <span>Total à payer:</span>
+                <span>Total to pay:</span>
                 <span className="text-primary-600">
                   {hasUnavailableItems ? formattedTotalPriceAvailable : formattedTotalPrice}
                 </span>
@@ -249,12 +249,12 @@ const CartModal = () => {
                     : 'bg-primary-600 text-white hover:bg-primary-700'
                 }`}
               >
-                {totalItemsAvailable === 0 
-                  ? 'Aucun article disponible'
-                  : `Commander - ${hasUnavailableItems ? formattedTotalPriceAvailable : formattedTotalPrice}`
+                {totalItemsAvailable === 0
+                  ? 'No items available'
+                  : `Order - ${hasUnavailableItems ? formattedTotalPriceAvailable : formattedTotalPrice}`
                 }
               </button>
-              
+
               <button
                 onClick={() => {
                   closeCart()
@@ -262,7 +262,7 @@ const CartModal = () => {
                 }}
                 className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
               >
-                Continuer mes achats
+                Continue shopping
               </button>
             </div>
           </div>

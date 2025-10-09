@@ -1,46 +1,46 @@
 import apiClient from './apiClient'
 
 /**
- * API des messages de contact
+ * Contact messages API
  */
 
-// Envoyer un message de contact
+// Send a contact message
 export const sendContactMessage = async (messageData) => {
   try {
     const response = await apiClient.post('/contacts', messageData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de l\'envoi du message' }
+    return { success: false, error: error.error || 'Error sending message' }
   }
 }
 
-// Récupérer tous les messages (ADMIN)
+// Get all messages (ADMIN)
 export const getAllContacts = async (status = null) => {
   try {
     const params = status ? { status } : {}
     const response = await apiClient.get('/contacts', { params })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la récupération des messages' }
+    return { success: false, error: error.error || 'Error fetching messages' }
   }
 }
 
-// Mettre à jour le statut d'un message (ADMIN)
+// Update message status (ADMIN)
 export const updateContactStatus = async (contactId, status) => {
   try {
     const response = await apiClient.patch(`/contacts/${contactId}/status`, { status })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de la mise à jour du statut' }
+    return { success: false, error: error.error || 'Error updating status' }
   }
 }
 
-// Répondre à un message (ADMIN)
+// Reply to a message (ADMIN)
 export const replyToContact = async (contactId, reply) => {
   try {
     const response = await apiClient.post(`/contacts/${contactId}/reply`, { reply })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Erreur lors de l\'envoi de la réponse' }
+    return { success: false, error: error.error || 'Error sending reply' }
   }
 }

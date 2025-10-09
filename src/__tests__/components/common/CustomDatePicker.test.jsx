@@ -110,7 +110,7 @@ describe('CustomDatePicker Component', () => {
         
         // After clicking a date, the calendar should close (check for action buttons disappearing)
         await waitFor(() => {
-          expect(screen.queryByText('Aujourd\'hui')).not.toBeInTheDocument()
+          expect(screen.queryByText('Today')).not.toBeInTheDocument()
         })
       }
     })
@@ -325,7 +325,7 @@ describe('CustomDatePicker Component', () => {
 
   // 5. Action Buttons Tests
   describe('Action Buttons', () => {
-    it('should set today\'s date when "Aujourd\'hui" clicked', async () => {
+    it('should set today\'s date when "Today" clicked', async () => {
       renderComponent()
       
       // Open calendar
@@ -337,8 +337,8 @@ describe('CustomDatePicker Component', () => {
         expect(screen.getByText(/\d{4}/)).toBeInTheDocument()
       })
       
-      // Click "Aujourd'hui" button
-      const todayButton = screen.getByText('Aujourd\'hui')
+      // Click "Today" button
+      const todayButton = screen.getByText('Today')
       await user.click(todayButton)
       
       // Should call onChange with today's date
@@ -347,7 +347,7 @@ describe('CustomDatePicker Component', () => {
       expect(calledWith).toMatch(/\d{4}-\d{2}-\d{2}/)
     })
 
-    it('should clear selection when "Effacer" clicked', async () => {
+    it('should clear selection when "Cancel" clicked', async () => {
       renderComponent({ value: '2024-01-20' })
       
       // Open calendar
@@ -356,14 +356,14 @@ describe('CustomDatePicker Component', () => {
       
       // Wait for calendar to open by looking for the action buttons
       await waitFor(() => {
-        expect(screen.getByText('Aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText('Today')).toBeInTheDocument()
       })
       
-      // Should show "Effacer" button when there's a selection
-      const clearButton = screen.getByText('Effacer')
+      // Should show "Cancel" button when there's a selection
+      const clearButton = screen.getByText('Cancel')
       expect(clearButton).toBeInTheDocument()
       
-      // Click "Effacer"
+      // Click "Cancel"
       await user.click(clearButton)
       
       expect(mockOnChange).toHaveBeenCalledWith('')
@@ -655,11 +655,11 @@ describe('CustomDatePicker Component', () => {
       await user.click(calendarButton)
       
       await waitFor(() => {
-        expect(screen.getByText('Effacer')).toBeInTheDocument()
+        expect(screen.getByText('Cancel')).toBeInTheDocument()
       })
       
       // Click clear button
-      const clearButton = screen.getByText('Effacer')
+      const clearButton = screen.getByText('Cancel')
       await user.click(clearButton)
       
       await waitFor(() => {

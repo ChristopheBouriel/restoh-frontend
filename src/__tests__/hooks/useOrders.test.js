@@ -161,7 +161,7 @@ describe('useOrders Hook', () => {
     // Wait a bit for the async operation to complete
     await new Promise(resolve => setTimeout(resolve, 10))
     
-    expect(toast.error).toHaveBeenCalledWith('Vous devez être connecté pour annuler une commande')
+    expect(toast.error).toHaveBeenCalledWith('You must be logged in to cancel an order')
     expect(mockUpdateOrderStatus).not.toHaveBeenCalled()
   })
 
@@ -175,9 +175,9 @@ describe('useOrders Hook', () => {
       return result.current.cancelOrder('2')
     })
     
-    expect(mockConfirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir annuler cette commande ?')
+    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this order?')
     expect(mockUpdateOrderStatus).toHaveBeenCalledWith('2', 'cancelled')
-    expect(toast.success).toHaveBeenCalledWith('Commande annulée')
+    expect(toast.success).toHaveBeenCalledWith('Order cancelled')
     expect(cancelResult).toBe(true)
   })
 
@@ -193,7 +193,7 @@ describe('useOrders Hook', () => {
     // Wait for the async operation to complete
     await new Promise(resolve => setTimeout(resolve, 10))
     
-    expect(toast.error).toHaveBeenCalledWith('Erreur lors de l\'annulation de la commande')
+    expect(toast.error).toHaveBeenCalledWith('Error cancelling order')
   })
 
   test('should not cancel order when user rejects confirmation', () => {
@@ -203,7 +203,7 @@ describe('useOrders Hook', () => {
     
     const cancelResult = result.current.cancelOrder('2')
     
-    expect(mockConfirm).toHaveBeenCalledWith('Êtes-vous sûr de vouloir annuler cette commande ?')
+    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this order?')
     expect(mockUpdateOrderStatus).not.toHaveBeenCalled()
     expect(cancelResult).toBe(false)
   })
@@ -309,6 +309,6 @@ describe('useOrders Hook', () => {
     // Wait for the async operation to complete
     await new Promise(resolve => setTimeout(resolve, 10))
     
-    expect(toast.error).toHaveBeenCalledWith('Erreur lors de l\'annulation de la commande')
+    expect(toast.error).toHaveBeenCalledWith('Error cancelling order')
   })
 })

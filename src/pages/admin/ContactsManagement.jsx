@@ -71,8 +71,8 @@ const ContactsManagement = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des Messages</h1>
-        <p className="text-gray-600">Gérez les messages reçus via le formulaire de contact</p>
+        <h1 className="text-2xl font-bold text-gray-900">Messages Management</h1>
+        <p className="text-gray-600">Manage messages received via the contact form</p>
       </div>
 
       {/* Statistiques */}
@@ -335,7 +335,7 @@ const ContactsManagement = () => {
                   className="px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 flex items-center space-x-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Supprimer</span>
+                  <span>Delete</span>
                 </button>
                 
                 {selectedMessage.status !== 'replied' && (

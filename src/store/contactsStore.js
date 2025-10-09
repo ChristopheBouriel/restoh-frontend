@@ -5,7 +5,7 @@ import * as contactsApi from '../api/contactsApi'
 const useContactsStore = create(
   persist(
     (set, get) => ({
-      // État
+      // State
       messages: [],
       isLoading: false,
       error: null,
@@ -17,7 +17,7 @@ const useContactsStore = create(
 
       clearError: () => set({ error: null }),
 
-      // Récupérer tous les messages (admin uniquement)
+      // Fetch all messages (admin only)
       fetchMessages: async () => {
         set({ isLoading: true, error: null })
 
@@ -39,7 +39,7 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors du chargement des messages'
+          const errorMessage = error.error || 'Error loading messages'
           set({
             error: errorMessage,
             isLoading: false
@@ -48,7 +48,7 @@ const useContactsStore = create(
         }
       },
 
-      // Créer un nouveau message (appelé depuis le formulaire de contact)
+      // Create new message (called from contact form)
       createMessage: async (messageData) => {
         set({ isLoading: true, error: null })
 
@@ -66,7 +66,7 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de l\'envoi du message'
+          const errorMessage = error.error || 'Error sending message'
           set({
             error: errorMessage,
             isLoading: false
@@ -75,7 +75,7 @@ const useContactsStore = create(
         }
       },
 
-      // Mettre à jour le statut d'un message (admin)
+      // Update message status (admin)
       updateMessageStatus: async (messageId, status) => {
         set({ isLoading: true, error: null })
 
@@ -83,7 +83,7 @@ const useContactsStore = create(
           const result = await contactsApi.updateContactStatus(messageId, status)
 
           if (result.success) {
-            // Recharger les messages après mise à jour
+            // Reload messages after update
             await get().fetchMessages()
             set({ isLoading: false })
             return { success: true }
@@ -95,7 +95,7 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la mise à jour du statut'
+          const errorMessage = error.error || 'Error updating status'
           set({
             error: errorMessage,
             isLoading: false
@@ -104,17 +104,17 @@ const useContactsStore = create(
         }
       },
 
-      // Marquer un message comme lu (helper pour updateMessageStatus)
+      // Mark message as read (helper for updateMessageStatus)
       markAsRead: async (messageId) => {
         return await get().updateMessageStatus(messageId, 'read')
       },
 
-      // Marquer un message comme répondu (helper pour updateMessageStatus)
+      // Mark message as replied (helper for updateMessageStatus)
       markAsReplied: async (messageId) => {
         return await get().updateMessageStatus(messageId, 'replied')
       },
 
-      // Répondre à un message (admin)
+      // Reply to message (admin)
       replyToMessage: async (messageId, replyData) => {
         set({ isLoading: true, error: null })
 
@@ -122,7 +122,7 @@ const useContactsStore = create(
           const result = await contactsApi.replyToContact(messageId, replyData)
 
           if (result.success) {
-            // Recharger les messages après réponse
+            // Reload messages after reply
             await get().fetchMessages()
             set({ isLoading: false })
             return { success: true }
@@ -134,7 +134,7 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de l\'envoi de la réponse'
+          const errorMessage = error.error || 'Error sending reply'
           set({
             error: errorMessage,
             isLoading: false
@@ -143,20 +143,20 @@ const useContactsStore = create(
         }
       },
 
-      // Supprimer un message (si l'API le supporte)
+      // Delete message (if API supports it)
       deleteMessage: async (messageId) => {
         set({ isLoading: true, error: null })
 
         try {
-          // Note: Si le backend ne supporte pas la suppression,
-          // on pourrait utiliser updateMessageStatus avec un statut 'deleted'
+          // Note: If backend doesn't support deletion,
+          // we could use updateMessageStatus with 'deleted' status
           const result = await contactsApi.deleteContact?.(messageId)
           if (!result) {
-            throw new Error('Suppression non supportée par l\'API')
+            throw new Error('Deletion not supported by API')
           }
 
           if (result.success) {
-            // Recharger les messages après suppression
+            // Reload messages after deletion
             await get().fetchMessages()
             set({ isLoading: false })
             return { success: true }
@@ -168,7 +168,7 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Erreur lors de la suppression du message'
+          const errorMessage = error.error || 'Error deleting message'
           set({
             error: errorMessage,
             isLoading: false
@@ -177,7 +177,7 @@ const useContactsStore = create(
         }
       },
 
-      // Getters et filtres (calculs locaux)
+      // Getters and filters (local computations)
       getMessagesByStatus: (status) => {
         return get().messages.filter(message => message.status === status)
       },
@@ -186,7 +186,7 @@ const useContactsStore = create(
         return get().messages.filter(message => message.status === 'new').length
       },
 
-      // Statistiques (calculées localement)
+      // Statistics (computed locally)
       getMessagesStats: () => {
         const messages = get().messages
         return {

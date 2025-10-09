@@ -69,27 +69,27 @@ const Profile = () => {
     
     // Validation
     if (!passwordData.currentPassword) {
-      toast.error('Le mot de passe actuel est requis')
+      toast.error('Current password is required')
       return
     }
     
     if (!passwordData.newPassword) {
-      toast.error('Le nouveau mot de passe est requis')
+      toast.error('New password is required')
       return
     }
     
     if (passwordData.newPassword.length < 6) {
-      toast.error('Le nouveau mot de passe doit faire au moins 6 caractères')
+      toast.error('New password must be at least 6 characters')
       return
     }
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas')
+      toast.error('Passwords do not match')
       return
     }
     
     if (passwordData.currentPassword === passwordData.newPassword) {
-      toast.error('Le nouveau mot de passe doit être différent de l\'ancien')
+      toast.error('New password must be different from the old one')
       return
     }
     
@@ -100,17 +100,17 @@ const Profile = () => {
       )
       
       if (success) {
-        toast.success('Mot de passe modifié avec succès')
+        toast.success('Password changed successfully')
         setPasswordData({
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
         })
       } else {
-        toast.error(error || 'Erreur lors du changement de mot de passe')
+        toast.error(error || 'Error changing password')
       }
     } catch (error) {
-      toast.error('Erreur lors du changement de mot de passe')
+      toast.error('Error changing password')
     }
   }
 
@@ -122,8 +122,8 @@ const Profile = () => {
   }
 
   const tabs = [
-    { id: 'personal', label: 'Informations personnelles', icon: User },
-    { id: 'security', label: 'Sécurité', icon: Lock }
+    { id: 'personal', label: 'Personal information', icon: User },
+    { id: 'security', label: 'Security', icon: Lock }
   ]
 
   return (
@@ -136,8 +136,8 @@ const Profile = () => {
               <User className="w-8 h-8 text-primary-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mon Profil</h1>
-              <p className="text-gray-600">Gérez vos informations personnelles et préférences</p>
+              <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+              <p className="text-gray-600">Manage your personal information and preferences</p>
             </div>
           </div>
         </div>
@@ -173,14 +173,14 @@ const Profile = () => {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Informations personnelles
+                  Personal information
                 </h2>
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
                     className="text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    Modifier
+                    Edit
                   </button>
                 ) : (
                   <div className="space-x-2">
@@ -188,7 +188,7 @@ const Profile = () => {
                       onClick={() => setIsEditing(false)}
                       className="text-gray-600 hover:text-gray-700"
                     >
-                      Annuler
+                      Cancel
                     </button>
                   </div>
                 )}
@@ -199,7 +199,7 @@ const Profile = () => {
                   {/* Nom */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom complet
+                      Full name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -217,7 +217,7 @@ const Profile = () => {
                   {/* Email */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Adresse email
+                      Email address
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -235,7 +235,7 @@ const Profile = () => {
                   {/* Téléphone */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Téléphone
+                      Phone
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -254,7 +254,7 @@ const Profile = () => {
                   {/* Code postal */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Code postal
+                      Postal code
                     </label>
                     <input
                       type="text"
@@ -271,7 +271,7 @@ const Profile = () => {
                 {/* Adresse complète */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Adresse
+                    Address
                   </label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -281,7 +281,7 @@ const Profile = () => {
                       value={profileData.address}
                       onChange={handleProfileChange}
                       disabled={!isEditing}
-                      placeholder="123 Rue de la République"
+                      placeholder="123 Main Street"
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                     />
                   </div>
@@ -290,7 +290,7 @@ const Profile = () => {
                 {/* Ville */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ville
+                    City
                   </label>
                   <input
                     type="text"
@@ -298,7 +298,7 @@ const Profile = () => {
                     value={profileData.city}
                     onChange={handleProfileChange}
                     disabled={!isEditing}
-                    placeholder="Paris"
+                    placeholder="London"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                   />
                 </div>
@@ -308,10 +308,10 @@ const Profile = () => {
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Notifications</h3>
                   <div className="space-y-4">
                     {[
-                      { key: 'orderConfirmations', label: 'Confirmations de commandes' },
-                      { key: 'reservationReminders', label: 'Rappels de réservations' },
+                      { key: 'orderConfirmations', label: 'Order Confirmations' },
+                      { key: 'reservationReminders', label: 'Reservation Reminders' },
                       { key: 'newsletter', label: 'Newsletter' },
-                      { key: 'promotions', label: 'Offres promotionnelles' },
+                      { key: 'promotions', label: 'Promotional Offers' },
                     ].map(({ key, label }) => (
                       <div key={key} className="flex items-center">
                         <input
@@ -338,7 +338,7 @@ const Profile = () => {
                       className="flex items-center space-x-2 bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
                     >
                       <Save className="w-4 h-4" />
-                      <span>{isLoading ? 'Sauvegarde...' : 'Sauvegarder'}</span>
+                      <span>{isLoading ? 'Saving...' : 'Save'}</span>
                     </button>
                   </div>
                 )}
@@ -349,13 +349,13 @@ const Profile = () => {
           {activeTab === 'security' && (
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Changer le mot de passe
+                Change password
               </h2>
 
               <form onSubmit={handleChangePassword} className="max-w-md space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mot de passe actuel
+                    Current password
                   </label>
                   <input
                     type="password"
@@ -369,7 +369,7 @@ const Profile = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nouveau mot de passe
+                    New password
                   </label>
                   <input
                     type="password"
@@ -384,7 +384,7 @@ const Profile = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirmer le nouveau mot de passe
+                    Confirm new password
                   </label>
                   <input
                     type="password"
@@ -400,22 +400,22 @@ const Profile = () => {
                   type="submit"
                   className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
-                  Changer le mot de passe
+                  Change password
                 </button>
               </form>
 
               <div className="mt-8 p-4 bg-red-50 rounded-md">
                 <h3 className="text-sm font-medium text-red-800 mb-2">
-                  Zone de danger
+                  Danger zone
                 </h3>
                 <p className="text-sm text-red-600 mb-4">
-                  Cette action est irréversible et supprimera définitivement votre compte.
+                  This action is irreversible and will permanently delete your account.
                 </p>
                 <button 
                   onClick={() => setShowDeleteModal(true)}
                   className="text-sm text-red-600 hover:text-red-800 font-medium"
                 >
-                  Supprimer mon compte
+                  Delete my account
                 </button>
               </div>
             </div>

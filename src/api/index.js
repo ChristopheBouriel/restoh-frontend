@@ -1,8 +1,8 @@
 /**
- * Point d'entrée centralisé pour toutes les APIs
- * Permet d'importer facilement les fonctions API depuis n'importe où dans l'app
+ * Centralized entry point for all APIs
+ * Allows easy import of API functions from anywhere in the app
  *
- * Exemple d'usage:
+ * Usage example:
  * import { authApi, ordersApi } from '@/api'
  *
  * const result = await authApi.login(credentials)
@@ -23,7 +23,7 @@ export {
   contactsApi
 }
 
-// Export par défaut pour un usage alternatif
+// Default export for alternative usage
 export default {
   auth: authApi,
   menu: menuApi,

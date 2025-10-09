@@ -15,9 +15,9 @@ const Header = () => {
   const { totalItems, totalItemsAvailable, hasUnavailableItems } = useCart()
   const { toggleCart, closeCart } = useCartUI()
   
-  // Fermer le panier quand on clique sur les éléments du header
+  // Close the cart when clicking on header elements
   const handleHeaderClick = (event) => {
-    // Ne pas fermer si on clique sur le bouton panier ou ses enfants
+    // Don't close if clicking on the cart button or its children
     const cartButton = event.target.closest('[data-cart-button]')
     if (!cartButton) {
       closeCart()
@@ -41,9 +41,9 @@ const Header = () => {
   }
 
   const navItems = [
-    { label: 'Accueil', path: ROUTES.HOME },
+    { label: 'Home', path: ROUTES.HOME },
     { label: 'Menu', path: ROUTES.MENU },
-    { label: 'Réservations', path: ROUTES.RESERVATIONS },
+    { label: 'Reservations', path: ROUTES.RESERVATIONS },
     { label: 'Contact', path: ROUTES.CONTACT },
   ]
 
@@ -102,9 +102,9 @@ const Header = () => {
                   className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <User size={20} />
-                  <span>{user?.name || 'Utilisateur'}</span>
+                  <span>{user?.name || 'User'}</span>
                 </button>
-                
+
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Link
@@ -112,21 +112,21 @@ const Header = () => {
                       onClick={() => setIsUserMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Mon Profil
+                      My Profile
                     </Link>
                     <Link
                       to={ROUTES.ORDERS}
                       onClick={() => setIsUserMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Mes Commandes
+                      My Orders
                     </Link>
                     <Link
                       to={ROUTES.RESERVATIONS}
                       onClick={() => setIsUserMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Mes Réservations
+                      My Reservations
                     </Link>
                     {user?.role === 'admin' && (
                       <Link
@@ -134,7 +134,7 @@ const Header = () => {
                         onClick={() => setIsUserMenuOpen(false)}
                         className="block px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 font-medium"
                       >
-                        🛡️ Panel Admin
+                        Admin Panel
                       </Link>
                     )}
                     <hr className="my-1" />
@@ -146,7 +146,7 @@ const Header = () => {
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <LogOut size={16} className="mr-2" />
-                      Se déconnecter
+                      Logout
                     </button>
                   </div>
                 )}
@@ -157,7 +157,7 @@ const Header = () => {
                 className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
               >
                 <User size={20} />
-                <span>Se connecter</span>
+                <span>Login</span>
               </button>
             )}
           </div>
@@ -197,16 +197,16 @@ const Header = () => {
                   className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <ShoppingCart size={20} className="mr-2" />
-                  Panier (0)
+                  Cart (0)
                 </Link>
-                
+
                 <Link
                   to={ROUTES.LOGIN}
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <User size={20} className="mr-2" />
-                  Se connecter
+                  Login
                 </Link>
               </div>
             </div>
