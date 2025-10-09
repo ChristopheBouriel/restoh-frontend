@@ -160,8 +160,8 @@ const Login = () => {
               <strong>Demo accounts:</strong>
             </p>
             <div className="text-xs text-gray-500 space-y-1">
-              <p>🔐 Admin : admin@restoh.fr / admin123</p>
-              <p>👤 Client : client@example.com / client123</p>
+              <p>🔐 Admin : admin@restoh.com / admin123</p>
+              <p>👤 Client : test@example.com / password123</p>
             </div>
           </div>
         </div>

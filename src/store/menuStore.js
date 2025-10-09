@@ -1,10 +1,7 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import * as menuApi from '../api/menuApi'
 
-const useMenuStore = create(
-  persist(
-    (set, get) => ({
+const useMenuStore = create((set, get) => ({
       // State
       items: [],
       categories: [],
@@ -31,9 +28,12 @@ const useMenuStore = create(
             // Normalize items to ensure all required fields exist
             const items = rawItems.map(item => ({
               ...item,
+              id: item._id || item.id, // Normalize MongoDB _id to id
               allergens: item.allergens || [],
               ingredients: item.ingredients || [],
-              preparationTime: item.preparationTime || 0
+              preparationTime: item.preparationTime || 0,
+              // Ensure isAvailable is a proper boolean
+              isAvailable: Boolean(item.isAvailable)
             }))
 
             // Automatically extract unique categories from items
@@ -199,15 +199,6 @@ const useMenuStore = create(
 
         return await get().updateItem(id, { isAvailable: newAvailability })
       }
-    }),
-    {
-      name: 'menu-storage',
-      partialize: (state) => ({
-        items: state.items,
-        categories: state.categories
-      }),
-    }
-  )
-)
+    }))
 
 export default useMenuStore

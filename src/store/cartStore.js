@@ -152,7 +152,7 @@ const useCartStore = create(
           // This will work properly once backend is connected with real IDs
           return {
             ...cartItem,
-            isAvailable: menuItem ? menuItem.available : true,
+            isAvailable: menuItem ? menuItem.isAvailable : true,
             currentPrice: menuItem ? menuItem.price : cartItem.price,
             stillExists: menuItem ? true : true // Always true for now
           }

@@ -36,7 +36,7 @@ const MenuManagement = () => {
     price: '',
     description: '',
     image: '',
-    available: true,
+    isAvailable: true,
     preparationTime: '',
     ingredients: '',
     allergens: ''
@@ -104,7 +104,7 @@ const MenuManagement = () => {
       price: item.price.toString(),
       description: item.description,
       image: item.image,
-      available: item.available,
+      available: item.isAvailable,
       preparationTime: item.preparationTime.toString(),
       ingredients: item.ingredients ? item.ingredients.join(', ') : '',
       allergens: item.allergens ? item.allergens.join(', ') : ''
@@ -133,7 +133,7 @@ const MenuManagement = () => {
       price: parseFloat(formData.price),
       description: formData.description,
       image: formData.image || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
-      available: formData.available,
+      isAvailable: formData.isAvailable,
       preparationTime: parseInt(formData.preparationTime) || 10,
       ingredients: formData.ingredients.split(',').map(ing => ing.trim()).filter(ing => ing),
       allergens: formData.allergens.split(',').map(all => all.trim()).filter(all => all)
@@ -173,7 +173,7 @@ const MenuManagement = () => {
     const result = toggleAvailability(id)
     if (result.success) {
       const item = result.item
-      toast.success(`${item.name} ${item.available ? 'enabled' : 'disabled'}`)
+      toast.success(`${item.name} ${item.isAvailable ? 'enabled' : 'disabled'}`)
     } else {
       toast.error('Error updating availability')
     }
@@ -209,7 +209,7 @@ const MenuManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Menu Management</h1>
-          <p className="text-gray-600">{filteredItems.length} items • {menuItems.filter(item => item.available).length} available</p>
+          <p className="text-gray-600">{filteredItems.length} items • {menuItems.filter(item => item.isAvailable).length} available</p>
         </div>
         <button
           onClick={openAddModal}
@@ -263,11 +263,11 @@ const MenuManagement = () => {
               />
               <div className="absolute top-2 right-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  item.available
+                  item.isAvailable
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {item.available ? 'Available' : 'Unavailable'}
+                  {item.isAvailable ? 'Available' : 'Unavailable'}
                 </span>
               </div>
             </div>
@@ -310,12 +310,12 @@ const MenuManagement = () => {
                 <button
                   onClick={() => handleToggleAvailability(item.id)}
                   className={`flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                    item.available
+                    item.isAvailable
                       ? 'bg-red-100 text-red-700 hover:bg-red-200'
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
                   }`}
                 >
-                  {item.available ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {item.isAvailable ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
 
                 <button
@@ -489,8 +489,8 @@ const MenuManagement = () => {
                 <input
                   type="checkbox"
                   id="available"
-                  checked={formData.available}
-                  onChange={(e) => setFormData({...formData, available: e.target.checked})}
+                  checked={formData.isAvailable}
+                  onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})}
                   className="mr-2"
                 />
                 <label htmlFor="available" className="text-sm text-gray-700">

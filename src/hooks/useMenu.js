@@ -26,7 +26,8 @@ export const useMenu = () => {
       fetchMenuItems()
       fetchCategories()
     }
-  }, [items.length, fetchMenuItems, fetchCategories])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length])
 
   // For public pages
   const getPublicMenu = () => {
