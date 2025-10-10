@@ -9,7 +9,7 @@ const Menu = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('name')
   const { addItem } = useCart()
-  const { availableItems, categories: menuCategories, isLoading } = useMenu()
+  const { items: allMenuItems, categories: menuCategories, isLoading } = useMenu()
 
   const handleAddToCart = (item) => {
     addItem(item)
@@ -20,9 +20,9 @@ const Menu = () => {
     ...menuCategories.map(cat => ({ id: cat.id, name: cat.name }))
   ]
 
-  // Filter and sort menu items
+  // Filter and sort menu items (show all items, including unavailable)
   const filteredItems = useMemo(() => {
-    let filtered = availableItems
+    let filtered = allMenuItems
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -37,8 +37,14 @@ const Menu = () => {
       )
     }
 
-    // Sort
+    // Sort - prioritize available items first, then by selected sort
     filtered.sort((a, b) => {
+      // First sort by availability (available items first)
+      if (a.isAvailable !== b.isAvailable) {
+        return b.isAvailable ? 1 : -1
+      }
+
+      // Then by selected sort option
       switch (sortBy) {
         case 'price-asc':
           return a.price - b.price
@@ -51,7 +57,7 @@ const Menu = () => {
     })
 
     return filtered
-  }, [availableItems, selectedCategory, searchTerm, sortBy])
+  }, [allMenuItems, selectedCategory, searchTerm, sortBy])
 
   if (isLoading) {
     return (
@@ -140,27 +146,51 @@ const Menu = () => {
         {filteredItems.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
-                <div className="h-48 overflow-hidden">
+              <div
+                key={item.id}
+                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col ${
+                  !item.isAvailable ? 'opacity-60' : ''
+                }`}
+              >
+                <div className="h-48 overflow-hidden relative">
                   <ImageWithFallback
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${
+                      !item.isAvailable ? 'grayscale' : ''
+                    }`}
                   />
+                  {!item.isAvailable && (
+                    <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                      <span className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                        Unavailable
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                    <span className="text-lg font-bold text-primary-600">€{item.price.toFixed(2)}</span>
+                    <h3 className={`text-lg font-semibold ${item.isAvailable ? 'text-gray-900' : 'text-gray-500'}`}>
+                      {item.name}
+                    </h3>
+                    <span className={`text-lg font-bold ${item.isAvailable ? 'text-primary-600' : 'text-gray-400'}`}>
+                      €{item.price.toFixed(2)}
+                    </span>
                   </div>
-                  
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.description}</p>
-                  
+
+                  <p className={`text-sm mb-3 line-clamp-2 ${item.isAvailable ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {item.description}
+                  </p>
+
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded capitalize">
+                    <span className={`text-xs font-medium px-2 py-1 rounded capitalize ${
+                      item.isAvailable
+                        ? 'text-primary-600 bg-primary-50'
+                        : 'text-gray-500 bg-gray-100'
+                    }`}>
                       {item.category}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className={`text-xs ${item.isAvailable ? 'text-gray-500' : 'text-gray-400'}`}>
                       {item.preparationTime} min
                     </span>
                   </div>
@@ -177,12 +207,17 @@ const Menu = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   <button
                     onClick={() => handleAddToCart(item)}
-                    className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium mt-auto"
+                    disabled={!item.isAvailable}
+                    className={`w-full py-2 rounded-lg font-medium mt-auto transition-colors ${
+                      item.isAvailable
+                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
-                    Add to cart
+                    {item.isAvailable ? 'Add to cart' : 'Unavailable'}
                   </button>
                 </div>
               </div>

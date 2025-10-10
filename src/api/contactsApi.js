@@ -18,7 +18,7 @@ export const sendContactMessage = async (messageData) => {
 export const getAllContacts = async (status = null) => {
   try {
     const params = status ? { status } : {}
-    const response = await apiClient.get('/contacts', { params })
+    const response = await apiClient.get('/contact/admin/messages', { params })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching messages' }
