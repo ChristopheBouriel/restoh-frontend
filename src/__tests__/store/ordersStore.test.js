@@ -3,34 +3,27 @@ import useOrdersStore from '../../store/ordersStore'
 
 // Mock ordersApi
 vi.mock('../../api/ordersApi', () => ({
-  getOrders: vi.fn(),
+  getUserOrders: vi.fn(),
+  getAllOrders: vi.fn(),
+  getOrderById: vi.fn(),
   createOrder: vi.fn(),
   updateOrderStatus: vi.fn()
 }))
 
 // Get mocked functions via dynamic import
-let mockGetOrders, mockCreateOrder, mockUpdateOrderStatus
+let mockGetUserOrders, mockGetAllOrders, mockGetOrderById, mockCreateOrder, mockUpdateOrderStatus
 
 beforeAll(async () => {
   const ordersApi = await import('../../api/ordersApi')
-  mockGetOrders = ordersApi.getOrders
+  mockGetUserOrders = ordersApi.getUserOrders
+  mockGetAllOrders = ordersApi.getAllOrders
+  mockGetOrderById = ordersApi.getOrderById
   mockCreateOrder = ordersApi.createOrder
   mockUpdateOrderStatus = ordersApi.updateOrderStatus
 })
 
 // Mock console.log to avoid noise in tests
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-// Mock localStorage
-const mockLocalStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn()
-}
-Object.defineProperty(window, 'localStorage', {
-  value: mockLocalStorage
-})
 
 // Mock data for testing
 const mockOrderData = {
@@ -104,26 +97,32 @@ describe('ordersStore', () => {
     // Reset store state
     useOrdersStore.setState({
       orders: [],
-      isLoading: false
+      isLoading: false,
+      error: null
     })
 
-    // Clear localStorage mocks
-    mockLocalStorage.getItem.mockReturnValue(null)
-    mockLocalStorage.setItem.mockClear()
     mockConsoleLog.mockClear()
 
     // Reset API mocks with default success responses
-    mockGetOrders.mockResolvedValue({
+    mockGetUserOrders.mockResolvedValue({
       success: true,
       data: []
     })
+    mockGetAllOrders.mockResolvedValue({
+      success: true,
+      data: mockExistingOrders
+    })
+    mockGetOrderById.mockResolvedValue({
+      success: true,
+      data: mockExistingOrders[0]
+    })
     mockCreateOrder.mockResolvedValue({
       success: true,
-      order: { id: 'order-123', status: 'pending', isPaid: false }
+      data: { _id: 'order-123', id: 'order-123', status: 'pending', isPaid: false }
     })
     mockUpdateOrderStatus.mockResolvedValue({
       success: true,
-      order: { id: 'order-123', status: 'confirmed' }
+      data: { id: 'order-123', status: 'confirmed' }
     })
 
     // Mock Date.now for consistent order IDs
@@ -134,150 +133,155 @@ describe('ordersStore', () => {
     vi.restoreAllMocks()
   })
 
-  // 1. INITIALISATION & PERSISTANCE (3 tests)
+  // 1. INITIAL STATE & FETCH ORDERS (3 tests)
   test('should initialize with empty orders by default', () => {
     const store = useOrdersStore.getState()
-    
+
     expect(store.orders).toEqual([])
     expect(store.isLoading).toBe(false)
+    expect(store.error).toBeNull()
   })
 
-  test('should load existing orders from localStorage', () => {
-    mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockExistingOrders))
-    
-    const store = useOrdersStore.getState()
-    store.initializeOrders()
-    
-    const state = useOrdersStore.getState()
-    expect(state.orders).toEqual(mockExistingOrders)
-    expect(mockLocalStorage.getItem).toHaveBeenCalledWith('admin-orders-v2')
-  })
-
-  test('should create initial demo data when localStorage empty', () => {
-    mockLocalStorage.getItem.mockReturnValue(null)
-    
-    const store = useOrdersStore.getState()
-    store.initializeOrders()
-    
-    const state = useOrdersStore.getState()
-    expect(state.orders).toHaveLength(7) // Initial demo orders
-    expect(state.orders[0]).toMatchObject({
-      id: 'order-001',
-      status: 'preparing',
-      paymentMethod: 'card',
-      isPaid: true
+  test('should fetch user orders successfully', async () => {
+    mockGetUserOrders.mockResolvedValue({
+      success: true,
+      data: [mockExistingOrders[0]]
     })
-    expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-      'admin-orders-v2', 
-      expect.any(String)
-    )
+
+    const store = useOrdersStore.getState()
+    const result = await store.fetchOrders(false) // false = not admin
+
+    const state = useOrdersStore.getState()
+    expect(mockGetUserOrders).toHaveBeenCalled()
+    expect(result.success).toBe(true)
+    expect(state.orders).toHaveLength(1)
+    expect(state.orders[0].id).toBe('order-001')
   })
 
-  // 2. CRÉATION DE COMMANDES & LOGIQUE MÉTIER (3 tests)
-  test('should create order with card payment as immediately paid', async () => {
+  test('should fetch all orders as admin successfully', async () => {
     const store = useOrdersStore.getState()
-    
+    const result = await store.fetchOrders(true) // true = admin
+
+    const state = useOrdersStore.getState()
+    expect(mockGetAllOrders).toHaveBeenCalled()
+    expect(result.success).toBe(true)
+    expect(state.orders).toHaveLength(3)
+    expect(state.orders).toEqual(mockExistingOrders)
+  })
+
+  // 2. CREATE ORDERS & BUSINESS LOGIC (3 tests)
+  test('should create order successfully and reload orders', async () => {
+    mockCreateOrder.mockResolvedValue({
+      success: true,
+      data: { _id: 'order-new', status: 'pending', isPaid: true }
+    })
+
+    // Mock fetchOrders to return the new order
+    mockGetUserOrders.mockResolvedValue({
+      success: true,
+      data: [{ id: 'order-new', status: 'pending', isPaid: true }]
+    })
+
+    const store = useOrdersStore.getState()
     const cardOrderData = { ...mockOrderData, paymentMethod: 'card' }
     const result = await store.createOrder(cardOrderData)
-    
-    const state = useOrdersStore.getState()
-    expect(result.success).toBe(true)
-    expect(result.orderId).toMatch(/^order-\d+$/)
-    expect(state.orders).toHaveLength(1)
-    expect(state.orders[0]).toMatchObject({
-      status: 'pending',
-      paymentMethod: 'card',
-      isPaid: true, // Card payments are immediately paid
-      totalAmount: 15.90,
-      userId: 'test-user'
-    })
-    expect(state.isLoading).toBe(false)
-    expect(mockLocalStorage.setItem).toHaveBeenCalled()
-  })
 
-  test('should create order with cash payment as unpaid initially', async () => {
-    const store = useOrdersStore.getState()
-    
-    const cashOrderData = { ...mockOrderData, paymentMethod: 'cash' }
-    const result = await store.createOrder(cashOrderData)
-    
-    const state = useOrdersStore.getState()
+    expect(mockCreateOrder).toHaveBeenCalledWith(cardOrderData)
+    expect(mockGetUserOrders).toHaveBeenCalled() // fetchOrders called after create
     expect(result.success).toBe(true)
-    expect(result.orderId).toMatch(/^order-\d+$/)
-    expect(state.orders[0]).toMatchObject({
-      status: 'pending',
-      paymentMethod: 'cash',
-      isPaid: false // Cash payments start unpaid
-    })
+    expect(result.orderId).toBe('order-new')
+
+    const state = useOrdersStore.getState()
+    expect(state.isLoading).toBe(false)
+    expect(state.orders).toHaveLength(1)
   })
 
   test('should handle order creation errors gracefully', async () => {
+    mockCreateOrder.mockResolvedValue({
+      success: false,
+      error: 'Order creation failed'
+    })
+
     const store = useOrdersStore.getState()
-    
-    // Since the actual implementation doesn't have explicit error cases,
-    // we'll test the normal success case and verify the error handling structure
     const result = await store.createOrder(mockOrderData)
-    
-    expect(result.success).toBe(true)
-    expect(result.orderId).toBeTruthy()
-    
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Order creation failed')
+
     const state = useOrdersStore.getState()
+    expect(state.error).toBe('Order creation failed')
     expect(state.isLoading).toBe(false)
   })
 
-  // 3. MISE À JOUR STATUT & LOGIQUE PAIEMENT (3 tests)
-  test('should update order status successfully', async () => {
-    // Setup initial order
-    useOrdersStore.setState({ orders: mockExistingOrders })
+  test('should handle network errors during order creation', async () => {
+    mockCreateOrder.mockRejectedValue(new Error('Network error'))
+
     const store = useOrdersStore.getState()
-    
+    const result = await store.createOrder(mockOrderData)
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Error creating order')
+
+    const state = useOrdersStore.getState()
+    expect(state.error).toBe('Error creating order')
+    expect(state.isLoading).toBe(false)
+  })
+
+  // 3. UPDATE ORDER STATUS (3 tests)
+  test('should update order status successfully and reload orders', async () => {
+    // Mock successful update
+    mockUpdateOrderStatus.mockResolvedValue({
+      success: true,
+      data: { id: 'order-002', status: 'ready' }
+    })
+
+    // Mock fetchOrders to return updated orders
+    mockGetAllOrders.mockResolvedValue({
+      success: true,
+      data: mockExistingOrders.map(o =>
+        o.id === 'order-002' ? { ...o, status: 'ready' } : o
+      )
+    })
+
+    const store = useOrdersStore.getState()
     const result = await store.updateOrderStatus('order-002', 'ready')
-    
-    const state = useOrdersStore.getState()
-    expect(result).toEqual({ success: true })
-    expect(state.orders.find(o => o.id === 'order-002')).toMatchObject({
-      status: 'ready',
-      updatedAt: '2024-01-30T15:00:00.000Z'
-    })
-    expect(state.isLoading).toBe(false)
-    expect(mockLocalStorage.setItem).toHaveBeenCalled()
-  })
 
-  test('should auto-pay cash orders when status becomes delivered', async () => {
-    // Setup cash order that's not paid
-    const cashOrder = {
-      ...mockExistingOrders[1],
-      status: 'ready',
-      paymentMethod: 'cash',
-      isPaid: false,
-      notes: 'Ready for delivery'
-    }
-    useOrdersStore.setState({ orders: [cashOrder] })
-    
-    const store = useOrdersStore.getState()
-    await store.updateOrderStatus('order-002', 'delivered')
-    
+    expect(mockUpdateOrderStatus).toHaveBeenCalledWith('order-002', 'ready')
+    expect(mockGetAllOrders).toHaveBeenCalled() // fetchOrders(true) called after update
+    expect(result.success).toBe(true)
+
     const state = useOrdersStore.getState()
-    const deliveredOrder = state.orders.find(o => o.id === 'order-002')
-    
-    expect(deliveredOrder).toMatchObject({
-      status: 'delivered',
-      isPaid: true, // Auto-paid on delivery
-      notes: 'Ready for delivery - Payé à la livraison'
-    })
+    expect(state.isLoading).toBe(false)
   })
 
   test('should handle status update errors gracefully', async () => {
-    useOrdersStore.setState({ orders: mockExistingOrders })
+    mockUpdateOrderStatus.mockResolvedValue({
+      success: false,
+      error: 'Update failed'
+    })
+
     const store = useOrdersStore.getState()
-    
-    // Test with valid parameters - the implementation doesn't have error cases
-    // in normal flow, so we test the structure
     const result = await store.updateOrderStatus('order-001', 'cancelled')
-    
-    expect(result.success).toBe(true)
-    
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Update failed')
+
     const state = useOrdersStore.getState()
+    expect(state.error).toBe('Update failed')
+    expect(state.isLoading).toBe(false)
+  })
+
+  test('should handle network errors during status update', async () => {
+    mockUpdateOrderStatus.mockRejectedValue(new Error('Network error'))
+
+    const store = useOrdersStore.getState()
+    const result = await store.updateOrderStatus('order-001', 'confirmed')
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Error updating status')
+
+    const state = useOrdersStore.getState()
+    expect(state.error).toBe('Error updating status')
     expect(state.isLoading).toBe(false)
   })
 

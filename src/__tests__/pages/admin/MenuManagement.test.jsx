@@ -140,8 +140,8 @@ describe('MenuManagement Component', () => {
     expect(screen.getByText('€6.50')).toBeInTheDocument()
     
     // Check availability status
-    expect(screen.getAllByText('Disponible')).toHaveLength(3)
-    expect(screen.getByText('Indisponible')).toBeInTheDocument()
+    expect(screen.getAllByText('Available')).toHaveLength(3)
+    expect(screen.getByText('Unavailable')).toBeInTheDocument()
   })
 
   test('should show loading skeleton while loading', () => {

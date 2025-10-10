@@ -84,7 +84,7 @@ describe('ReservationsManagement Component', () => {
   const mockStoreState = {
     reservations: mockReservations,
     isLoading: false,
-    initializeReservations: vi.fn(),
+    fetchReservations: vi.fn(),
     updateReservationStatus: vi.fn(),
     assignTable: vi.fn(),
     getReservationsStats: vi.fn(() => ({
@@ -138,7 +138,7 @@ describe('ReservationsManagement Component', () => {
 
     it('should initialize reservations data on mount', () => {
       renderComponent()
-      expect(mockStoreState.initializeReservations).toHaveBeenCalledOnce()
+      expect(mockStoreState.fetchReservations).toHaveBeenCalledOnce()
     })
 
     it('should display reservation information in both desktop and mobile views', () => {

@@ -70,7 +70,7 @@ vi.mock('../../../hooks/useOrders')
 vi.mock('../../../store/ordersStore')
 
 const mockCancelOrder = vi.fn()
-const mockInitializeOrders = vi.fn()
+const mockFetchOrders = vi.fn()
 
 // Test wrapper component
 const OrdersWrapper = () => (
@@ -93,7 +93,7 @@ describe('Orders Component', () => {
     })
     
     vi.mocked(useOrdersStore).mockReturnValue({
-      initializeOrders: mockInitializeOrders
+      fetchOrders: mockFetchOrders
     })
   })
 
@@ -117,10 +117,10 @@ describe('Orders Component', () => {
     expect(screen.getByRole('button', { name: 'Cancelled' })).toBeInTheDocument()
   })
 
-  test('should call initializeOrders on component mount', () => {
+  test('should call fetchOrders on component mount', () => {
     render(<OrdersWrapper />)
     
-    expect(mockInitializeOrders).toHaveBeenCalledTimes(1)
+    expect(mockFetchOrders).toHaveBeenCalledTimes(1)
   })
 
   // 2. ORDER DISPLAY (3 tests)

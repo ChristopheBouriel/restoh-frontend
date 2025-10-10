@@ -13,21 +13,10 @@ vi.mock('../../api/authApi', () => ({
   getCurrentUser: vi.fn()
 }))
 
-// Mock crypto functions
-vi.mock('../../utils/crypto', () => ({
-  hashPassword: vi.fn(),
-  verifyPassword: vi.fn()
-}))
-
-// Get mocked functions via dynamic import
-let mockHashPassword, mockVerifyPassword
+// Get mocked API functions via dynamic import
 let mockLogin, mockRegister, mockLogout, mockUpdateProfile, mockChangePassword, mockDeleteAccount, mockGetCurrentUser
 
 beforeAll(async () => {
-  const crypto = await import('../../utils/crypto')
-  mockHashPassword = crypto.hashPassword
-  mockVerifyPassword = crypto.verifyPassword
-
   const authApi = await import('../../api/authApi')
   mockLogin = authApi.login
   mockRegister = authApi.register
@@ -61,10 +50,6 @@ describe('Auth Store', () => {
       value: mockLocalStorage,
       writable: true
     })
-    
-    // Reset crypto mocks
-    mockHashPassword.mockResolvedValue('hashedPassword123')
-    mockVerifyPassword.mockResolvedValue(true)
 
     // Reset API mocks with default success responses
     mockLogin.mockResolvedValue({
@@ -149,53 +134,51 @@ describe('Auth Store', () => {
   describe('Login Authentication', () => {
     it('should login successfully with registered user', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Mock registered user in localStorage
-      const mockUsers = [{
-        id: 1,
-        email: 'registered@example.com',
-        name: 'Registered User',
-        password: 'hashedPassword123',
-        role: 'user'
-      }]
-      mockLocalStorage.setItem('registered-users', JSON.stringify(mockUsers))
-      
+
       const credentials = {
-        email: 'registered@example.com',
+        email: 'test@example.com',
         password: 'password123'
       }
 
+      // Mock API will return success (configured in beforeEach)
       let loginResult
       await act(async () => {
         loginResult = await result.current.login(credentials)
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('password123', 'hashedPassword123')
+      expect(mockLogin).toHaveBeenCalledWith(credentials)
       expect(result.current.user).toEqual({
-        id: 1,
-        email: 'registered@example.com',
-        name: 'Registered User',
-        role: 'user'
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'client'
       })
       expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.token).toMatch(/^mock-jwt-token-/)
+      expect(result.current.token).toBe('mock-jwt-token')
       expect(loginResult.success).toBe(true)
     })
 
-    it('should login successfully with default admin account', async () => {
+    it('should login successfully with admin account', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
+
       const credentials = {
         email: 'admin@restoh.fr',
         password: 'admin123'
       }
 
+      // Mock admin login response
+      mockLogin.mockResolvedValue({
+        success: true,
+        user: { id: 'admin', email: 'admin@restoh.fr', name: 'Administrator', role: 'admin' },
+        token: 'admin-jwt-token'
+      })
+
       let loginResult
       await act(async () => {
         loginResult = await result.current.login(credentials)
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('admin123', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9')
+      expect(mockLogin).toHaveBeenCalledWith(credentials)
       expect(result.current.user).toEqual({
         id: 'admin',
         email: 'admin@restoh.fr',
@@ -203,23 +186,31 @@ describe('Auth Store', () => {
         role: 'admin'
       })
       expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.token).toBe('admin-jwt-token')
       expect(loginResult.success).toBe(true)
     })
 
-    it('should login successfully with default client account', async () => {
+    it('should login successfully with client account', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
+
       const credentials = {
         email: 'client@example.com',
         password: 'client123'
       }
+
+      // Mock client login response
+      mockLogin.mockResolvedValue({
+        success: true,
+        user: { id: 'client', email: 'client@example.com', name: 'Client', role: 'user' },
+        token: 'client-jwt-token'
+      })
 
       let loginResult
       await act(async () => {
         loginResult = await result.current.login(credentials)
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('client123', '186474c1f2c2f735a54c2cf82ee8e87f2a5cd30940e280029363fecedfc5328c')
+      expect(mockLogin).toHaveBeenCalledWith(credentials)
       expect(result.current.user).toEqual({
         id: 'client',
         email: 'client@example.com',
@@ -227,35 +218,42 @@ describe('Auth Store', () => {
         role: 'user'
       })
       expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.token).toBe('client-jwt-token')
       expect(loginResult.success).toBe(true)
     })
 
     it('should fail login with invalid credentials', async () => {
       const { result } = renderHook(() => useAuthStore())
-      mockVerifyPassword.mockResolvedValue(false)
-      
+
       const credentials = {
         email: 'admin@restoh.fr',
         password: 'wrongpassword'
       }
+
+      // Mock API to return error for invalid credentials
+      mockLogin.mockResolvedValue({
+        success: false,
+        error: 'Invalid credentials'
+      })
 
       let loginResult
       await act(async () => {
         loginResult = await result.current.login(credentials)
       })
 
+      expect(mockLogin).toHaveBeenCalledWith(credentials)
       expect(result.current.user).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
-      expect(result.current.error).toBe('Password incorrect')
+      expect(result.current.error).toBe('Invalid credentials')
       expect(loginResult.success).toBe(false)
     })
   })
 
-  // 3. INSCRIPTION AVEC HACHAGE
-  describe('Registration with Password Hashing', () => {
+  // 3. INSCRIPTION
+  describe('Registration', () => {
     it('should register new user successfully', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
+
       const userData = {
         name: 'New User',
         email: 'new@example.com',
@@ -267,45 +265,42 @@ describe('Auth Store', () => {
         registerResult = await result.current.register(userData)
       })
 
-      expect(mockHashPassword).toHaveBeenCalledWith('password123')
-      
-      // Check que l'utilisateur a été ajouté au localStorage
-      const storedUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
-      expect(storedUsers).toHaveLength(1)
-      expect(storedUsers[0]).toMatchObject({
+      expect(mockRegister).toHaveBeenCalledWith(userData)
+      expect(result.current.user).toEqual({
+        id: '2',
         email: 'new@example.com',
         name: 'New User',
-        password: 'hashedPassword123',
-        role: 'user'
-      })
-
-      expect(result.current.user).toMatchObject({
-        email: 'new@example.com',
-        name: 'New User',
-        role: 'user'
+        role: 'client'
       })
       expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.token).toBe('mock-jwt-token')
       expect(registerResult.success).toBe(true)
     })
 
     it('should handle registration errors gracefully', async () => {
       const { result } = renderHook(() => useAuthStore())
-      mockHashPassword.mockRejectedValue(new Error('Hashing failed'))
-      
+
       const userData = {
         name: 'Test User',
         email: 'test@example.com',
         password: 'password123'
       }
 
+      // Mock API to return error
+      mockRegister.mockResolvedValue({
+        success: false,
+        error: 'Email already exists'
+      })
+
       let registerResult
       await act(async () => {
         registerResult = await result.current.register(userData)
       })
 
+      expect(mockRegister).toHaveBeenCalledWith(userData)
       expect(result.current.user).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
-      expect(result.current.error).toBe('Hashing failed')
+      expect(result.current.error).toBe('Email already exists')
       expect(registerResult.success).toBe(false)
     })
   })
@@ -314,11 +309,10 @@ describe('Auth Store', () => {
   describe('Profile Management and Logout', () => {
     it('should update user profile successfully', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Définir un utilisateur initial
-      const initialUser = { id: '1', name: 'Original Name', email: 'original@example.com' }
+
+      // Set initial user
       act(() => {
-        result.current.setUser(initialUser)
+        result.current.setUser({ id: '1', name: 'Original Name', email: 'original@example.com', role: 'client' })
       })
 
       const profileData = { name: 'Updated Name' }
@@ -328,18 +322,20 @@ describe('Auth Store', () => {
         updateResult = await result.current.updateProfile(profileData)
       })
 
+      expect(mockUpdateProfile).toHaveBeenCalledWith(profileData)
       expect(result.current.user).toEqual({
         id: '1',
-        name: 'Updated Name',
-        email: 'original@example.com'
+        email: 'updated@example.com',
+        name: 'Updated User',
+        role: 'client'
       })
       expect(updateResult.success).toBe(true)
     })
 
-    it('should logout user and clear all auth data', () => {
+    it('should logout user and clear all auth data', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Définir un utilisateur connecté
+
+      // Set logged in user
       act(() => {
         result.current.setUser({ id: '1', name: 'Test User' })
         result.current.setToken('test-token')
@@ -347,10 +343,11 @@ describe('Auth Store', () => {
 
       expect(result.current.isAuthenticated).toBe(true)
 
-      act(() => {
-        result.current.logout()
+      await act(async () => {
+        await result.current.logout()
       })
 
+      expect(mockLogout).toHaveBeenCalled()
       expect(result.current.user).toBeNull()
       expect(result.current.token).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
@@ -358,31 +355,15 @@ describe('Auth Store', () => {
     })
   })
 
-  // 5. SUPPRESSION COMPTE AVEC RGPD
-  describe('Account Deletion with GDPR Cleanup', () => {
-    it('should delete registered user account and cleanup data', async () => {
+  // 5. SUPPRESSION COMPTE
+  describe('Account Deletion', () => {
+    it('should delete user account successfully', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Mock utilisateur enregistré
-      const mockUsers = [{
-        id: 123,
-        email: 'user@example.com',
-        name: 'Test User',
-        password: 'hashedPassword123'
-      }]
-      mockLocalStorage.setItem('registered-users', JSON.stringify(mockUsers))
-      
-      // Mock données utilisateur à nettoyer
-      mockLocalStorage.setItem('admin-orders-v2', JSON.stringify([
-        { id: 1, userId: 123, userEmail: 'user@example.com', userName: 'Test User' }
-      ]))
-      mockLocalStorage.setItem('admin-reservations', JSON.stringify([
-        { id: 1, userId: 123, userEmail: 'user@example.com', userName: 'Test User' }
-      ]))
-      
-      // Définir l'utilisateur connecté
+
+      // Set logged in user
       act(() => {
-        result.current.setUser({ id: 123, email: 'user@example.com', name: 'Test User' })
+        result.current.setUser({ id: '123', email: 'user@example.com', name: 'Test User' })
+        result.current.setToken('user-token')
       })
 
       let deleteResult
@@ -390,30 +371,17 @@ describe('Auth Store', () => {
         deleteResult = await result.current.deleteAccount('password123')
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('password123', 'hashedPassword123')
-      
-      // Check que l'utilisateur a été supprimé de registered-users
-      const remainingUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
-      expect(remainingUsers).toHaveLength(0)
-      
-      // Check l'anonymisation des commandes
-      const anonymizedOrders = JSON.parse(mockLocalStorage.getItem('admin-orders-v2') || '[]')
-      expect(anonymizedOrders[0]).toMatchObject({
-        userId: 'deleted-user',
-        userEmail: 'deleted@account.com',
-        userName: 'User supprimé'
-      })
-      
-      // Check la déconnexion
+      expect(mockDeleteAccount).toHaveBeenCalledWith({ password: 'password123' })
       expect(result.current.user).toBeNull()
+      expect(result.current.token).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
       expect(deleteResult.success).toBe(true)
     })
 
-    it('should handle account deletion for default accounts', async () => {
+    it('should handle account deletion errors', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Définir l'utilisateur admin par défaut
+
+      // Set logged in user
       act(() => {
         result.current.setUser({
           id: 'admin',
@@ -422,91 +390,65 @@ describe('Auth Store', () => {
         })
       })
 
-      let deleteResult
-      await act(async () => {
-        deleteResult = await result.current.deleteAccount('admin123')
+      // Mock API to return error
+      mockDeleteAccount.mockResolvedValue({
+        success: false,
+        error: 'Invalid password'
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('admin123', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9')
-      expect(result.current.user).toBeNull()
-      expect(result.current.isAuthenticated).toBe(false)
-      expect(deleteResult.success).toBe(true)
+      let deleteResult
+      await act(async () => {
+        deleteResult = await result.current.deleteAccount('wrongpassword')
+      })
+
+      expect(mockDeleteAccount).toHaveBeenCalledWith({ password: 'wrongpassword' })
+      expect(result.current.error).toBe('Invalid password')
+      expect(deleteResult.success).toBe(false)
     })
   })
 
   // 6. CHANGEMENT MOT DE PASSE
   describe('Password Change Functionality', () => {
-    it('should change password for registered user', async () => {
+    it('should change password successfully', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Mock utilisateur enregistré
-      const mockUsers = [{
-        id: 123,
-        email: 'user@example.com',
-        name: 'Test User',
-        password: 'oldHashedPassword'
-      }]
-      mockLocalStorage.setItem('registered-users', JSON.stringify(mockUsers))
-      
-      // Définir l'utilisateur connecté
-      act(() => {
-        result.current.setUser({ id: 123, email: 'user@example.com', name: 'Test User' })
-      })
 
-      // Mock des fonctions crypto
-      mockVerifyPassword.mockResolvedValue(true) // Ancien mot de passe valide
-      mockHashPassword.mockResolvedValue('newHashedPassword')
+      // Set logged in user
+      act(() => {
+        result.current.setUser({ id: '123', email: 'user@example.com', name: 'Test User' })
+      })
 
       let changeResult
       await act(async () => {
         changeResult = await result.current.changePassword('oldPassword', 'newPassword')
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('oldPassword', 'oldHashedPassword')
-      expect(mockHashPassword).toHaveBeenCalledWith('newPassword')
-      
-      // Check que le mot de passe a été mis à jour dans localStorage
-      const updatedUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
-      expect(updatedUsers[0].password).toBe('newHashedPassword')
-      
+      expect(mockChangePassword).toHaveBeenCalledWith({ currentPassword: 'oldPassword', newPassword: 'newPassword' })
       expect(changeResult.success).toBe(true)
     })
 
-    it('should migrate default account to registered user on password change', async () => {
+    it('should handle password change with invalid current password', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Définir l'utilisateur admin par défaut
+
+      // Set logged in user
       act(() => {
-        result.current.setUser({
-          id: 'admin',
-          email: 'admin@restoh.fr',
-          name: 'Administrator',
-          role: 'admin'
-        })
+        result.current.setUser({ id: '123', email: 'user@example.com' })
       })
 
-      mockHashPassword.mockResolvedValue('newHashedPassword')
+      // Mock API to return error for invalid password
+      mockChangePassword.mockResolvedValue({
+        success: false,
+        error: 'Current password is incorrect'
+      })
 
       let changeResult
       await act(async () => {
-        changeResult = await result.current.changePassword('admin123', 'newPassword')
+        changeResult = await result.current.changePassword('wrongPassword', 'newPassword')
       })
 
-      expect(mockVerifyPassword).toHaveBeenCalledWith('admin123', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9')
-      expect(mockHashPassword).toHaveBeenCalledWith('newPassword')
-      
-      // Check que l'utilisateur a été ajouté à registered-users
-      const registeredUsers = JSON.parse(mockLocalStorage.getItem('registered-users') || '[]')
-      expect(registeredUsers).toHaveLength(1)
-      expect(registeredUsers[0]).toMatchObject({
-        id: 'admin',
-        email: 'admin@restoh.fr',
-        name: 'Administrator',
-        role: 'admin',
-        password: 'newHashedPassword'
-      })
-      
-      expect(changeResult.success).toBe(true)
+      expect(mockChangePassword).toHaveBeenCalledWith({ currentPassword: 'wrongPassword', newPassword: 'newPassword' })
+      expect(result.current.error).toBe('Current password is incorrect')
+      expect(changeResult.success).toBe(false)
+      expect(changeResult.error).toBe('Current password is incorrect')
     })
   })
 
@@ -514,47 +456,48 @@ describe('Auth Store', () => {
   describe('Error Handling and Edge Cases', () => {
     it('should handle login attempt for non-existent user', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
+
       const credentials = {
         email: 'nonexistent@example.com',
         password: 'password123'
       }
+
+      // Mock API to return user not found error
+      mockLogin.mockResolvedValue({
+        success: false,
+        error: 'User not found'
+      })
 
       let loginResult
       await act(async () => {
         loginResult = await result.current.login(credentials)
       })
 
-      expect(result.current.error).toBe('User non trouvé. Veuillez vous inscrire d\'abord.')
+      expect(mockLogin).toHaveBeenCalledWith(credentials)
+      expect(result.current.error).toBe('User not found')
       expect(result.current.isAuthenticated).toBe(false)
       expect(loginResult.success).toBe(false)
     })
 
-    it('should handle password change with invalid current password', async () => {
+    it('should handle network errors during login', async () => {
       const { result } = renderHook(() => useAuthStore())
-      
-      // Mock utilisateur enregistré
-      const mockUsers = [{
-        id: 123,
-        email: 'user@example.com',
-        password: 'correctHashedPassword'
-      }]
-      mockLocalStorage.setItem('registered-users', JSON.stringify(mockUsers))
-      
-      act(() => {
-        result.current.setUser({ id: 123, email: 'user@example.com' })
-      })
 
-      mockVerifyPassword.mockResolvedValue(false) // Password incorrect
+      const credentials = {
+        email: 'test@example.com',
+        password: 'password123'
+      }
 
-      let changeResult
+      // Mock API to throw network error
+      mockLogin.mockRejectedValue(new Error('Network error'))
+
+      let loginResult
       await act(async () => {
-        changeResult = await result.current.changePassword('wrongPassword', 'newPassword')
+        loginResult = await result.current.login(credentials)
       })
 
-      expect(result.current.error).toBe('Current password is incorrect')
-      expect(changeResult.success).toBe(false)
-      expect(changeResult.error).toBe('Current password is incorrect')
+      expect(result.current.error).toBe('Connection error')
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(loginResult.success).toBe(false)
     })
   })
 })

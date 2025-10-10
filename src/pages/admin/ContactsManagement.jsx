@@ -24,17 +24,17 @@ const ContactsManagement = () => {
   // Configuration des statuts
   const statusConfig = {
     new: {
-      label: 'Nouveau',
+      label: 'New',
       color: 'bg-blue-100 text-blue-800',
       icon: Mail
     },
     read: {
-      label: 'Lu',
+      label: 'Read',
       color: 'bg-yellow-100 text-yellow-800',
       icon: Eye
     },
     replied: {
-      label: 'Répondu',
+      label: 'Replied',
       color: 'bg-green-100 text-green-800',
       icon: Check
     }
@@ -95,7 +95,7 @@ const ContactsManagement = () => {
               <Mail className="w-5 h-5 text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Nouveaux</p>
+              <p className="text-sm font-medium text-gray-500">New</p>
               <p className="text-lg font-semibold text-blue-600">{stats.new}</p>
             </div>
           </div>
@@ -107,7 +107,7 @@ const ContactsManagement = () => {
               <Eye className="w-5 h-5 text-yellow-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Lus</p>
+              <p className="text-sm font-medium text-gray-500">Read</p>
               <p className="text-lg font-semibold text-yellow-600">{stats.read}</p>
             </div>
           </div>
@@ -119,7 +119,7 @@ const ContactsManagement = () => {
               <Check className="w-5 h-5 text-green-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Répondus</p>
+              <p className="text-sm font-medium text-gray-500">Replied</p>
               <p className="text-lg font-semibold text-green-600">{stats.replied}</p>
             </div>
           </div>
@@ -149,7 +149,7 @@ const ContactsManagement = () => {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Nouveaux ({stats.new})
+              New ({stats.new})
             </button>
             <button
               onClick={() => setFilterStatus('read')}
@@ -159,7 +159,7 @@ const ContactsManagement = () => {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Lus ({stats.read})
+              Read ({stats.read})
             </button>
             <button
               onClick={() => setFilterStatus('replied')}
@@ -169,7 +169,7 @@ const ContactsManagement = () => {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Répondus ({stats.replied})
+              Replied ({stats.replied})
             </button>
           </div>
         </div>

@@ -191,7 +191,7 @@ const ReservationsManagement = () => {
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-green-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Aujourd'hui</p>
+              <p className="text-sm font-medium text-gray-600">Today</p>
               <p className="text-2xl font-bold text-gray-900">{stats.todayTotal}</p>
             </div>
           </div>
@@ -201,7 +201,7 @@ const ReservationsManagement = () => {
           <div className="flex items-center">
             <Users className="h-8 w-8 text-purple-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Couverts total</p>
+              <p className="text-sm font-medium text-gray-600">Total guests</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalGuests}</p>
             </div>
           </div>
@@ -211,7 +211,7 @@ const ReservationsManagement = () => {
           <div className="flex items-center">
             <Users className="h-8 w-8 text-orange-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Couverts aujourd'hui</p>
+              <p className="text-sm font-medium text-gray-600">Today's guests</p>
               <p className="text-2xl font-bold text-gray-900">{stats.todayGuests}</p>
             </div>
           </div>
@@ -311,10 +311,10 @@ const ReservationsManagement = () => {
                       Client
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date & Heure
+                      Date & Time
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Couverts
+                      Guests
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Table
@@ -364,7 +364,7 @@ const ReservationsManagement = () => {
                             <span className="text-sm text-gray-900">Table {reservation.tableNumber}</span>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-500">Non assignée</span>
+                          <span className="text-sm text-gray-500">Not assigned</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -445,7 +445,7 @@ const ReservationsManagement = () => {
                           Table {reservation.tableNumber}
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">Non assignée</span>
+                        <span className="text-sm text-gray-400">Not assigned</span>
                       )}
                     </div>
                     
@@ -496,11 +496,11 @@ const ReservationsManagement = () => {
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <p><strong>ID:</strong> {selectedReservation.id}</p>
                     <p><strong>Date:</strong> {formatDate(selectedReservation.date)}</p>
-                    <p><strong>Heure:</strong> {selectedReservation.time}</p>
-                    <p><strong>Couverts:</strong> {selectedReservation.guests}</p>
-                    <p><strong>Table:</strong> {selectedReservation.tableNumber || 'Non assignée'}</p>
+                    <p><strong>Time:</strong> {selectedReservation.time}</p>
+                    <p><strong>Guests:</strong> {selectedReservation.guests}</p>
+                    <p><strong>Table:</strong> {selectedReservation.tableNumber || 'Not assigned'}</p>
                     <p>
-                      <strong>Statut:</strong>{' '}
+                      <strong>Status:</strong>{' '}
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedReservation.status)}`}>
                         {getStatusLabel(selectedReservation.status)}
                       </span>

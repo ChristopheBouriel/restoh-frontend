@@ -144,17 +144,21 @@ const useCartStore = create(
         const cart = get().getCurrentUserCart()
         const cartItems = cart.items
         const menuItems = useMenuStore.getState().items
-        
+
         return cartItems.map(cartItem => {
           const menuItem = menuItems.find(menu => menu.id === cartItem.id)
 
-          // Optimistic approach: assume everything is available
-          // This will work properly once backend is connected with real IDs
+          // If menu is not loaded (empty), optimistically assume available
+          // If menu is loaded and item not found, it's deleted
+          const menuIsLoaded = menuItems.length > 0
+          const stillExists = menuItem ? true : (menuIsLoaded ? false : true)
+          const isAvailable = menuItem ? menuItem.isAvailable : (menuIsLoaded ? false : true)
+
           return {
             ...cartItem,
-            isAvailable: menuItem ? menuItem.isAvailable : true,
+            isAvailable,
             currentPrice: menuItem ? menuItem.price : cartItem.price,
-            stillExists: menuItem ? true : true // Always true for now
+            stillExists
           }
         })
       },

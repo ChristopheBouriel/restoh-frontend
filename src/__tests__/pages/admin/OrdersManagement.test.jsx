@@ -37,7 +37,7 @@ vi.mock('../../../components/common/CustomDatePicker', () => ({
   )
 }))
 
-const mockInitializeOrders = vi.fn()
+const mockFetchOrders = vi.fn()
 const mockUpdateOrderStatus = vi.fn()
 const mockGetOrdersStats = vi.fn()
 
@@ -139,12 +139,12 @@ const OrdersManagementWrapper = () => (
 describe('OrdersManagement Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Default successful mock setup
     vi.mocked(useOrdersStore).mockReturnValue({
       orders: mockOrders,
       isLoading: false,
-      initializeOrders: mockInitializeOrders,
+      fetchOrders: mockFetchOrders,
       updateOrderStatus: mockUpdateOrderStatus,
       getOrdersStats: mockGetOrdersStats
     })

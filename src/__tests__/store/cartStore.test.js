@@ -341,9 +341,9 @@ describe('cartStore', () => {
   // Additional edge case test
   test('should handle sync with menu correctly', () => {
     const store = useCartStore.getState()
-    
+
     store.syncWithMenu()
-    expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Synchronisation du panier avec le menu')
+    expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Syncing cart with menu')
   })
 
   test('should handle operations without current user gracefully', () => {

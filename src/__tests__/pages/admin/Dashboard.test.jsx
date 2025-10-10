@@ -50,24 +50,24 @@ describe('Dashboard Component', () => {
       
       await waitFor(() => {
         // Revenue card
-        expect(screen.getByText('Revenus du jour')).toBeInTheDocument()
+        expect(screen.getByText('Today's revenue')).toBeInTheDocument()
         expect(screen.getByText('€1250')).toBeInTheDocument()
-        expect(screen.getByText('€28,500 ce mois')).toBeInTheDocument()
+        expect(screen.getByText('€28,500 this month')).toBeInTheDocument()
         
         // Orders card
         expect(screen.getByText('Orders aujourd\'hui')).toBeInTheDocument()
         expect(screen.getByText('25')).toBeInTheDocument()
-        expect(screen.getByText('634 ce mois')).toBeInTheDocument()
+        expect(screen.getByText('634 this month')).toBeInTheDocument()
         
         // Customers card
-        expect(screen.getByText('Total clients')).toBeInTheDocument()
+        expect(screen.getByText('Total customers')).toBeInTheDocument()
         expect(screen.getByText('1248')).toBeInTheDocument()
-        expect(screen.getByText('+89 nouveaux')).toBeInTheDocument()
+        expect(screen.getByText('+89 new')).toBeInTheDocument()
         
         // Reservations card
         expect(screen.getByText('Reservations aujourd\'hui')).toBeInTheDocument()
         expect(screen.getByText('12')).toBeInTheDocument()
-        expect(screen.getByText('67 cette semaine')).toBeInTheDocument()
+        expect(screen.getByText('67 this week')).toBeInTheDocument()
       }, { timeout: 2000 })
     })
 
@@ -77,11 +77,11 @@ describe('Dashboard Component', () => {
       await waitFor(() => {
         // Check currency formatting
         expect(screen.getByText('€1250')).toBeInTheDocument()
-        expect(screen.getByText('€28,500 ce mois')).toBeInTheDocument()
+        expect(screen.getByText('€28,500 this month')).toBeInTheDocument()
         
         // Check number formatting
         expect(screen.getByText('1248')).toBeInTheDocument()
-        expect(screen.getByText('634 ce mois')).toBeInTheDocument()
+        expect(screen.getByText('634 this month')).toBeInTheDocument()
       }, { timeout: 2000 })
     })
 
@@ -98,8 +98,8 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('2.1%')).toBeInTheDocument()
         
         // Growth comparison text
-        expect(screen.getAllByText('vs mois dernier')).toHaveLength(3)
-        expect(screen.getByText('vs semaine dernière')).toBeInTheDocument()
+        expect(screen.getAllByText('vs last month')).toHaveLength(3)
+        expect(screen.getByText('vs last week')).toBeInTheDocument()
       }, { timeout: 2000 })
     })
   })
@@ -110,8 +110,8 @@ describe('Dashboard Component', () => {
       renderComponent()
       
       await waitFor(() => {
-        expect(screen.getByText('Orders récentes')).toBeInTheDocument()
-        expect(screen.getAllByText('Voir tout')).toHaveLength(2) // Orders and reservations sections
+        expect(screen.getByText('Recent orders')).toBeInTheDocument()
+        expect(screen.getAllByText('View all')).toHaveLength(2) // Orders and reservations sections
       }, { timeout: 2000 })
     })
 
@@ -150,7 +150,7 @@ describe('Dashboard Component', () => {
       renderComponent()
       
       await waitFor(() => {
-        expect(screen.getByText('Reservations récentes')).toBeInTheDocument()
+        expect(screen.getByText('Recent reservations')).toBeInTheDocument()
       }, { timeout: 2000 })
     })
 
@@ -225,17 +225,17 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('Vue d\'ensemble de votre restaurant')).toBeInTheDocument()
         
         // Statistics section (4 cards)
-        expect(screen.getByText('Revenus du jour')).toBeInTheDocument()
+        expect(screen.getByText('Today's revenue')).toBeInTheDocument()
         expect(screen.getByText('Orders aujourd\'hui')).toBeInTheDocument()
-        expect(screen.getByText('Total clients')).toBeInTheDocument()
+        expect(screen.getByText('Total customers')).toBeInTheDocument()
         expect(screen.getByText('Reservations aujourd\'hui')).toBeInTheDocument()
         
         // Recent activity section
-        expect(screen.getByText('Orders récentes')).toBeInTheDocument()
-        expect(screen.getByText('Reservations récentes')).toBeInTheDocument()
+        expect(screen.getByText('Recent orders')).toBeInTheDocument()
+        expect(screen.getByText('Recent reservations')).toBeInTheDocument()
         
-        // "Voir tout" buttons
-        expect(screen.getAllByText('Voir tout')).toHaveLength(2)
+        // "View all" buttons
+        expect(screen.getAllByText('View all')).toHaveLength(2)
       }, { timeout: 2000 })
     })
   })

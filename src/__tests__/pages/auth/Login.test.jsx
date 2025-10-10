@@ -65,7 +65,7 @@ describe('Login Component', () => {
       
       // Demo credentials
       expect(screen.getByText('Demo accounts:')).toBeInTheDocument()
-      expect(screen.getByText('🔐 Admin : admin@restoh.fr / admin123')).toBeInTheDocument()
+      expect(screen.getByText('🔐 Admin : admin@restoh.com / admin123')).toBeInTheDocument()
       expect(screen.getByText('👤 Client : client@example.com / client123')).toBeInTheDocument()
     })
 
@@ -379,7 +379,7 @@ describe('Login Component', () => {
       render(<LoginWrapper />)
       
       expect(screen.getByText('Demo accounts:')).toBeInTheDocument()
-      expect(screen.getByText('🔐 Admin : admin@restoh.fr / admin123')).toBeInTheDocument()
+      expect(screen.getByText('🔐 Admin : admin@restoh.com / admin123')).toBeInTheDocument()
       expect(screen.getByText('👤 Client : client@example.com / client123')).toBeInTheDocument()
     })
 
