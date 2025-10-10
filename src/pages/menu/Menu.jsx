@@ -183,13 +183,20 @@ const Menu = () => {
                   </p>
 
                   <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-medium px-2 py-1 rounded capitalize ${
-                      item.isAvailable
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-500 bg-gray-100'
-                    }`}>
-                      {item.category}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium px-2 py-1 rounded capitalize ${
+                        item.isAvailable
+                          ? 'text-primary-600 bg-primary-50'
+                          : 'text-gray-500 bg-gray-100'
+                      }`}>
+                        {item.category}
+                      </span>
+                      {item.isVegetarian && (
+                        <span className="text-xs font-medium px-2 py-1 rounded bg-emerald-100 text-emerald-700">
+                          🌱
+                        </span>
+                      )}
+                    </div>
                     <span className={`text-xs ${item.isAvailable ? 'text-gray-500' : 'text-gray-400'}`}>
                       {item.preparationTime} min
                     </span>

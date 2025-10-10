@@ -32,11 +32,12 @@ const MenuManagement = () => {
   } = useMenu()
   const [formData, setFormData] = useState({
     name: '',
-    category: 'plats',
+    category: 'main',
     price: '',
     description: '',
     image: '',
     isAvailable: true,
+    isVegetarian: false,
     preparationTime: '',
     ingredients: '',
     allergens: ''
@@ -44,10 +45,10 @@ const MenuManagement = () => {
 
   const categories = [
     { value: 'all', label: 'All Categories' },
-    { value: 'entrees', label: 'Starters' },
-    { value: 'plats', label: 'Main Courses' },
-    { value: 'desserts', label: 'Desserts' },
-    { value: 'boissons', label: 'Beverages' }
+    { value: 'appetizer', label: 'Appetizers' },
+    { value: 'main', label: 'Main Courses' },
+    { value: 'dessert', label: 'Desserts' },
+    { value: 'beverage', label: 'Beverages' }
   ]
 
   // Remove loadMenuItems as useMenu hook handles initialization
@@ -80,11 +81,12 @@ const MenuManagement = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      category: 'plats',
+      category: 'main',
       price: '',
       description: '',
       image: '',
-      available: true,
+      isAvailable: true,
+      isVegetarian: false,
       preparationTime: '',
       ingredients: '',
       allergens: ''
@@ -104,7 +106,8 @@ const MenuManagement = () => {
       price: item.price.toString(),
       description: item.description,
       image: item.image,
-      available: item.isAvailable,
+      isAvailable: item.isAvailable,
+      isVegetarian: item.isVegetarian || false,
       preparationTime: item.preparationTime.toString(),
       ingredients: item.ingredients ? item.ingredients.join(', ') : '',
       allergens: item.allergens ? item.allergens.join(', ') : ''
@@ -134,6 +137,7 @@ const MenuManagement = () => {
       description: formData.description,
       image: formData.image || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
       isAvailable: formData.isAvailable,
+      isVegetarian: formData.isVegetarian,
       preparationTime: parseInt(formData.preparationTime) || 10,
       ingredients: formData.ingredients.split(',').map(ing => ing.trim()).filter(ing => ing),
       allergens: formData.allergens.split(',').map(all => all.trim()).filter(all => all)
@@ -261,7 +265,7 @@ const MenuManagement = () => {
                 alt={item.name}
                 className="w-full h-48 object-cover"
               />
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-2 right-2 flex gap-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   item.isAvailable
                     ? 'bg-green-100 text-green-800'
@@ -269,6 +273,11 @@ const MenuManagement = () => {
                 }`}>
                   {item.isAvailable ? 'Available' : 'Unavailable'}
                 </span>
+                {item.isVegetarian && (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                    🌱 Vegetarian
+                  </span>
+                )}
               </div>
             </div>
 
@@ -485,17 +494,32 @@ const MenuManagement = () => {
                 />
               </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="available"
-                  checked={formData.isAvailable}
-                  onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})}
-                  className="mr-2"
-                />
-                <label htmlFor="available" className="text-sm text-gray-700">
-                  Item available
-                </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="available"
+                    checked={formData.isAvailable}
+                    onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})}
+                    className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="available" className="text-sm font-medium text-gray-700">
+                    Item available
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="vegetarian"
+                    checked={formData.isVegetarian}
+                    onChange={(e) => setFormData({...formData, isVegetarian: e.target.checked})}
+                    className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="vegetarian" className="text-sm font-medium text-gray-700">
+                    Vegetarian dish
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
