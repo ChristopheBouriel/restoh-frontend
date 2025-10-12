@@ -295,7 +295,7 @@ const Dashboard = () => {
                     <div>
                       <p className="font-medium text-gray-900">{reservation.customer}</p>
                       <p className="text-sm text-gray-600">
-                        {new Date(reservation.date).toLocaleDateString('fr-FR')} à {reservation.time}
+                        {new Date(reservation.date).toLocaleDateString('en-US')} at {reservation.time}
                       </p>
                     </div>
                   </div>
