@@ -205,6 +205,7 @@ describe('Checkout Component', () => {
       deliveryAddress: '123 Rue de la Paix',
       phone: '0123456789',
       notes: 'Ring at 2nd',
+      orderType: 'delivery',
       paymentMethod: 'card'
     })
     

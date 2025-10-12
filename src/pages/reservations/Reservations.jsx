@@ -282,7 +282,7 @@ const Reservations = () => {
                         <div>
                           <div className="flex items-center space-x-2 mb-1">
                             <span className="font-semibold">
-                              {new Date(reservation.date).toLocaleDateString('fr-FR')}
+                              {new Date(reservation.date).toLocaleDateString('en-US')}
                             </span>
                             <span className="text-gray-500">at {reservation.time}</span>
                           </div>

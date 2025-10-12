@@ -106,7 +106,7 @@ describe('UsersManagement Component', () => {
       
       // Statistics
       expect(screen.getByText('Total')).toBeInTheDocument()
-      expect(screen.getByText('Active')).toBeInTheDocument()
+      expect(screen.getAllByText('Active').length).toBeGreaterThanOrEqual(1)
       expect(screen.getByText('Admins')).toBeInTheDocument()
       
       // User list with count
@@ -214,8 +214,8 @@ describe('UsersManagement Component', () => {
       mockStoreState.toggleUserStatus.mockResolvedValue({ success: true })
       renderComponent()
       
-      // Find toggle button for active admin user (first "Inactive" button)
-      const toggleButtons = screen.getAllByTitle('Inactive')
+      // Find toggle button for active admin user (should be "Deactivate" since user is active)
+      const toggleButtons = screen.getAllByTitle('Deactivate')
       await user.click(toggleButtons[0])
       
       await waitFor(() => {
@@ -373,7 +373,7 @@ describe('UsersManagement Component', () => {
       
       renderComponent()
       
-      const toggleButton = screen.getAllByTitle('Désactiver')[0]
+      const toggleButton = screen.getAllByTitle('Deactivate')[0]
       await user.click(toggleButton)
       
       // Should still call the function even if it fails

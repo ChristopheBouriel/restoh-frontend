@@ -50,12 +50,12 @@ describe('Dashboard Component', () => {
       
       await waitFor(() => {
         // Revenue card
-        expect(screen.getByText('Today's revenue')).toBeInTheDocument()
+        expect(screen.getByText("Today's revenue")).toBeInTheDocument()
         expect(screen.getByText('€1250')).toBeInTheDocument()
         expect(screen.getByText('€28,500 this month')).toBeInTheDocument()
         
         // Orders card
-        expect(screen.getByText('Orders aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText('Orders Today')).toBeInTheDocument()
         expect(screen.getByText('25')).toBeInTheDocument()
         expect(screen.getByText('634 this month')).toBeInTheDocument()
         
@@ -161,15 +161,15 @@ describe('Dashboard Component', () => {
         // Check reservation details
         expect(screen.getByText('Emma Wilson')).toBeInTheDocument()
         expect(screen.getByText('22/01/2024 à 19:30')).toBeInTheDocument()
-        expect(screen.getByText('4 personnes')).toBeInTheDocument()
+        expect(screen.getByText('4 guests')).toBeInTheDocument()
         
         expect(screen.getByText('Readcas Bernard')).toBeInTheDocument()
         expect(screen.getByText('22/01/2024 à 20:00')).toBeInTheDocument()
-        expect(screen.getByText('2 personnes')).toBeInTheDocument()
+        expect(screen.getByText('2 guests')).toBeInTheDocument()
         
         expect(screen.getByText('Camille Moreau')).toBeInTheDocument()
         expect(screen.getByText('23/01/2024 à 19:00')).toBeInTheDocument()
-        expect(screen.getByText('6 personnes')).toBeInTheDocument()
+        expect(screen.getByText('6 guests')).toBeInTheDocument()
         
         // Check reservation status badges
         expect(screen.getAllByText('Confirmed')).toHaveLength(2) // Emma and Camille
@@ -225,8 +225,8 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('Vue d\'ensemble de votre restaurant')).toBeInTheDocument()
         
         // Statistics section (4 cards)
-        expect(screen.getByText('Today's revenue')).toBeInTheDocument()
-        expect(screen.getByText('Orders aujourd\'hui')).toBeInTheDocument()
+        expect(screen.getByText("Today's revenue")).toBeInTheDocument()
+        expect(screen.getByText('Orders Today')).toBeInTheDocument()
         expect(screen.getByText('Total customers')).toBeInTheDocument()
         expect(screen.getByText('Reservations aujourd\'hui')).toBeInTheDocument()
         

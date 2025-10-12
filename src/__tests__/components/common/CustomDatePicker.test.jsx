@@ -548,16 +548,19 @@ describe('CustomDatePicker Component', () => {
 
     it('should cancel input changes on Escape key', async () => {
       renderComponent({ value: '2024-01-15' })
-      
+
       const input = screen.getByPlaceholderText('DD/MM/YYYY')
       expect(input).toHaveValue('15/01/2024')
-      
-      await user.clear(input)
-      await user.type(input, '25/12/2024')
+
+      // Type some changes without committing (no blur/Enter)
+      await user.type(input, '999')
+
+      // Press Escape - should restore the last committed value
       await user.keyboard('{Escape}')
-      
+
       await waitFor(() => {
-        expect(input).toHaveValue('15/01/2024') // Should restore previous value
+        // After escape, should restore the last committed value (15/01/2024)
+        expect(input).toHaveValue('15/01/2024')
         expect(input).not.toHaveFocus()
       })
     })
