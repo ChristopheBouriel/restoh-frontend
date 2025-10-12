@@ -17,7 +17,8 @@ const mockMenuItems = [
     image: 'pizza-margherita.jpg',
     category: 'pizza',
     preparationTime: 15,
-    allergens: ['gluten', 'lactose']
+    allergens: ['gluten', 'lactose'],
+    isAvailable: true
   },
   {
     id: '2',
@@ -27,7 +28,8 @@ const mockMenuItems = [
     image: 'spaghetti-carbonara.jpg',
     category: 'pasta',
     preparationTime: 20,
-    allergens: ['gluten', 'lactose']
+    allergens: ['gluten', 'lactose'],
+    isAvailable: true
   },
   {
     id: '3',
@@ -37,7 +39,8 @@ const mockMenuItems = [
     image: 'tiramisu.jpg',
     category: 'dessert',
     preparationTime: 5,
-    allergens: ['lactose', 'oeufs']
+    allergens: ['lactose', 'oeufs'],
+    isAvailable: true
   },
   {
     id: '4',
@@ -47,7 +50,8 @@ const mockMenuItems = [
     image: 'pizza-pepperoni.jpg',
     category: 'pizza',
     preparationTime: 18,
-    allergens: ['gluten']
+    allergens: ['gluten'],
+    isAvailable: true
   }
 ]
 
@@ -81,7 +85,7 @@ describe('Menu Component', () => {
     
     // Default mock setup
     vi.mocked(useMenu).mockReturnValue({
-      availableItems: mockMenuItems,
+      items: mockMenuItems,
       categories: mockCategories,
       isLoading: false
     })
@@ -277,7 +281,7 @@ describe('Menu Component', () => {
   // 7. ÉTATS SPÉCIAUX (3 tests)
   test('should show loading state when isLoading is true', () => {
     vi.mocked(useMenu).mockReturnValue({
-      availableItems: [],
+      items: [],
       categories: [],
       isLoading: true
     })
