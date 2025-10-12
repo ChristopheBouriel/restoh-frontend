@@ -56,7 +56,7 @@ const ContactsManagement = () => {
   }
 
   const handleDeleteMessage = async (messageId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+    if (window.confirm('Are you sure you want to delete this message?')) {
       await deleteMessage(messageId)
       if (selectedMessage?.id === messageId) {
         setSelectedMessage(null)
@@ -139,7 +139,7 @@ const ContactsManagement = () => {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Tous ({stats.total})
+              All ({stats.total})
             </button>
             <button
               onClick={() => setFilterStatus('new')}
@@ -180,11 +180,11 @@ const ContactsManagement = () => {
         {filteredMessages.length === 0 ? (
           <div className="p-8 text-center">
             <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun message</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No messages</h3>
             <p className="text-gray-500">
-              {filterStatus === 'all' 
-                ? 'Aucun message reçu pour le moment.'
-                : `Aucun message avec le statut "${statusConfig[filterStatus]?.label}".`
+              {filterStatus === 'all'
+                ? 'No messages received yet.'
+                : `No messages with status "${statusConfig[filterStatus]?.label}".`
               }
             </p>
           </div>
@@ -291,7 +291,7 @@ const ContactsManagement = () => {
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Nom</p>
+                    <p className="text-sm font-medium text-gray-500">Name</p>
                     <p className="text-gray-900">{selectedMessage.name}</p>
                   </div>
                   <div>
@@ -300,7 +300,7 @@ const ContactsManagement = () => {
                   </div>
                   {selectedMessage.phone && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Téléphone</p>
+                      <p className="text-sm font-medium text-gray-500">Phone</p>
                       <p className="text-gray-900">{selectedMessage.phone}</p>
                     </div>
                   )}
@@ -347,7 +347,7 @@ const ContactsManagement = () => {
                     className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center space-x-2"
                   >
                     <Reply className="w-4 h-4" />
-                    <span>Marquer comme répondu</span>
+                    <span>Mark as replied</span>
                   </button>
                 )}
                 
@@ -355,7 +355,7 @@ const ContactsManagement = () => {
                   onClick={() => setSelectedMessage(null)}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
                 >
-                  Fermer
+                  Close
                 </button>
               </div>
               </div>
