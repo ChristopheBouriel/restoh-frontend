@@ -100,9 +100,9 @@ describe('Orders Component', () => {
   // 1. BASIC RENDERING (3 tests)
   test('should render header and description', () => {
     render(<OrdersWrapper />)
-    
+
     expect(screen.getByText('My Orders')).toBeInTheDocument()
-    expect(screen.getByText('Suivez l\'état de vos commandes')).toBeInTheDocument()
+    expect(screen.getByText('Track the status of your orders')).toBeInTheDocument()
   })
 
   test('should render all filter buttons for order statuses', () => {
@@ -128,9 +128,9 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Check order IDs
-    expect(screen.getByText('Order #1')).toBeInTheDocument()
-    expect(screen.getByText('Order #2')).toBeInTheDocument()
-    expect(screen.getByText('Order #3')).toBeInTheDocument()
+    expect(screen.getByText('Command #1')).toBeInTheDocument()
+    expect(screen.getByText('Command #2')).toBeInTheDocument()
+    expect(screen.getByText('Command #3')).toBeInTheDocument()
     
     // Check order totals
     expect(screen.getByText('28.50€')).toBeInTheDocument()
@@ -181,9 +181,9 @@ describe('Orders Component', () => {
     await user.click(screen.getByRole('button', { name: 'Delivered' }))
     
     // Should only show delivered orders
-    expect(screen.getByText('Order #1')).toBeInTheDocument()
-    expect(screen.queryByText('Order #2')).not.toBeInTheDocument()
-    expect(screen.queryByText('Order #3')).not.toBeInTheDocument()
+    expect(screen.getByText('Command #1')).toBeInTheDocument()
+    expect(screen.queryByText('Command #2')).not.toBeInTheDocument()
+    expect(screen.queryByText('Command #3')).not.toBeInTheDocument()
   })
 
   test('should show all orders when "All orders" is selected', async () => {
@@ -192,15 +192,15 @@ describe('Orders Component', () => {
     
     // First filter by delivered orders
     await user.click(screen.getByRole('button', { name: 'Delivered' }))
-    expect(screen.queryByText('Order #2')).not.toBeInTheDocument()
-    
+    expect(screen.queryByText('Command #2')).not.toBeInTheDocument()
+
     // Then click "All orders"
     await user.click(screen.getByRole('button', { name: 'All orders' }))
-    
+
     // Should show all orders again
-    expect(screen.getByText('Order #1')).toBeInTheDocument()
-    expect(screen.getByText('Order #2')).toBeInTheDocument()
-    expect(screen.getByText('Order #3')).toBeInTheDocument()
+    expect(screen.getByText('Command #1')).toBeInTheDocument()
+    expect(screen.getByText('Command #2')).toBeInTheDocument()
+    expect(screen.getByText('Command #3')).toBeInTheDocument()
   })
 
   test('should update active filter button styling correctly', async () => {
@@ -223,41 +223,41 @@ describe('Orders Component', () => {
   })
 
   // 4. ORDER DETAILS EXPANSION (2 tests)
-  test('should toggle order details when "Voir détails" button is clicked', async () => {
+  test('should toggle order details when "View details" button is clicked', async () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
-    
-    const detailsButtons = screen.getAllByText('Voir détails')
-    
+
+    const detailsButtons = screen.getAllByText('View details')
+
     // Initially, details should not be visible
-    expect(screen.queryByText('Détails de la commande')).not.toBeInTheDocument()
-    
+    expect(screen.queryByText('Order details')).not.toBeInTheDocument()
+
     // Click to show details
     await user.click(detailsButtons[0])
-    expect(screen.getByText('Détails de la commande')).toBeInTheDocument()
-    expect(screen.getByText('Masquer')).toBeInTheDocument()
-    
+    expect(screen.getByText('Order details')).toBeInTheDocument()
+    expect(screen.getByText('Hide')).toBeInTheDocument()
+
     // Click to hide details
-    await user.click(screen.getByText('Masquer'))
-    expect(screen.queryByText('Détails de la commande')).not.toBeInTheDocument()
+    await user.click(screen.getByText('Hide'))
+    expect(screen.queryByText('Order details')).not.toBeInTheDocument()
   })
 
   test('should show detailed order breakdown when expanded', async () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
-    
-    const detailsButtons = screen.getAllByText('Voir détails')
+
+    const detailsButtons = screen.getAllByText('View details')
     await user.click(detailsButtons[0])
-    
+
     // Should show order items breakdown
     expect(screen.getByText('Pizza Margherita x1')).toBeInTheDocument()
     expect(screen.getByText('Tiramisu x2')).toBeInTheDocument()
-    
+
     // Should show delivery information
-    expect(screen.getByText('Informations de livraison')).toBeInTheDocument()
+    expect(screen.getByText('Delivery information')).toBeInTheDocument()
     expect(screen.getByText('123 Rue de la Paix, Paris')).toBeInTheDocument()
     expect(screen.getByText('0123456789')).toBeInTheDocument()
-    expect(screen.getByText('Carte bancaire')).toBeInTheDocument()
+    expect(screen.getByText(/Card/)).toBeInTheDocument()
     expect(screen.getByText('Sonnez au 2ème étage')).toBeInTheDocument()
   })
 
@@ -286,9 +286,9 @@ describe('Orders Component', () => {
 
   test('should show review button only for delivered orders', () => {
     render(<OrdersWrapper />)
-    
-    // Only delivered orders should have "Laisser un avis" button
-    const reviewButtons = screen.getAllByText('Laisser un avis')
+
+    // Only delivered orders should have "Leave a review" button
+    const reviewButtons = screen.getAllByText('Leave a review')
     expect(reviewButtons).toHaveLength(1) // only one delivered order
   })
 
@@ -309,7 +309,7 @@ describe('Orders Component', () => {
     
     // Should show empty state
     expect(screen.getByText('No orders found')).toBeInTheDocument()
-    expect(screen.getByText('Vous n\'avez pas encore passé de commande avec ces filtres.')).toBeInTheDocument()
+    expect(screen.getByText('You haven\'t placed any orders with these filters yet.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Discover the menu' })).toBeInTheDocument()
   })
 
@@ -318,10 +318,10 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Should display all orders when data is available
-    expect(screen.getByText('Order #1')).toBeInTheDocument()
-    expect(screen.getByText('Order #2')).toBeInTheDocument()
-    expect(screen.getByText('Order #3')).toBeInTheDocument()
-    expect(screen.getByText('Order #4')).toBeInTheDocument()
+    expect(screen.getByText('Command #1')).toBeInTheDocument()
+    expect(screen.getByText('Command #2')).toBeInTheDocument()
+    expect(screen.getByText('Command #3')).toBeInTheDocument()
+    expect(screen.getByText('Command #4')).toBeInTheDocument()
     
     // Should not show empty state
     expect(screen.queryByText('No orders found')).not.toBeInTheDocument()

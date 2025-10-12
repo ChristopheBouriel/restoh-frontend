@@ -127,10 +127,10 @@ describe('ReservationsManagement Component', () => {
       // Statistics cards
       expect(screen.getByText('Total')).toBeInTheDocument()
       expect(screen.getAllByText('Pending').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText('Confirmed')).toBeInTheDocument()
-      expect(screen.getByText('Aujourd\'hui')).toBeInTheDocument()
-      expect(screen.getByText('Total seats')).toBeInTheDocument()
-      expect(screen.getByText('Couverts aujourd\'hui')).toBeInTheDocument()
+      expect(screen.getAllByText('Confirmed').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByText('Today')).toBeInTheDocument()
+      expect(screen.getByText('Total guests')).toBeInTheDocument()
+      expect(screen.getByText('Today\'s guests')).toBeInTheDocument()
       
       // Reservations list with count
       expect(screen.getByText('Reservations (4)')).toBeInTheDocument()
@@ -176,8 +176,8 @@ describe('ReservationsManagement Component', () => {
       renderComponent()
       
       // Find date filter dropdown
-      const dateFilterButton = screen.getAllByRole('button').find(button => 
-        button.textContent?.includes('Toutes les dates')
+      const dateFilterButton = screen.getAllByRole('button').find(button =>
+        button.textContent?.includes('All dates')
       )
       expect(dateFilterButton).toBeInTheDocument()
       
@@ -206,7 +206,7 @@ describe('ReservationsManagement Component', () => {
       renderComponent()
       
       expect(screen.getByText('Reservations (0)')).toBeInTheDocument()
-      expect(screen.getByText('Aucune réservation trouvée avec ces filtres.')).toBeInTheDocument()
+      expect(screen.getByText('No reservations found with these filters.')).toBeInTheDocument()
     })
   })
 
@@ -235,7 +235,7 @@ describe('ReservationsManagement Component', () => {
       await user.click(viewButtons[0])
       
       await waitFor(() => {
-        expect(screen.getByText('Détails de la réservation')).toBeInTheDocument()
+        expect(screen.getByText('Reservation details')).toBeInTheDocument()
         expect(screen.getAllByText('Client').length).toBeGreaterThanOrEqual(1) // Modal should be open
       })
     })
@@ -248,7 +248,7 @@ describe('ReservationsManagement Component', () => {
       await user.click(viewButton)
       
       await waitFor(() => {
-        expect(screen.getByText('Détails de la réservation')).toBeInTheDocument()
+        expect(screen.getByText('Reservation details')).toBeInTheDocument()
       })
       
       // Close with X button
@@ -259,14 +259,14 @@ describe('ReservationsManagement Component', () => {
         expect(screen.queryByText('Détails de la réservation')).not.toBeInTheDocument()
       })
       
-      // Open again and close with Fermer button
+      // Open again and close with Close button
       await user.click(viewButton)
       
       await waitFor(() => {
-        expect(screen.getByText('Détails de la réservation')).toBeInTheDocument()
+        expect(screen.getByText('Reservation details')).toBeInTheDocument()
       })
       
-      const closeButton = screen.getByText('Fermer')
+      const closeButton = screen.getByText('Close')
       await user.click(closeButton)
       
       await waitFor(() => {
@@ -285,7 +285,7 @@ describe('ReservationsManagement Component', () => {
       await user.click(viewButtons[0])
       
       await waitFor(() => {
-        expect(screen.getByText('Détails de la réservation')).toBeInTheDocument()
+        expect(screen.getByText('Reservation details')).toBeInTheDocument()
         
         // Check client information
         expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThanOrEqual(2) // Table + modal
@@ -309,11 +309,11 @@ describe('ReservationsManagement Component', () => {
       await user.click(viewButtons[0])
       
       await waitFor(() => {
-        expect(screen.getByText('Demandes spéciales')).toBeInTheDocument()
+        expect(screen.getByText('Special requests')).toBeInTheDocument()
         expect(screen.getAllByText('Table by the window').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getByText('Historique')).toBeInTheDocument()
-        expect(screen.getByText('Créée le:')).toBeInTheDocument()
-        expect(screen.getByText('Modifiée le:')).toBeInTheDocument()
+        expect(screen.getByText('History')).toBeInTheDocument()
+        expect(screen.getByText('Created:')).toBeInTheDocument()
+        expect(screen.getByText('Modified:')).toBeInTheDocument()
       })
       
       // Close and check a reservation without special requests
@@ -323,9 +323,9 @@ describe('ReservationsManagement Component', () => {
       await user.click(viewButtons[1])
       
       await waitFor(() => {
-        expect(screen.getByText('Détails de la réservation')).toBeInTheDocument()
+        expect(screen.getByText('Reservation details')).toBeInTheDocument()
         expect(screen.getAllByText('Marie Martin').length).toBeGreaterThanOrEqual(2)
-        expect(screen.getAllByText('Non assignée').length).toBeGreaterThanOrEqual(1) // No table assigned
+        expect(screen.getAllByText('Not assigned').length).toBeGreaterThanOrEqual(1) // No table assigned
         // Special requests section should not be visible when null
       })
     })

@@ -29,27 +29,27 @@ const ReservationsManagement = () => {
 
   // Options pour les filtres
   const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'pending', label: 'En attente' },
-    { value: 'confirmed', label: 'Confirmée' },
-    { value: 'seated', label: 'Installée' },
-    { value: 'completed', label: 'Terminée' },
-    { value: 'cancelled', label: 'Annulée' }
+    { value: 'all', label: 'All statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'seated', label: 'Seated' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' }
   ]
 
   const dateOptions = [
-    { value: 'all', label: 'Toutes les dates' },
-    { value: 'today', label: 'Aujourd\'hui' },
-    { value: 'upcoming', label: 'À venir' },
-    { value: 'past', label: 'Passées' }
+    { value: 'all', label: 'All dates' },
+    { value: 'today', label: 'Today' },
+    { value: 'upcoming', label: 'Upcoming' },
+    { value: 'past', label: 'Past' }
   ]
 
   const newStatusOptions = [
-    { value: 'pending', label: 'En attente' },
-    { value: 'confirmed', label: 'Confirmée' },
-    { value: 'seated', label: 'Installée' },
-    { value: 'completed', label: 'Terminée' },
-    { value: 'cancelled', label: 'Annulée' }
+    { value: 'pending', label: 'Pending' },
+    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'seated', label: 'Seated' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' }
   ]
 
   // Fonction de filtrage
@@ -138,11 +138,11 @@ const ReservationsManagement = () => {
   // Fonction pour obtenir le libellé du statut
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'pending': return 'En attente'
-      case 'confirmed': return 'Confirmée'
-      case 'seated': return 'Installée'
-      case 'completed': return 'Terminée'
-      case 'cancelled': return 'Annulée'
+      case 'pending': return 'Pending'
+      case 'confirmed': return 'Confirmed'
+      case 'seated': return 'Seated'
+      case 'completed': return 'Completed'
+      case 'cancelled': return 'Cancelled'
       default: return status
     }
   }
@@ -171,7 +171,7 @@ const ReservationsManagement = () => {
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-yellow-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">En attente</p>
+              <p className="text-sm font-medium text-gray-600">Pending</p>
               <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
             </div>
           </div>
@@ -181,7 +181,7 @@ const ReservationsManagement = () => {
           <div className="flex items-center">
             <Users className="h-8 w-8 text-blue-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Confirmées</p>
+              <p className="text-sm font-medium text-gray-600">Confirmed</p>
               <p className="text-2xl font-bold text-gray-900">{stats.confirmed}</p>
             </div>
           </div>
@@ -224,7 +224,7 @@ const ReservationsManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut
+              Status
             </label>
             <SimpleSelect
               value={statusFilter}
@@ -235,7 +235,7 @@ const ReservationsManagement = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dates
+              Date
             </label>
             <SimpleSelect
               value={dateFilter}
@@ -250,38 +250,38 @@ const ReservationsManagement = () => {
         {/* Période Section */}
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-700">Période</h3>
+            <h3 className="text-sm font-medium text-gray-700">Period</h3>
             {(startDate || endDate) && (
-              <button 
+              <button
                 onClick={clearDateRange}
                 className="text-xs text-gray-500 hover:text-gray-700 font-medium"
               >
-                Vider les champs
+                Clear fields
               </button>
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                Date de début
+                Start date
               </label>
               <CustomDatePicker
                 value={startDate}
                 onChange={setStartDate}
                 className="w-full"
-                placeholder="Sélectionner date de début"
+                placeholder="Select start date"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                Date de fin
+                End date
               </label>
               <CustomDatePicker
                 value={endDate}
                 onChange={setEndDate}
                 className="w-full"
                 minDate={startDate}
-                placeholder="Sélectionner date de fin"
+                placeholder="Select end date"
               />
             </div>
           </div>
@@ -298,7 +298,7 @@ const ReservationsManagement = () => {
 
         {filteredReservations.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
-            Aucune réservation trouvée avec ces filtres.
+            No reservations found with these filters.
           </div>
         ) : (
           <>
@@ -320,7 +320,7 @@ const ReservationsManagement = () => {
                       Table
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Statut
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -425,7 +425,7 @@ const ReservationsManagement = () => {
                       <span className="text-sm font-medium text-gray-900">{reservation.userName}</span>
                       <div className="flex items-center text-sm text-gray-500">
                         <Users className="h-4 w-4 mr-1" />
-                        {reservation.guests} couverts
+                        {reservation.guests} guests
                       </div>
                     </div>
                     
@@ -451,7 +451,7 @@ const ReservationsManagement = () => {
                     
                     {reservation.specialRequests && (
                       <div className="text-sm text-gray-600 bg-gray-50 rounded p-2">
-                        <strong>Demandes spéciales:</strong> {reservation.specialRequests}
+                        <strong>Special requests:</strong> {reservation.specialRequests}
                       </div>
                     )}
                   </div>
@@ -469,7 +469,7 @@ const ReservationsManagement = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Détails de la réservation
+                  Reservation details
                 </h2>
                 <button
                   onClick={closeModal}
@@ -484,9 +484,9 @@ const ReservationsManagement = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Client</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><strong>Nom:</strong> {selectedReservation.userName}</p>
+                    <p><strong>Name:</strong> {selectedReservation.userName}</p>
                     <p><strong>Email:</strong> {selectedReservation.userEmail}</p>
-                    <p><strong>Téléphone:</strong> {selectedReservation.phone}</p>
+                    <p><strong>Phone:</strong> {selectedReservation.phone}</p>
                   </div>
                 </div>
 
@@ -512,7 +512,7 @@ const ReservationsManagement = () => {
               {/* Demandes spéciales */}
               {selectedReservation.specialRequests && (
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Demandes spéciales</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Special requests</h3>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-gray-700">{selectedReservation.specialRequests}</p>
                   </div>
@@ -521,10 +521,10 @@ const ReservationsManagement = () => {
 
               {/* Historique */}
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Historique</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">History</h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-gray-600">
-                  <p><strong>Créée le:</strong> {new Date(selectedReservation.createdAt).toLocaleString('fr-FR')}</p>
-                  <p><strong>Modifiée le:</strong> {new Date(selectedReservation.updatedAt).toLocaleString('fr-FR')}</p>
+                  <p><strong>Created:</strong> {new Date(selectedReservation.createdAt).toLocaleString('en-US')}</p>
+                  <p><strong>Modified:</strong> {new Date(selectedReservation.updatedAt).toLocaleString('en-US')}</p>
                 </div>
               </div>
 
@@ -534,7 +534,7 @@ const ReservationsManagement = () => {
                   onClick={closeModal}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Fermer
+                  Close
                 </button>
               </div>
             </div>
