@@ -89,6 +89,24 @@ vi.mock('react-hot-toast', () => ({
   }
 }))
 
+// Mock SimpleSelect to be a native select for easier testing
+vi.mock('../../../components/common/SimpleSelect', () => ({
+  default: ({ value, onChange, options, className }) => (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      data-testid="simple-select"
+      className={className}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}))
+
 // Mock ImageWithFallback component
 vi.mock('../../../components/common/ImageWithFallback', () => ({
   default: ({ alt, className }) => (
@@ -203,13 +221,13 @@ describe('MenuManagement Component', () => {
   test('should filter by category when user selects category', async () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
-    
+
     const categorySelect = screen.getByDisplayValue('All Categories')
     await user.selectOptions(categorySelect, 'dessert')
-    
+
     // Should show only dessert
     expect(screen.getByRole('heading', { name: 'Tiramisu', level: 3 })).toBeInTheDocument()
-    
+
     // Should not show other categories
     expect(screen.queryByRole('heading', { name: 'Pizza Margherita', level: 3 })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).not.toBeInTheDocument()
@@ -232,11 +250,16 @@ describe('MenuManagement Component', () => {
     // Check that form elements are present
     expect(screen.getByPlaceholderText('15.90')).toBeInTheDocument() // Price input
     expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
-    
-    // Check that category select in the modal has "main" selected (get the second combobox)
-    const categorySelects = screen.getAllByRole('combobox')
-    const modalCategorySelect = categorySelects[1] // Second select is in the modal
-    expect(modalCategorySelect).toHaveValue('main')
+
+    // Check that category and cuisine selects are present with correct default values
+    // There are multiple selects: 1 for filtering outside modal + 2 inside modal (category + cuisine)
+    const allSelects = screen.getAllByTestId('simple-select')
+    expect(allSelects.length).toBeGreaterThanOrEqual(3)
+
+    // The last 2 selects should be in the modal (category and cuisine)
+    const modalSelects = allSelects.slice(-2)
+    expect(modalSelects[0]).toHaveValue('main') // Category select in modal
+    expect(modalSelects[1]).toHaveValue('continental') // Cuisine select in modal
   })
 
   test('should open edit modal with prefilled data when edit button clicked', async () => {
@@ -455,12 +478,13 @@ describe('MenuManagement Component', () => {
     // Check that cuisine field exists with correct options
     expect(screen.getByText('Cuisine Type *')).toBeInTheDocument()
 
-    // Find the cuisine select by checking for the label
-    const cuisineLabel = screen.getByText('Cuisine Type *')
-    const cuisineSelect = cuisineLabel.nextElementSibling
-
+    // Check that cuisine select is present with correct default value
+    const cuisineSelects = screen.getAllByTestId('simple-select')
+    const cuisineSelect = cuisineSelects.find(select =>
+      Array.from(select.querySelectorAll('option')).some(opt => opt.value === 'asian')
+    )
     expect(cuisineSelect).toBeInTheDocument()
-    expect(cuisineSelect.tagName).toBe('SELECT')
+    expect(cuisineSelect).toHaveValue('continental') // Default value
   })
 
   test('should include cuisine field when creating new item', async () => {
@@ -481,9 +505,9 @@ describe('MenuManagement Component', () => {
     await user.type(screen.getByPlaceholderText('Describe the dish, its main ingredients...'), 'Test description')
 
     // Select Asian cuisine
-    const cuisineSelects = screen.getAllByRole('combobox')
+    const cuisineSelects = screen.getAllByTestId('simple-select')
     const cuisineSelect = cuisineSelects.find(select =>
-      select.querySelector('option[value="asian"]')
+      Array.from(select.querySelectorAll('option')).some(opt => opt.value === 'asian')
     )
     if (cuisineSelect) {
       await user.selectOptions(cuisineSelect, 'asian')

@@ -3,6 +3,7 @@ import { Search, Filter } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
 import { useMenu } from '../../hooks/useMenu'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import SimpleSelect from '../../components/common/SimpleSelect'
 
 const Menu = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -136,47 +137,38 @@ const Menu = () => {
             </div>
 
             {/* Filter by cuisine type */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <select
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <SimpleSelect
                 value={selectedCuisine}
-                onChange={(e) => setSelectedCuisine(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white min-w-[200px]"
-              >
-                {cuisineTypes.map((cuisine) => (
-                  <option key={cuisine.id} value={cuisine.id}>
-                    {cuisine.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedCuisine}
+                options={cuisineTypes.map(c => ({ value: c.id, label: c.name }))}
+                className="min-w-[200px]"
+              />
             </div>
 
             {/* Filter by category */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <select
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <SimpleSelect
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white min-w-[200px]"
-              >
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedCategory}
+                options={categories.map(c => ({ value: c.id, label: c.name }))}
+                className="min-w-[200px]"
+              />
             </div>
 
             {/* Sort */}
-            <select
+            <SimpleSelect
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-            >
-              <option value="name">Sort by name</option>
-              <option value="price-asc">Price ascending</option>
-              <option value="price-desc">Price descending</option>
-            </select>
+              onChange={setSortBy}
+              options={[
+                { value: 'name', label: 'Sort by name' },
+                { value: 'price-asc', label: 'Price ascending' },
+                { value: 'price-desc', label: 'Price descending' }
+              ]}
+              className="min-w-[180px]"
+            />
           </div>
         </div>
 

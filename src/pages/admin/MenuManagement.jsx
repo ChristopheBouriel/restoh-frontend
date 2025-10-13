@@ -13,6 +13,7 @@ import {
 import { toast } from 'react-hot-toast'
 import { useMenu } from '../../hooks/useMenu'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import SimpleSelect from '../../components/common/SimpleSelect'
 
 const MenuManagement = () => {
   const [filteredItems, setFilteredItems] = useState([])
@@ -257,19 +258,14 @@ const MenuManagement = () => {
             />
           </div>
 
-          <div className="relative">
-            <Filter className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-            <select
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <SimpleSelect
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-            >
-              {categories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCategory}
+              options={categories}
+              className="min-w-[200px]"
+            />
           </div>
         </div>
       </div>
@@ -428,34 +424,24 @@ const MenuManagement = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
                   </label>
-                  <select
+                  <SimpleSelect
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    {categories.slice(1).map((category) => (
-                      <option key={category.value} value={category.value}>
-                        {category.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData({...formData, category: value})}
+                    options={categories.slice(1)}
+                    className="w-full"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Cuisine Type *
                   </label>
-                  <select
+                  <SimpleSelect
                     value={formData.cuisine}
-                    onChange={(e) => setFormData({...formData, cuisine: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    {cuisines.map((cuisine) => (
-                      <option key={cuisine.value} value={cuisine.value}>
-                        {cuisine.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData({...formData, cuisine: value})}
+                    options={cuisines}
+                    className="w-full"
+                  />
                 </div>
 
                 <div>

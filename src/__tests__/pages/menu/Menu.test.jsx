@@ -93,6 +93,24 @@ const mockCategories = [
 vi.mock('../../../hooks/useMenu')
 vi.mock('../../../hooks/useCart')
 
+// Mock SimpleSelect to be a native select for easier testing
+vi.mock('../../../components/common/SimpleSelect', () => ({
+  default: ({ value, onChange, options, className }) => (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      data-testid="simple-select"
+      className={className}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}))
+
 // Mock ImageWithFallback component (avoid image loading issues)
 vi.mock('../../../components/common/ImageWithFallback', () => ({
   default: ({ alt }) => <div data-testid="menu-item-image">{alt}</div>
@@ -133,9 +151,10 @@ describe('Menu Component', () => {
 
   test('should render search and filter controls', () => {
     render(<MenuWrapper />)
-    
+
     expect(screen.getByPlaceholderText('Search for a dish...')).toBeInTheDocument()
     expect(screen.getByDisplayValue('All dishes')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('All cuisines')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Sort by name')).toBeInTheDocument()
   })
 
@@ -205,10 +224,10 @@ describe('Menu Component', () => {
   test('should filter by category when user selects option', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     const categorySelect = screen.getByDisplayValue('All dishes')
     await user.selectOptions(categorySelect, 'pizza')
-    
+
     // Should show only pizza items
     expect(screen.getByRole('heading', { name: 'Pizza Margherita', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Pizza Pepperoni', level: 3 })).toBeInTheDocument()
@@ -221,16 +240,16 @@ describe('Menu Component', () => {
   test('should show all items when "All dishes" is selected', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     const categorySelect = screen.getByDisplayValue('All dishes')
-    
+
     // First filter by pizza
     await user.selectOptions(categorySelect, 'pizza')
     expect(screen.queryByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).not.toBeInTheDocument()
-    
+
     // Then switch back to all
     await user.selectOptions(categorySelect, 'all')
-    
+
     // Should show all items again
     expect(screen.getByRole('heading', { name: 'Pizza Margherita', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).toBeInTheDocument()
@@ -242,12 +261,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
 
-    // Find the cuisine filter (second select with Filter icon)
-    const selects = screen.getAllByRole('combobox')
-    const cuisineSelect = selects.find(select =>
-      select.querySelector('option[value="asian"]') !== null
-    ) || selects[1] // Fallback to second select
-
+    const cuisineSelect = screen.getByDisplayValue('All cuisines')
     await user.selectOptions(cuisineSelect, 'asian')
 
     // Should show only Asian items
@@ -262,11 +276,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
 
-    const selects = screen.getAllByRole('combobox')
-    const cuisineSelect = selects.find(select =>
-      select.querySelector('option[value="lao"]') !== null
-    ) || selects[1]
-
+    const cuisineSelect = screen.getByDisplayValue('All cuisines')
     await user.selectOptions(cuisineSelect, 'lao')
 
     // Should show only Lao items
@@ -281,11 +291,7 @@ describe('Menu Component', () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
 
-    const selects = screen.getAllByRole('combobox')
-    const cuisineSelect = selects.find(select =>
-      select.querySelector('option[value="continental"]') !== null
-    ) || selects[1]
-
+    const cuisineSelect = screen.getByDisplayValue('All cuisines')
     await user.selectOptions(cuisineSelect, 'continental')
 
     // Should show only Continental items
@@ -415,29 +421,29 @@ describe('Menu Component', () => {
   test('should reset all filters when reset button is clicked', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     // Apply filters first
     const searchInput = screen.getByPlaceholderText('Search for a dish...')
     const categorySelect = screen.getByDisplayValue('All dishes')
     const sortSelect = screen.getByDisplayValue('Sort by name')
-    
+
     await user.type(searchInput, 'pizza')
     await user.selectOptions(categorySelect, 'pasta')
     await user.selectOptions(sortSelect, 'price-desc')
-    
+
     // Search for something that doesn't exist to show empty state
     await user.clear(searchInput)
     await user.type(searchInput, 'nonexistent')
-    
+
     // Click reset button
     const resetButton = screen.getByText('Reset filters')
     await user.click(resetButton)
-    
+
     // All filters should be reset to default values
     expect(searchInput).toHaveValue('')
     expect(categorySelect).toHaveValue('all')
     expect(sortSelect).toHaveValue('name')
-    
+
     // All items should be visible again
     expect(screen.getByRole('heading', { name: 'Pizza Margherita', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).toBeInTheDocument()
