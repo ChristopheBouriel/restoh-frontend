@@ -15,6 +15,7 @@ const mockMenuItems = [
     price: 12.50,
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
     category: 'main',
+    cuisine: 'continental',
     preparationTime: 15,
     ingredients: ['tomates', 'mozzarella', 'basilic'],
     allergens: ['gluten', 'lactose'],
@@ -28,6 +29,7 @@ const mockMenuItems = [
     price: 14.00,
     image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop',
     category: 'main',
+    cuisine: 'continental',
     preparationTime: 20,
     ingredients: ['pâtes', 'lardons', 'crème', 'parmesan'],
     allergens: ['gluten', 'lactose'],
@@ -41,6 +43,7 @@ const mockMenuItems = [
     price: 9.50,
     image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&h=300&fit=crop',
     category: 'appetizer',
+    cuisine: 'continental',
     preparationTime: 10,
     ingredients: ['salade', 'croûtons', 'parmesan', 'sauce césar'],
     allergens: ['gluten', 'lactose'],
@@ -54,11 +57,26 @@ const mockMenuItems = [
     price: 6.50,
     image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=300&fit=crop',
     category: 'dessert',
+    cuisine: 'continental',
     preparationTime: 5,
     ingredients: ['mascarpone', 'café', 'cacao', 'biscuits'],
     allergens: ['lactose', 'oeufs'],
     isAvailable: true,
     isVegetarian: true
+  },
+  {
+    id: '5',
+    name: 'Pad Thai',
+    description: 'Thai stir-fried noodles',
+    price: 13.50,
+    image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400&h=300&fit=crop',
+    category: 'main',
+    cuisine: 'asian',
+    preparationTime: 15,
+    ingredients: ['noodles', 'shrimp', 'peanuts', 'tamarind'],
+    allergens: ['gluten', 'nuts', 'shellfish'],
+    isAvailable: true,
+    isVegetarian: false
   }
 ]
 
@@ -123,8 +141,8 @@ describe('MenuManagement Component', () => {
     render(<MenuManagementWrapper />)
     
     expect(screen.getByRole('heading', { name: 'Menu Management', level: 1 })).toBeInTheDocument()
-    expect(screen.getByText(/4 items/)).toBeInTheDocument()
-    expect(screen.getByText(/3 available/)).toBeInTheDocument()
+    expect(screen.getByText(/5 items/)).toBeInTheDocument()
+    expect(screen.getByText(/4 available/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /New item/i })).toBeInTheDocument()
   })
 
@@ -144,7 +162,7 @@ describe('MenuManagement Component', () => {
     expect(screen.getByText('€6.50')).toBeInTheDocument()
     
     // Check availability status
-    expect(screen.getAllByText('Available')).toHaveLength(3)
+    expect(screen.getAllByText('Available')).toHaveLength(4)
     expect(screen.getByText('Unavailable')).toBeInTheDocument()
   })
 
@@ -411,12 +429,84 @@ describe('MenuManagement Component', () => {
       deleteItem: mockDeleteItem,
       toggleAvailability: mockToggleAvailability
     })
-    
+
     render(<MenuManagementWrapper />)
-    
+
     // Should show empty state for no data
     expect(screen.getByText('No items found')).toBeInTheDocument()
     expect(screen.getByText('Start by adding your first menu item')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add an item' })).toBeInTheDocument()
+  })
+
+  // 6. CUISINE FIELD TESTS (3 tests)
+  test('should display cuisine field in add item form', async () => {
+    const user = userEvent.setup()
+    render(<MenuManagementWrapper />)
+
+    // Open add modal
+    const addButton = screen.getByRole('button', { name: /new item/i })
+    await user.click(addButton)
+
+    // Wait for modal to open
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'New Item' })).toBeInTheDocument()
+    })
+
+    // Check that cuisine field exists with correct options
+    expect(screen.getByText('Cuisine Type *')).toBeInTheDocument()
+
+    // Find the cuisine select by checking for the label
+    const cuisineLabel = screen.getByText('Cuisine Type *')
+    const cuisineSelect = cuisineLabel.nextElementSibling
+
+    expect(cuisineSelect).toBeInTheDocument()
+    expect(cuisineSelect.tagName).toBe('SELECT')
+  })
+
+  test('should include cuisine field when creating new item', async () => {
+    const user = userEvent.setup()
+    render(<MenuManagementWrapper />)
+
+    // Open add modal
+    const addButton = screen.getByRole('button', { name: /new item/i })
+    await user.click(addButton)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'New Item' })).toBeInTheDocument()
+    })
+
+    // Fill form
+    await user.type(screen.getByPlaceholderText('e.g. Pizza Margherita'), 'Test Asian Dish')
+    await user.type(screen.getByPlaceholderText('15.90'), '15.50')
+    await user.type(screen.getByPlaceholderText('Describe the dish, its main ingredients...'), 'Test description')
+
+    // Select Asian cuisine
+    const cuisineSelects = screen.getAllByRole('combobox')
+    const cuisineSelect = cuisineSelects.find(select =>
+      select.querySelector('option[value="asian"]')
+    )
+    if (cuisineSelect) {
+      await user.selectOptions(cuisineSelect, 'asian')
+    }
+
+    // Submit form
+    const submitButton = screen.getByRole('button', { name: 'Add' })
+    await user.click(submitButton)
+
+    // Check that addItem was called with cuisine field
+    await waitFor(() => {
+      expect(mockAddItem).toHaveBeenCalled()
+      const callArgs = mockAddItem.mock.calls[0][0]
+      expect(callArgs).toHaveProperty('cuisine')
+      expect(callArgs.cuisine).toBe('asian')
+    })
+  })
+
+  test('should display cuisine badges on menu item cards', () => {
+    render(<MenuManagementWrapper />)
+
+    // Check that cuisine badges are displayed
+    expect(screen.getAllByText('Continental').length).toBeGreaterThan(0)
+    expect(screen.getByText('Asian')).toBeInTheDocument()
   })
 })

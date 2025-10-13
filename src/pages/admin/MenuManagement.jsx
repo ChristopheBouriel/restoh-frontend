@@ -33,6 +33,7 @@ const MenuManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     category: 'main',
+    cuisine: 'continental',
     price: '',
     description: '',
     image: '',
@@ -49,6 +50,12 @@ const MenuManagement = () => {
     { value: 'main', label: 'Main Courses' },
     { value: 'dessert', label: 'Desserts' },
     { value: 'beverage', label: 'Beverages' }
+  ]
+
+  const cuisines = [
+    { value: 'asian', label: 'Asian' },
+    { value: 'lao', label: 'Lao' },
+    { value: 'continental', label: 'Continental' }
   ]
 
   // Remove loadMenuItems as useMenu hook handles initialization
@@ -82,6 +89,7 @@ const MenuManagement = () => {
     setFormData({
       name: '',
       category: 'main',
+      cuisine: 'continental',
       price: '',
       description: '',
       image: '',
@@ -103,6 +111,7 @@ const MenuManagement = () => {
     setFormData({
       name: item.name,
       category: item.category,
+      cuisine: item.cuisine || 'continental',
       price: item.price.toString(),
       description: item.description,
       image: item.image,
@@ -133,6 +142,7 @@ const MenuManagement = () => {
     const itemData = {
       name: formData.name,
       category: formData.category,
+      cuisine: formData.cuisine,
       price: parseFloat(formData.price),
       description: formData.description,
       image: formData.image || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
@@ -185,6 +195,15 @@ const MenuManagement = () => {
 
   const getCategoryLabel = (category) => {
     return categories.find(cat => cat.value === category)?.label || category
+  }
+
+  const getCuisineStyle = (cuisine) => {
+    const styles = {
+      asian: { bg: 'bg-red-100', text: 'text-red-700', label: 'Asian' },
+      lao: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Lao' },
+      continental: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Continental' }
+    }
+    return styles[cuisine] || styles.continental
   }
 
   if (isLoading) {
@@ -290,7 +309,17 @@ const MenuManagement = () => {
               <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.description}</p>
 
               <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                <span className="capitalize bg-gray-100 px-2 py-1 rounded">{getCategoryLabel(item.category)}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="capitalize bg-gray-100 px-2 py-1 rounded">{getCategoryLabel(item.category)}</span>
+                  {item.cuisine && (() => {
+                    const style = getCuisineStyle(item.cuisine)
+                    return (
+                      <span className={`px-2 py-1 rounded ${style.bg} ${style.text}`}>
+                        {style.label}
+                      </span>
+                    )
+                  })()}
+                </div>
                 <span>{item.preparationTime} min</span>
               </div>
 
@@ -407,6 +436,23 @@ const MenuManagement = () => {
                     {categories.slice(1).map((category) => (
                       <option key={category.value} value={category.value}>
                         {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cuisine Type *
+                  </label>
+                  <select
+                    value={formData.cuisine}
+                    onChange={(e) => setFormData({...formData, cuisine: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    {cuisines.map((cuisine) => (
+                      <option key={cuisine.value} value={cuisine.value}>
+                        {cuisine.label}
                       </option>
                     ))}
                   </select>

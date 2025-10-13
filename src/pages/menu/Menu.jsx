@@ -6,6 +6,7 @@ import ImageWithFallback from '../../components/common/ImageWithFallback'
 
 const Menu = () => {
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCuisine, setSelectedCuisine] = useState('all')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('name')
   const { addItem } = useCart()
@@ -15,14 +16,35 @@ const Menu = () => {
     addItem(item)
   }
 
+  const getCuisineStyle = (cuisine) => {
+    const styles = {
+      asian: { bg: 'bg-red-100', text: 'text-red-700', label: 'Asian' },
+      lao: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Lao' },
+      continental: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Continental' }
+    }
+    return styles[cuisine] || styles.continental
+  }
+
   const categories = [
     { id: 'all', name: 'All dishes' },
     ...menuCategories.map(cat => ({ id: cat.id, name: cat.name }))
   ]
 
+  const cuisineTypes = [
+    { id: 'all', name: 'All cuisines' },
+    { id: 'asian', name: 'Asian' },
+    { id: 'lao', name: 'Lao' },
+    { id: 'continental', name: 'Continental' }
+  ]
+
   // Filter and sort menu items (show all items, including unavailable)
   const filteredItems = useMemo(() => {
     let filtered = allMenuItems
+
+    // Filter by cuisine type
+    if (selectedCuisine !== 'all') {
+      filtered = filtered.filter(item => item.cuisine === selectedCuisine)
+    }
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -57,7 +79,7 @@ const Menu = () => {
     })
 
     return filtered
-  }, [allMenuItems, selectedCategory, searchTerm, sortBy])
+  }, [allMenuItems, selectedCuisine, selectedCategory, searchTerm, sortBy])
 
   if (isLoading) {
     return (
@@ -111,6 +133,22 @@ const Menu = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
+            </div>
+
+            {/* Filter by cuisine type */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+              <select
+                value={selectedCuisine}
+                onChange={(e) => setSelectedCuisine(e.target.value)}
+                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white min-w-[200px]"
+              >
+                {cuisineTypes.map((cuisine) => (
+                  <option key={cuisine.id} value={cuisine.id}>
+                    {cuisine.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Filter by category */}
@@ -183,7 +221,7 @@ const Menu = () => {
                   </p>
 
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-1 rounded capitalize ${
                         item.isAvailable
                           ? 'text-primary-600 bg-primary-50'
@@ -191,6 +229,14 @@ const Menu = () => {
                       }`}>
                         {item.category}
                       </span>
+                      {item.cuisine && (() => {
+                        const style = getCuisineStyle(item.cuisine)
+                        return (
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${style.bg} ${style.text}`}>
+                            {style.label}
+                          </span>
+                        )
+                      })()}
                       {item.isVegetarian && (
                         <span className="text-xs font-medium px-2 py-1 rounded bg-emerald-100 text-emerald-700">
                           🌱

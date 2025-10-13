@@ -32,6 +32,7 @@ const useMenuStore = create((set, get) => ({
               allergens: item.allergens || [],
               ingredients: item.ingredients || [],
               preparationTime: item.preparationTime || 0,
+              cuisine: item.cuisine || 'continental', // Default to continental
               // Ensure isAvailable is a proper boolean
               isAvailable: Boolean(item.isAvailable)
             }))

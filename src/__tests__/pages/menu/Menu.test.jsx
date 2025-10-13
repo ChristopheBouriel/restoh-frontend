@@ -16,6 +16,7 @@ const mockMenuItems = [
     price: 12.50,
     image: 'pizza-margherita.jpg',
     category: 'pizza',
+    cuisine: 'continental',
     preparationTime: 15,
     allergens: ['gluten', 'lactose'],
     isAvailable: true
@@ -27,6 +28,7 @@ const mockMenuItems = [
     price: 14.00,
     image: 'spaghetti-carbonara.jpg',
     category: 'pasta',
+    cuisine: 'continental',
     preparationTime: 20,
     allergens: ['gluten', 'lactose'],
     isAvailable: true
@@ -38,6 +40,7 @@ const mockMenuItems = [
     price: 6.50,
     image: 'tiramisu.jpg',
     category: 'dessert',
+    cuisine: 'continental',
     preparationTime: 5,
     allergens: ['lactose', 'oeufs'],
     isAvailable: true
@@ -49,8 +52,33 @@ const mockMenuItems = [
     price: 15.50,
     image: 'pizza-pepperoni.jpg',
     category: 'pizza',
+    cuisine: 'continental',
     preparationTime: 18,
     allergens: ['gluten'],
+    isAvailable: true
+  },
+  {
+    id: '5',
+    name: 'Pad Thai',
+    description: 'Nouilles sautées thaïlandaises',
+    price: 13.50,
+    image: 'pad-thai.jpg',
+    category: 'main',
+    cuisine: 'asian',
+    preparationTime: 15,
+    allergens: ['gluten'],
+    isAvailable: true
+  },
+  {
+    id: '6',
+    name: 'Laap',
+    description: 'Salade de viande hachée épicée laotienne',
+    price: 11.00,
+    image: 'laap.jpg',
+    category: 'main',
+    cuisine: 'lao',
+    preparationTime: 20,
+    allergens: [],
     isAvailable: true
   }
 ]
@@ -126,7 +154,7 @@ describe('Menu Component', () => {
     
     // Check add to cart buttons are present
     const addButtons = screen.getAllByText('Add to cart')
-    expect(addButtons).toHaveLength(4)
+    expect(addButtons).toHaveLength(6)
   })
 
   // 2. FONCTIONNALITÉS DE RECHERCHE (3 tests)
@@ -209,76 +237,150 @@ describe('Menu Component', () => {
     expect(screen.getByRole('heading', { name: 'Tiramisu', level: 3 })).toBeInTheDocument()
   })
 
-  // 4. FONCTIONNALITÉS DE TRI (2 tests)
+  // 4. FILTRAGE PAR CUISINE (4 tests)
+  test('should filter by cuisine when user selects Asian', async () => {
+    const user = userEvent.setup()
+    render(<MenuWrapper />)
+
+    // Find the cuisine filter (second select with Filter icon)
+    const selects = screen.getAllByRole('combobox')
+    const cuisineSelect = selects.find(select =>
+      select.querySelector('option[value="asian"]') !== null
+    ) || selects[1] // Fallback to second select
+
+    await user.selectOptions(cuisineSelect, 'asian')
+
+    // Should show only Asian items
+    expect(screen.getByRole('heading', { name: 'Pad Thai', level: 3 })).toBeInTheDocument()
+
+    // Should not show continental or lao items
+    expect(screen.queryByRole('heading', { name: 'Pizza Margherita', level: 3 })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Laap', level: 3 })).not.toBeInTheDocument()
+  })
+
+  test('should filter by cuisine when user selects Lao', async () => {
+    const user = userEvent.setup()
+    render(<MenuWrapper />)
+
+    const selects = screen.getAllByRole('combobox')
+    const cuisineSelect = selects.find(select =>
+      select.querySelector('option[value="lao"]') !== null
+    ) || selects[1]
+
+    await user.selectOptions(cuisineSelect, 'lao')
+
+    // Should show only Lao items
+    expect(screen.getByRole('heading', { name: 'Laap', level: 3 })).toBeInTheDocument()
+
+    // Should not show other cuisines
+    expect(screen.queryByRole('heading', { name: 'Pizza Margherita', level: 3 })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Pad Thai', level: 3 })).not.toBeInTheDocument()
+  })
+
+  test('should filter by cuisine when user selects Continental', async () => {
+    const user = userEvent.setup()
+    render(<MenuWrapper />)
+
+    const selects = screen.getAllByRole('combobox')
+    const cuisineSelect = selects.find(select =>
+      select.querySelector('option[value="continental"]') !== null
+    ) || selects[1]
+
+    await user.selectOptions(cuisineSelect, 'continental')
+
+    // Should show only Continental items
+    expect(screen.getByRole('heading', { name: 'Pizza Margherita', level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tiramisu', level: 3 })).toBeInTheDocument()
+
+    // Should not show Asian or Lao items
+    expect(screen.queryByRole('heading', { name: 'Pad Thai', level: 3 })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Laap', level: 3 })).not.toBeInTheDocument()
+  })
+
+  test('should show cuisine badge on menu items', () => {
+    render(<MenuWrapper />)
+
+    // Check that cuisine badges are displayed (appear in both selects and badges)
+    expect(screen.getAllByText('Continental').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Asian').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Lao').length).toBeGreaterThan(0)
+  })
+
+  // 5. FONCTIONNALITÉS DE TRI (2 tests)
   test('should sort by price ascending when selected', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     const sortSelect = screen.getByDisplayValue('Sort by name')
     await user.selectOptions(sortSelect, 'price-asc')
-    
+
     // Check prices appear in ascending order
-    const prices = screen.getAllByText(/€\d+\.\d+/).map(el => 
+    const prices = screen.getAllByText(/€\d+\.\d+/).map(el =>
       parseFloat(el.textContent.replace('€', ''))
     )
-    
-    // Should be sorted: 6.50, 12.50, 14.00, 15.50
+
+    // Should be sorted: 6.50, 11.00, 12.50, 13.50, 14.00, 15.50
     expect(prices[0]).toBe(6.50) // Tiramisu
-    expect(prices[1]).toBe(12.50) // Pizza Margherita
-    expect(prices[2]).toBe(14.00) // Spaghetti Carbonara  
-    expect(prices[3]).toBe(15.50) // Pizza Pepperoni
+    expect(prices[1]).toBe(11.00) // Laap
+    expect(prices[2]).toBe(12.50) // Pizza Margherita
+    expect(prices[3]).toBe(13.50) // Pad Thai
+    expect(prices[4]).toBe(14.00) // Spaghetti Carbonara
+    expect(prices[5]).toBe(15.50) // Pizza Pepperoni
   })
 
   test('should sort by price descending when selected', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     const sortSelect = screen.getByDisplayValue('Sort by name')
     await user.selectOptions(sortSelect, 'price-desc')
-    
+
     // Check prices appear in descending order
-    const prices = screen.getAllByText(/€\d+\.\d+/).map(el => 
+    const prices = screen.getAllByText(/€\d+\.\d+/).map(el =>
       parseFloat(el.textContent.replace('€', ''))
     )
-    
-    // Should be sorted: 15.50, 14.00, 12.50, 6.50
+
+    // Should be sorted: 15.50, 14.00, 13.50, 12.50, 11.00, 6.50
     expect(prices[0]).toBe(15.50) // Pizza Pepperoni
     expect(prices[1]).toBe(14.00) // Spaghetti Carbonara
-    expect(prices[2]).toBe(12.50) // Pizza Margherita
-    expect(prices[3]).toBe(6.50) // Tiramisu
+    expect(prices[2]).toBe(13.50) // Pad Thai
+    expect(prices[3]).toBe(12.50) // Pizza Margherita
+    expect(prices[4]).toBe(11.00) // Laap
+    expect(prices[5]).toBe(6.50) // Tiramisu
   })
 
-  // 5. INTERACTION PANIER (1 test)
+  // 6. INTERACTION PANIER (1 test)
   test('should call addItem when user clicks add to cart button', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     const addButtons = screen.getAllByText('Add to cart')
     await user.click(addButtons[0])
-    
+
     expect(mockAddItem).toHaveBeenCalledTimes(1)
     expect(mockAddItem).toHaveBeenCalledWith(mockMenuItems[0])
   })
 
-  // 6. FILTRES COMBINÉS (1 test)
+  // 7. FILTRES COMBINÉS (1 test)
   test('should combine search and category filters correctly', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)
-    
+
     // Search for "pizza" and filter by pizza category
     const searchInput = screen.getByPlaceholderText('Search for a dish...')
     const categorySelect = screen.getByDisplayValue('All dishes')
-    
+
     await user.type(searchInput, 'pizza')
     await user.selectOptions(categorySelect, 'pizza')
-    
+
     // Should show pizza items that match both filters
     expect(screen.getByRole('heading', { name: 'Pizza Margherita', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Pizza Pepperoni', level: 3 })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).not.toBeInTheDocument()
   })
 
-  // 7. ÉTATS SPÉCIAUX (3 tests)
+  // 8. ÉTATS SPÉCIAUX (3 tests)
   test('should show loading state when isLoading is true', () => {
     vi.mocked(useMenu).mockReturnValue({
       items: [],
