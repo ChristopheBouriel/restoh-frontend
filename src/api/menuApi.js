@@ -28,8 +28,36 @@ export const getCategories = async () => {
 // Create a new item (ADMIN)
 export const createMenuItem = async (itemData) => {
   try {
-    const response = await apiClient.post('/menu', itemData)
-    return { success: true, ...response }
+    // If itemData contains an image file, send as FormData
+    if (itemData.image && itemData.image instanceof File) {
+      const formData = new FormData()
+
+      // Append the image file
+      formData.append('image', itemData.image)
+
+      // Append all other fields
+      Object.keys(itemData).forEach(key => {
+        if (key !== 'image') {
+          // Handle arrays (allergens, ingredients)
+          if (Array.isArray(itemData[key])) {
+            formData.append(key, JSON.stringify(itemData[key]))
+          } else {
+            formData.append(key, itemData[key])
+          }
+        }
+      })
+
+      const response = await apiClient.post('/menu', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return { success: true, ...response }
+    } else {
+      // No image file, send as JSON
+      const response = await apiClient.post('/menu', itemData)
+      return { success: true, ...response }
+    }
   } catch (error) {
     return { success: false, error: error.error || 'Error creating item' }
   }
@@ -38,8 +66,36 @@ export const createMenuItem = async (itemData) => {
 // Update an item (ADMIN)
 export const updateMenuItem = async (itemId, itemData) => {
   try {
-    const response = await apiClient.put(`/menu/${itemId}`, itemData)
-    return { success: true, ...response }
+    // If itemData contains an image file, send as FormData
+    if (itemData.image && itemData.image instanceof File) {
+      const formData = new FormData()
+
+      // Append the image file
+      formData.append('image', itemData.image)
+
+      // Append all other fields
+      Object.keys(itemData).forEach(key => {
+        if (key !== 'image') {
+          // Handle arrays (allergens, ingredients)
+          if (Array.isArray(itemData[key])) {
+            formData.append(key, JSON.stringify(itemData[key]))
+          } else {
+            formData.append(key, itemData[key])
+          }
+        }
+      })
+
+      const response = await apiClient.put(`/menu/${itemId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return { success: true, ...response }
+    } else {
+      // No image file, send as JSON
+      const response = await apiClient.put(`/menu/${itemId}`, itemData)
+      return { success: true, ...response }
+    }
   } catch (error) {
     return { success: false, error: error.error || 'Error updating item' }
   }

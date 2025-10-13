@@ -14,6 +14,7 @@ import { toast } from 'react-hot-toast'
 import { useMenu } from '../../hooks/useMenu'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
 import SimpleSelect from '../../components/common/SimpleSelect'
+import ImageUpload from '../../components/common/ImageUpload'
 
 const MenuManagement = () => {
   const [filteredItems, setFilteredItems] = useState([])
@@ -134,9 +135,15 @@ const MenuManagement = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault()
-    
+
     if (!formData.name || !formData.price || !formData.description) {
       toast.error('Please fill in all required fields')
+      return
+    }
+
+    // Validation: image is required for new items
+    if (!editingItem && !formData.image) {
+      toast.error('Please upload an image for the item')
       return
     }
 
@@ -146,7 +153,7 @@ const MenuManagement = () => {
       cuisine: formData.cuisine,
       price: parseFloat(formData.price),
       description: formData.description,
-      image: formData.image || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
+      image: formData.image, // Will be File object or existing URL string
       isAvailable: formData.isAvailable,
       isVegetarian: formData.isVegetarian,
       preparationTime: parseInt(formData.preparationTime) || 10,
@@ -488,15 +495,12 @@ const MenuManagement = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Item Image *
                 </label>
-                <input
-                  type="url"
+                <ImageUpload
                   value={formData.image}
-                  onChange={(e) => setFormData({...formData, image: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="https://exemple.com/image.jpg"
+                  onChange={(file) => setFormData({...formData, image: file})}
                 />
               </div>
 

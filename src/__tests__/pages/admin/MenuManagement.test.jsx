@@ -116,6 +116,26 @@ vi.mock('../../../components/common/ImageWithFallback', () => ({
   )
 }))
 
+// Mock ImageUpload component
+vi.mock('../../../components/common/ImageUpload', () => ({
+  default: ({ value, onChange, className }) => (
+    <div data-testid="image-upload" className={className}>
+      <input
+        type="file"
+        data-testid="image-upload-input"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) {
+            onChange(file)
+          }
+        }}
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+      />
+      {value && <div data-testid="image-preview">Preview: {value instanceof File ? value.name : value}</div>}
+    </div>
+  )
+}))
+
 // Mock window.confirm
 Object.defineProperty(window, 'confirm', {
   writable: true,
@@ -321,29 +341,35 @@ describe('MenuManagement Component', () => {
   test('should add new item when form submitted with valid data', async () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
-    
+
     // Open add modal
     await user.click(screen.getByRole('button', { name: /New item/i }))
-    
+
     // Wait for modal to appear and use placeholder text to find inputs
     await waitFor(() => {
       expect(screen.getByPlaceholderText('e.g. Pizza Margherita')).toBeInTheDocument()
     })
-    
+
     // Fill form using placeholder text
     await user.type(screen.getByPlaceholderText('e.g. Pizza Margherita'), 'New Plat')
     await user.type(screen.getByPlaceholderText('15.90'), '15.90')
     await user.type(screen.getByPlaceholderText('Describe the dish, its main ingredients...'), 'Description du nouveau plat')
-    
+
+    // Upload an image file
+    const file = new File(['dummy content'], 'test-image.png', { type: 'image/png' })
+    const imageInput = screen.getByTestId('image-upload-input')
+    await user.upload(imageInput, file)
+
     // Submit form
     await user.click(screen.getByRole('button', { name: 'Add' }))
-    
+
     expect(mockAddItem).toHaveBeenCalledWith(expect.objectContaining({
       name: 'New Plat',
       price: 15.90,
       description: 'Description du nouveau plat',
       category: 'main',
-      isAvailable: true
+      isAvailable: true,
+      image: file
     }))
   })
 
@@ -503,6 +529,11 @@ describe('MenuManagement Component', () => {
     await user.type(screen.getByPlaceholderText('e.g. Pizza Margherita'), 'Test Asian Dish')
     await user.type(screen.getByPlaceholderText('15.90'), '15.50')
     await user.type(screen.getByPlaceholderText('Describe the dish, its main ingredients...'), 'Test description')
+
+    // Upload an image file
+    const file = new File(['dummy content'], 'test-asian-dish.png', { type: 'image/png' })
+    const imageInput = screen.getByTestId('image-upload-input')
+    await user.upload(imageInput, file)
 
     // Select Asian cuisine
     const cuisineSelects = screen.getAllByTestId('simple-select')
