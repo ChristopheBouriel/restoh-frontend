@@ -99,6 +99,6 @@ export const useOrders = () => {
     cancelledOrders: userOrders.filter(o => o.status === 'cancelled').length,
     totalSpent: userOrders
       .filter(o => o.status === 'delivered')
-      .reduce((sum, order) => sum + order.totalAmount, 0)
+      .reduce((sum, order) => sum + order.totalPrice, 0)
   }
 }

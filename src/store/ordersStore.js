@@ -17,6 +17,16 @@ const useOrdersStore = create(
 
       clearError: () => set({ error: null }),
 
+      // Helper to normalize order data from API
+      normalizeOrder: (order) => ({
+        ...order,
+        id: order._id || order.id,
+        totalPrice: order.totalPrice ?? 0,
+        userId: order.userId || order.user?._id || 'unknown',
+        userName: order.userName || order.user?.name || 'Unknown',
+        userEmail: order.userEmail || order.user?.email || 'unknown@email.com'
+      }),
+
       // Fetch orders based on role
       fetchOrders: async (isAdmin = false) => {
         set({ isLoading: true, error: null })
@@ -27,8 +37,11 @@ const useOrdersStore = create(
             : await ordersApi.getUserOrders()
 
           if (result.success) {
+            const rawOrders = result.data || []
+            const normalizedOrders = rawOrders.map(order => get().normalizeOrder(order))
+
             set({
-              orders: result.data || [],
+              orders: normalizedOrders,
               isLoading: false,
               error: null
             })
@@ -87,10 +100,13 @@ const useOrdersStore = create(
           const result = await ordersApi.createOrder(orderData)
 
           if (result.success) {
-            // Reload orders after creation
-            await get().fetchOrders()
-            set({ isLoading: false })
-            return { success: true, orderId: result.data._id || result.data.id }
+            // Normalize and add the new order to the store immediately
+            const normalizedOrder = get().normalizeOrder(result.data)
+            set({
+              orders: [normalizedOrder, ...get().orders],
+              isLoading: false
+            })
+            return { success: true, orderId: normalizedOrder.id }
           } else {
             set({
               error: result.error,
@@ -170,7 +186,7 @@ const useOrdersStore = create(
           cancelled: orders.filter(o => o.status === 'cancelled').length,
           totalRevenue: orders
             .filter(o => ['delivered'].includes(o.status))
-            .reduce((sum, order) => sum + order.totalAmount, 0)
+            .reduce((sum, order) => sum + order.totalPrice, 0)
         }
       }
     }),

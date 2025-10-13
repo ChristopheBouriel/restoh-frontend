@@ -139,7 +139,7 @@ const Orders = () => {
                       </p>
 
                       <p className="text-lg font-bold text-primary-600">
-                        {formatPrice(order.totalAmount)}
+                        {formatPrice(order.totalPrice)}
                       </p>
                     </div>
 
@@ -197,7 +197,7 @@ const Orders = () => {
                             <div className="border-t pt-1 mt-2">
                               <div className="flex justify-between font-semibold">
                                 <span>Total</span>
-                                <span>{formatPrice(order.totalAmount)}</span>
+                                <span>{formatPrice(order.totalPrice)}</span>
                               </div>
                             </div>
                           </div>

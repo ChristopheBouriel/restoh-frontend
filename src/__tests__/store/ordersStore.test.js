@@ -35,7 +35,7 @@ const mockOrderData = {
   items: [
     { id: 1, name: 'Pizza Test', price: 15.90, quantity: 1, image: 'pizza.jpg' }
   ],
-  totalAmount: 15.90,
+  totalPrice: 15.90,
   notes: 'Test order'
 }
 
@@ -48,7 +48,7 @@ const mockExistingOrders = [
     deliveryAddress: '123 Street',
     phone: '0123456789',
     items: [{ id: 1, name: 'Pizza', price: 15.00, quantity: 1 }],
-    totalAmount: 15.00,
+    totalPrice: 15.00,
     status: 'delivered',
     paymentMethod: 'card',
     isPaid: true,
@@ -64,7 +64,7 @@ const mockExistingOrders = [
     deliveryAddress: '123 Street',
     phone: '0123456789',
     items: [{ id: 2, name: 'Burger', price: 18.00, quantity: 1 }],
-    totalAmount: 18.00,
+    totalPrice: 18.00,
     status: 'preparing',
     paymentMethod: 'cash',
     isPaid: false,
@@ -80,7 +80,7 @@ const mockExistingOrders = [
     deliveryAddress: '456 Avenue',
     phone: '0987654321',
     items: [{ id: 3, name: 'Pasta', price: 16.50, quantity: 1 }],
-    totalAmount: 16.50,
+    totalPrice: 16.50,
     status: 'cancelled',
     paymentMethod: 'card',
     isPaid: true,
@@ -170,16 +170,11 @@ describe('ordersStore', () => {
   })
 
   // 2. CREATE ORDERS & BUSINESS LOGIC (3 tests)
-  test('should create order successfully and reload orders', async () => {
+  test('should create order successfully and add to store', async () => {
+    const newOrder = { _id: 'order-new', status: 'pending', isPaid: true, totalPrice: 25.50 }
     mockCreateOrder.mockResolvedValue({
       success: true,
-      data: { _id: 'order-new', status: 'pending', isPaid: true }
-    })
-
-    // Mock fetchOrders to return the new order
-    mockGetUserOrders.mockResolvedValue({
-      success: true,
-      data: [{ id: 'order-new', status: 'pending', isPaid: true }]
+      data: newOrder
     })
 
     const store = useOrdersStore.getState()
@@ -187,13 +182,20 @@ describe('ordersStore', () => {
     const result = await store.createOrder(cardOrderData)
 
     expect(mockCreateOrder).toHaveBeenCalledWith(cardOrderData)
-    expect(mockGetUserOrders).toHaveBeenCalled() // fetchOrders called after create
     expect(result.success).toBe(true)
     expect(result.orderId).toBe('order-new')
 
     const state = useOrdersStore.getState()
     expect(state.isLoading).toBe(false)
     expect(state.orders).toHaveLength(1)
+    // Check normalized fields
+    expect(state.orders[0]).toMatchObject({
+      _id: 'order-new',
+      id: 'order-new',
+      status: 'pending',
+      isPaid: true,
+      totalPrice: 25.50
+    })
   })
 
   test('should handle order creation errors gracefully', async () => {
@@ -335,10 +337,10 @@ describe('ordersStore', () => {
 
   test('should return correct revenue from delivered orders only', () => {
     const ordersWithMixedStatus = [
-      { ...mockExistingOrders[0], status: 'delivered', totalAmount: 20.00 },
-      { ...mockExistingOrders[1], status: 'delivered', totalAmount: 25.00 },
-      { ...mockExistingOrders[2], status: 'cancelled', totalAmount: 30.00 }, // Should not count
-      { id: 'order-004', status: 'preparing', totalAmount: 15.00, isPaid: true } // Should not count
+      { ...mockExistingOrders[0], status: 'delivered', totalPrice: 20.00 },
+      { ...mockExistingOrders[1], status: 'delivered', totalPrice: 25.00 },
+      { ...mockExistingOrders[2], status: 'cancelled', totalPrice: 30.00 }, // Should not count
+      { id: 'order-004', status: 'preparing', totalPrice: 15.00, isPaid: true } // Should not count
     ]
     
     useOrdersStore.setState({ orders: ordersWithMixedStatus })

@@ -13,7 +13,7 @@ const mockOrders = [
     id: '1',
     status: 'delivered',
     createdAt: '2024-01-15T10:30:00Z',
-    totalAmount: 28.50,
+    totalPrice: 28.50,
     items: [
       { name: 'Pizza Margherita', quantity: 1, price: 12.50 },
       { name: 'Tiramisu', quantity: 2, price: 8.00 }
@@ -27,7 +27,7 @@ const mockOrders = [
     id: '2',
     status: 'preparing',
     createdAt: '2024-01-20T14:15:00Z',
-    totalAmount: 45.00,
+    totalPrice: 45.00,
     items: [
       { name: 'Spaghetti Carbonara', quantity: 2, price: 14.00 },
       { name: 'Salade César', quantity: 1, price: 9.50 },
@@ -41,7 +41,7 @@ const mockOrders = [
     id: '3',
     status: 'pending',
     createdAt: '2024-01-22T16:45:00Z',
-    totalAmount: 19.50,
+    totalPrice: 19.50,
     items: [
       { name: 'Pizza Pepperoni', quantity: 1, price: 15.50 },
       { name: 'Coca Cola', quantity: 1, price: 4.00 }
@@ -55,7 +55,7 @@ const mockOrders = [
     id: '4',
     status: 'cancelled',
     createdAt: '2024-01-18T12:20:00Z',
-    totalAmount: 32.00,
+    totalPrice: 32.00,
     items: [
       { name: 'Lasagnes', quantity: 1, price: 16.50 },
       { name: 'Bruschetta', quantity: 2, price: 7.75 }

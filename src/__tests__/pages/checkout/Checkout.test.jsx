@@ -201,7 +201,7 @@ describe('Checkout Component', () => {
       userEmail: mockUser.email,
       userName: mockUser.name,
       items: mockCartItems,
-      totalAmount: 44.30,
+      totalPrice: 44.30,
       deliveryAddress: '123 Rue de la Paix',
       phone: '0123456789',
       notes: 'Ring at 2nd',

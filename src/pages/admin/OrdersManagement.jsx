@@ -324,7 +324,7 @@ const OrdersManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {formatPrice(order.totalAmount)}
+                            {formatPrice(order.totalPrice)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -384,7 +384,7 @@ const OrdersManagement = () => {
                         </span>
                       </div>
                       <span className="text-sm font-bold text-orange-600">
-                        {formatPrice(order.totalAmount)}
+                        {formatPrice(order.totalPrice)}
                       </span>
                     </div>
 
@@ -531,7 +531,7 @@ const OrdersManagement = () => {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-orange-600">{formatPrice(selectedOrder.totalAmount)}</span>
+                    <span className="text-orange-600">{formatPrice(selectedOrder.totalPrice)}</span>
                   </div>
                 </div>
 

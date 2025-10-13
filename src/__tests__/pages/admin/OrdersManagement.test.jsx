@@ -54,7 +54,7 @@ const mockOrders = [
       { id: 1, name: 'Pizza Margherita', price: 15.90, quantity: 2, image: 'pizza.jpg' },
       { id: 2, name: 'Salade César', price: 12.50, quantity: 1, image: 'salade.jpg' }
     ],
-    totalAmount: 44.30,
+    totalPrice: 44.30,
     status: 'preparing',
     paymentMethod: 'card',
     isPaid: true,
@@ -72,7 +72,7 @@ const mockOrders = [
     items: [
       { id: 3, name: 'Burger', price: 18.00, quantity: 1, image: 'burger.jpg' }
     ],
-    totalAmount: 18.00,
+    totalPrice: 18.00,
     status: 'delivered',
     paymentMethod: 'cash',
     isPaid: true,
@@ -90,7 +90,7 @@ const mockOrders = [
     items: [
       { id: 4, name: 'Pasta', price: 16.50, quantity: 1, image: 'pasta.jpg' }
     ],
-    totalAmount: 16.50,
+    totalPrice: 16.50,
     status: 'confirmed',
     paymentMethod: 'card',
     isPaid: true,
@@ -108,7 +108,7 @@ const mockOrders = [
     items: [
       { id: 5, name: 'Soupe', price: 8.50, quantity: 1, image: 'soupe.jpg' }
     ],
-    totalAmount: 8.50,
+    totalPrice: 8.50,
     status: 'preparing',
     paymentMethod: 'cash',
     isPaid: false,

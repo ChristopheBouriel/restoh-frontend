@@ -90,7 +90,7 @@ const createTestUsersStore = () => create((set, get) => ({
       // Calculer les commandes de l'utilisateur
       const userOrders = orders.filter(order => order.userId === user.id)
       const deliveredOrders = userOrders.filter(order => order.status === 'delivered')
-      const totalSpent = deliveredOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+      const totalSpent = deliveredOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0)
 
       // Calculer les réservations de l'utilisateur
       const userReservations = reservations.filter(reservation => reservation.userId === user.id)
@@ -420,9 +420,9 @@ describe('usersStore', () => {
   describe('Initialisation et Logique Métier', () => {
     it('should initialize users with default users and enrichment', () => {
       const mockOrders = [
-        { userId: 'admin', status: 'delivered', totalAmount: 25.50 },
-        { userId: 'admin', status: 'pending', totalAmount: 15.00 },
-        { userId: 'client', status: 'delivered', totalAmount: 35.75 }
+        { userId: 'admin', status: 'delivered', totalPrice: 25.50 },
+        { userId: 'admin', status: 'pending', totalPrice: 15.00 },
+        { userId: 'client', status: 'delivered', totalPrice: 35.75 }
       ]
       const mockReservations = [
         { userId: 'admin' },

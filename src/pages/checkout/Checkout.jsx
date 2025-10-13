@@ -72,7 +72,7 @@ const Checkout = () => {
         userEmail: user.email,
         userName: user.name,
         items: availableItems,
-        totalAmount: totalPriceAvailable,
+        totalPrice: totalPriceAvailable,
         deliveryAddress: formData.deliveryAddress,
         phone: formData.phone,
         notes: formData.notes,

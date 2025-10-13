@@ -29,7 +29,7 @@ const mockOrders = [
     id: '1',
     userId: 'user123',
     status: 'delivered',
-    totalAmount: 25.50,
+    totalPrice: 25.50,
     createdAt: '2024-01-20T10:00:00Z',
     items: [{ name: 'Pizza', quantity: 1 }]
   },
@@ -37,7 +37,7 @@ const mockOrders = [
     id: '2',
     userId: 'user123',
     status: 'pending',
-    totalAmount: 18.00,
+    totalPrice: 18.00,
     createdAt: '2024-01-25T14:30:00Z',
     items: [{ name: 'Pasta', quantity: 1 }]
   },
@@ -45,7 +45,7 @@ const mockOrders = [
     id: '3',
     userId: 'user123',
     status: 'cancelled',
-    totalAmount: 32.00,
+    totalPrice: 32.00,
     createdAt: '2024-01-15T09:15:00Z',
     items: [{ name: 'Burger', quantity: 2 }]
   },
@@ -53,7 +53,7 @@ const mockOrders = [
     id: '4',
     userId: 'user123',
     status: 'preparing',
-    totalAmount: 42.75,
+    totalPrice: 42.75,
     createdAt: '2024-01-26T16:45:00Z',
     items: [{ name: 'Salad', quantity: 1 }]
   },
@@ -61,7 +61,7 @@ const mockOrders = [
     id: '5',
     userId: 'user123',
     status: 'delivered',
-    totalAmount: 15.25,
+    totalPrice: 15.25,
     createdAt: '2023-11-10T12:00:00Z', // Old order (> 30 days)
     items: [{ name: 'Soup', quantity: 1 }]
   },
@@ -69,7 +69,7 @@ const mockOrders = [
     id: '6',
     userId: 'otherUser',
     status: 'delivered',
-    totalAmount: 28.00,
+    totalPrice: 28.00,
     createdAt: '2024-01-22T11:30:00Z',
     items: [{ name: 'Fish', quantity: 1 }]
   }
