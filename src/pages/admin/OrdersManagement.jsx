@@ -6,7 +6,7 @@ import CustomDatePicker from '../../components/common/CustomDatePicker'
 
 const OrdersManagement = () => {
   const {
-    orders,
+    orders = [],
     isLoading,
     fetchOrders,
     updateOrderStatus,
@@ -62,24 +62,24 @@ const OrdersManagement = () => {
   // Filtrer les commandes selon le statut et les dates
   const filteredOrders = orders.filter(order => {
     const statusMatch = filterStatus === 'all' || order.status === filterStatus
-    
+
     let dateMatch = true
     if (startDate || endDate) {
       const orderDate = new Date(order.createdAt)
-      
+
       if (startDate) {
         const start = new Date(startDate)
         start.setHours(0, 0, 0, 0)
         dateMatch = dateMatch && orderDate >= start
       }
-      
+
       if (endDate) {
         const end = new Date(endDate)
         end.setHours(23, 59, 59, 999)
         dateMatch = dateMatch && orderDate <= end
       }
     }
-    
+
     return statusMatch && dateMatch
   })
 
@@ -88,10 +88,7 @@ const OrdersManagement = () => {
 
   // Handle status change
   const handleStatusChange = async (orderId, newStatus) => {
-    const result = await updateOrderStatus(orderId, newStatus)
-    if (result.success) {
-      console.log('✅ Status updated')
-    }
+    await updateOrderStatus(orderId, newStatus)
   }
 
   // Status configuration
