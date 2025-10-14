@@ -10,7 +10,8 @@ const OrdersManagement = () => {
     isLoading,
     fetchOrders,
     updateOrderStatus,
-    getOrdersStats
+    getOrdersStats,
+    clearCache
   } = useOrdersStore()
 
   const [filterStatus, setFilterStatus] = useState('all')
@@ -129,15 +130,28 @@ const OrdersManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
-        <p className="text-gray-600">View and manage all customer orders</p>
-        <div className="mt-3 text-xs text-gray-500">
-          <strong>Color codes:</strong>
-          <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Delivered/Cancelled
-          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Paid in progress
-          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+          <p className="text-gray-600">View and manage all customer orders</p>
+          <div className="mt-3 text-xs text-gray-500">
+            <strong>Color codes:</strong>
+            <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Delivered/Cancelled
+            <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Paid in progress
+            <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid
+          </div>
         </div>
+        <button
+          onClick={async () => {
+            if (window.confirm('Clear local cache and reload orders from server?')) {
+              clearCache()
+              await fetchOrders(true)
+            }
+          }}
+          className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+        >
+          🔄 Clear cache
+        </button>
       </div>
 
       {/* Statistiques */}

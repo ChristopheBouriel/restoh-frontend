@@ -188,14 +188,15 @@ describe('ordersStore', () => {
     const state = useOrdersStore.getState()
     expect(state.isLoading).toBe(false)
     expect(state.orders).toHaveLength(1)
-    // Check normalized fields
+    // Check normalized fields (_id should be removed, id should be set)
     expect(state.orders[0]).toMatchObject({
-      _id: 'order-new',
       id: 'order-new',
       status: 'pending',
       isPaid: true,
       totalPrice: 25.50
     })
+    // Ensure _id is removed from normalized data
+    expect(state.orders[0]._id).toBeUndefined()
   })
 
   test('should handle order creation errors gracefully', async () => {

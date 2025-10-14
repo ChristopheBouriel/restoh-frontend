@@ -18,14 +18,36 @@ const useOrdersStore = create(
       clearError: () => set({ error: null }),
 
       // Helper to normalize order data from API
-      normalizeOrder: (order) => ({
-        ...order,
-        id: order._id || order.id,
-        totalPrice: order.totalPrice ?? 0,
-        userId: order.userId || order.user?._id || 'unknown',
-        userName: order.userName || order.user?.name || 'Unknown',
-        userEmail: order.userEmail || order.user?.email || 'unknown@email.com'
-      }),
+      normalizeOrder: (order) => {
+        // Remove MongoDB _id from the spread to avoid conflicts
+        const { _id, user, ...rest } = order
+
+        return {
+          ...rest,
+          // ID normalization: use _id if present, fallback to id
+          id: _id || order.id,
+          // Price normalization
+          totalPrice: order.totalPrice ?? 0,
+          // User info normalization (handle both populated and plain formats)
+          userId: order.userId || user?._id || 'unknown',
+          userName: order.userName || user?.name || 'Unknown',
+          userEmail: order.userEmail || user?.email || 'unknown@email.com',
+          // Items normalization (ensure each item has normalized data)
+          items: (order.items || []).map(item => ({
+            ...item,
+            id: item._id || item.id,
+            // Remove _id from items to avoid conflicts
+            _id: undefined
+          })),
+          // Remove _id from final object to avoid conflicts
+          _id: undefined
+        }
+      },
+
+      // Clear localStorage cache (useful after backend changes)
+      clearCache: () => {
+        set({ orders: [], error: null })
+      },
 
       // Fetch orders based on role
       fetchOrders: async (isAdmin = false) => {
