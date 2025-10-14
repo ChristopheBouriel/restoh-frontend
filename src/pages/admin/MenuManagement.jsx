@@ -436,6 +436,7 @@ const MenuManagement = () => {
                     onChange={(value) => setFormData({...formData, category: value})}
                     options={categories.slice(1)}
                     className="w-full"
+                    size="md"
                   />
                 </div>
 
@@ -448,6 +449,7 @@ const MenuManagement = () => {
                     onChange={(value) => setFormData({...formData, cuisine: value})}
                     options={cuisines}
                     className="w-full"
+                    size="md"
                   />
                 </div>
 

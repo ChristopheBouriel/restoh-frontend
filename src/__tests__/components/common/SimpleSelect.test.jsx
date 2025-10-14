@@ -171,13 +171,13 @@ describe('SimpleSelect Component', () => {
         expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
       })
       
-      // Check that selected option has orange dot indicator
+      // Check that selected option has primary dot indicator
       const dropdown = document.querySelector('div.absolute.top-0.left-0')
       const saladeOption = Array.from(dropdown.querySelectorAll('div[class*="cursor-pointer"]')).find(el =>
         el.textContent.includes('Salade')
       )
-      const orangeDot = saladeOption.querySelector('.bg-orange-600.rounded-full')
-      expect(orangeDot).toBeInTheDocument()
+      const primaryDot = saladeOption.querySelector('.bg-primary-600.rounded-full')
+      expect(primaryDot).toBeInTheDocument()
     })
 
     it('should highlight selected option in dropdown', async () => {
@@ -191,12 +191,12 @@ describe('SimpleSelect Component', () => {
         expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
       })
       
-      // Check that selected option has orange text color
+      // Check that selected option has primary text color
       const dropdown = document.querySelector('div.absolute.top-0.left-0')
       const dessertOption = Array.from(dropdown.querySelectorAll('div[class*="cursor-pointer"]')).find(el =>
         el.textContent.includes('Dessert')
       )
-      expect(dessertOption).toHaveClass('text-orange-600')
+      expect(dessertOption).toHaveClass('text-primary-600')
     })
   })
 
