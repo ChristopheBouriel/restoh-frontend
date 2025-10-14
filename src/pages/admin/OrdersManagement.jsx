@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Filter } from 'lucide-react'
+import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Filter, Trash2 } from 'lucide-react'
 import useOrdersStore from '../../store/ordersStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
+import { toast } from 'react-hot-toast'
 
 const OrdersManagement = () => {
   const {
@@ -10,6 +11,7 @@ const OrdersManagement = () => {
     isLoading,
     fetchOrders,
     updateOrderStatus,
+    deleteOrder,
     getOrdersStats
   } = useOrdersStore()
 
@@ -89,6 +91,22 @@ const OrdersManagement = () => {
   // Handle status change
   const handleStatusChange = async (orderId, newStatus) => {
     await updateOrderStatus(orderId, newStatus)
+  }
+
+  // Handle order deletion
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+      const result = await deleteOrder(orderId)
+      if (result.success) {
+        toast.success('Order deleted successfully')
+        // Close modal if it's open for this order
+        if (selectedOrder?.id === orderId) {
+          setSelectedOrder(null)
+        }
+      } else {
+        toast.error(result.error || 'Failed to delete order')
+      }
+    }
   }
 
   // Status configuration
@@ -338,6 +356,7 @@ const OrdersManagement = () => {
                             <button
                               onClick={() => setSelectedOrder(order)}
                               className="text-orange-600 hover:text-orange-900"
+                              title="View details"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
@@ -356,6 +375,13 @@ const OrdersManagement = () => {
                                 ]}
                               />
                             )}
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete order"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -407,14 +433,23 @@ const OrdersManagement = () => {
 
                     {/* Actions */}
                     <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="flex items-center space-x-2 text-orange-600 hover:text-orange-900 text-sm"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Details</span>
-                      </button>
-                      
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="flex items-center space-x-2 text-orange-600 hover:text-orange-900 text-sm"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>Details</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOrder(order.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete order"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+
                       {order.status !== 'delivered' && order.status !== 'cancelled' && (
                         <SimpleSelect
                           value={order.status}
@@ -539,6 +574,17 @@ const OrdersManagement = () => {
                     <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedOrder.notes}</p>
                   </div>
                 )}
+
+                {/* Actions */}
+                <div className="flex justify-end pt-4 border-t">
+                  <button
+                    onClick={() => handleDeleteOrder(selectedOrder.id)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete order</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

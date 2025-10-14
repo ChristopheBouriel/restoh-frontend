@@ -177,6 +177,37 @@ const useOrdersStore = create(
         }
       },
 
+      // Delete order (admin)
+      deleteOrder: async (orderId) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await ordersApi.deleteOrder(orderId)
+
+          if (result.success) {
+            // Remove order from local state
+            set({
+              orders: get().orders.filter(order => order.id !== orderId),
+              isLoading: false
+            })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error deleting order'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
       // Getters (local computations on loaded data)
       getOrdersByStatus: (status) => {
         return get().orders.filter(order => order.status === status)

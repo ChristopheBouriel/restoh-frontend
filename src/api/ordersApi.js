@@ -58,3 +58,13 @@ export const updateOrderStatus = async (orderId, status) => {
     return { success: false, error: error.error || 'Error updating status' }
   }
 }
+
+// Delete an order (ADMIN)
+export const deleteOrder = async (orderId) => {
+  try {
+    const response = await apiClient.delete(`/orders/${orderId}/delete`)
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error deleting order' }
+  }
+}

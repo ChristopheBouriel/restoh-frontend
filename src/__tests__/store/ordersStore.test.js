@@ -7,11 +7,12 @@ vi.mock('../../api/ordersApi', () => ({
   getAllOrders: vi.fn(),
   getOrderById: vi.fn(),
   createOrder: vi.fn(),
-  updateOrderStatus: vi.fn()
+  updateOrderStatus: vi.fn(),
+  deleteOrder: vi.fn()
 }))
 
 // Get mocked functions via dynamic import
-let mockGetUserOrders, mockGetAllOrders, mockGetOrderById, mockCreateOrder, mockUpdateOrderStatus
+let mockGetUserOrders, mockGetAllOrders, mockGetOrderById, mockCreateOrder, mockUpdateOrderStatus, mockDeleteOrder
 
 beforeAll(async () => {
   const ordersApi = await import('../../api/ordersApi')
@@ -20,6 +21,7 @@ beforeAll(async () => {
   mockGetOrderById = ordersApi.getOrderById
   mockCreateOrder = ordersApi.createOrder
   mockUpdateOrderStatus = ordersApi.updateOrderStatus
+  mockDeleteOrder = ordersApi.deleteOrder
 })
 
 // Mock console.log to avoid noise in tests
@@ -285,6 +287,60 @@ describe('ordersStore', () => {
 
     const state = useOrdersStore.getState()
     expect(state.error).toBe('Error updating status')
+    expect(state.isLoading).toBe(false)
+  })
+
+  // 3bis. DELETE ORDER (3 tests)
+  test('should delete order successfully and remove from state', async () => {
+    // Set initial orders
+    useOrdersStore.setState({ orders: mockExistingOrders })
+
+    // Mock successful deletion
+    mockDeleteOrder.mockResolvedValue({
+      success: true,
+      message: 'Order deleted'
+    })
+
+    const store = useOrdersStore.getState()
+    const result = await store.deleteOrder('order-002')
+
+    expect(mockDeleteOrder).toHaveBeenCalledWith('order-002')
+    expect(result.success).toBe(true)
+
+    const state = useOrdersStore.getState()
+    expect(state.orders).toHaveLength(2)
+    expect(state.orders.find(o => o.id === 'order-002')).toBeUndefined()
+    expect(state.isLoading).toBe(false)
+  })
+
+  test('should handle delete errors gracefully', async () => {
+    mockDeleteOrder.mockResolvedValue({
+      success: false,
+      error: 'Delete failed'
+    })
+
+    const store = useOrdersStore.getState()
+    const result = await store.deleteOrder('order-001')
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Delete failed')
+
+    const state = useOrdersStore.getState()
+    expect(state.error).toBe('Delete failed')
+    expect(state.isLoading).toBe(false)
+  })
+
+  test('should handle network errors during order deletion', async () => {
+    mockDeleteOrder.mockRejectedValue(new Error('Network error'))
+
+    const store = useOrdersStore.getState()
+    const result = await store.deleteOrder('order-001')
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Error deleting order')
+
+    const state = useOrdersStore.getState()
+    expect(state.error).toBe('Error deleting order')
     expect(state.isLoading).toBe(false)
   })
 
