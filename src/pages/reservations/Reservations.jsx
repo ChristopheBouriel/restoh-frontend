@@ -1,15 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Clock, Users, Plus, Edit, Trash2, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useReservations } from '../../hooks/useReservations'
+import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 
 const Reservations = () => {
+  const { user } = useAuthStore()
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [partySize, setPartySize] = useState(2)
+  const [contactPhone, setContactPhone] = useState('')
   const [specialRequests, setSpecialRequests] = useState('')
   const [editingId, setEditingId] = useState(null)
+
+  // Pre-fill phone from user profile
+  useEffect(() => {
+    if (user?.phone && !contactPhone) {
+      setContactPhone(user.phone)
+    }
+  }, [user, contactPhone])
 
   // Use reservations hook with persistence
   const {
@@ -55,28 +65,32 @@ const Reservations = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     const reservationData = {
       date: selectedDate,
       time: selectedTime,
       guests: partySize,
+      contactPhone: contactPhone,
       requests: specialRequests
     }
-    
+
     // Validation
     const errors = validateReservationData(reservationData)
     if (errors.length > 0) {
       toast.error(errors[0])
       return
     }
-    
+
     try {
       createReservation(reservationData)
 
-      // Reset form
+      // Reset form (keep phone if it's from profile)
       setSelectedDate('')
       setSelectedTime('')
       setPartySize(2)
+      if (!user?.phone) {
+        setContactPhone('')
+      }
       setSpecialRequests('')
     } catch (error) {
       // L'erreur est déjà gérée dans le hook
@@ -88,6 +102,7 @@ const Reservations = () => {
     setSelectedDate(reservation.date)
     setSelectedTime(reservation.time)
     setPartySize(reservation.guests)
+    setContactPhone(reservation.contactPhone || '')
     setSpecialRequests(reservation.specialRequests || '')
     toast.info('Edit mode enabled - use the form above')
   }
@@ -98,28 +113,32 @@ const Reservations = () => {
 
   const handleUpdate = (e) => {
     e.preventDefault()
-    
+
     const reservationData = {
       date: selectedDate,
       time: selectedTime,
       guests: partySize,
+      contactPhone: contactPhone,
       requests: specialRequests
     }
-    
+
     // Validation
     const errors = validateReservationData(reservationData)
     if (errors.length > 0) {
       toast.error(errors[0])
       return
     }
-    
+
     try {
       updateReservation(editingId, reservationData)
 
-      // Reset form and editing state
+      // Reset form and editing state (keep phone if from profile)
       setSelectedDate('')
       setSelectedTime('')
       setPartySize(2)
+      if (!user?.phone) {
+        setContactPhone('')
+      }
       setSpecialRequests('')
       setEditingId(null)
     } catch (error) {
@@ -221,6 +240,21 @@ const Reservations = () => {
                 </div>
               </div>
 
+              {/* Contact Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Phone *
+                </label>
+                <input
+                  type="tel"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="06 12 34 56 78"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
               {/* Demandes spéciales */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -252,6 +286,11 @@ const Reservations = () => {
                       setSelectedDate('')
                       setSelectedTime('')
                       setPartySize(2)
+                      if (!user?.phone) {
+                        setContactPhone('')
+                      } else {
+                        setContactPhone(user.phone)
+                      }
                       setSpecialRequests('')
                       toast.info('Edit cancelled')
                     }}
