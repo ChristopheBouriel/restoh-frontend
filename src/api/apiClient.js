@@ -11,27 +11,15 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // IMPORTANT: Send cookies with requests
 })
 
-// Request interceptor - Add JWT token automatically
+// Request interceptor - NO LONGER NEEDED with cookie-based auth
+// The browser automatically sends cookies with each request when withCredentials: true
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const authStorage = localStorage.getItem('auth-storage')
-
-    if (authStorage) {
-      try {
-        const { state } = JSON.parse(authStorage)
-        const token = state?.token
-
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-        }
-      } catch (error) {
-        console.error('Error parsing auth storage:', error)
-      }
-    }
-
+    // Authentication is now handled by HTTP-only cookies
+    // No need to manually add Authorization header
     return config
   },
   (error) => {

@@ -7,7 +7,7 @@ const useAuthStore = create(
     (set, get) => ({
       // State
       user: null,
-      token: null,
+      // token: null, // NO LONGER NEEDED - Auth is handled by HTTP-only cookies
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -15,7 +15,7 @@ const useAuthStore = create(
       // Actions
       setUser: (user) => set({ user, isAuthenticated: !!user }),
 
-      setToken: (token) => set({ token }),
+      // setToken: (token) => set({ token }), // NO LONGER NEEDED
 
       setLoading: (isLoading) => set({ isLoading }),
 
@@ -32,7 +32,7 @@ const useAuthStore = create(
           if (result.success) {
             set({
               user: result.user,
-              token: result.token,
+              // token: result.token, // NO LONGER NEEDED - Cookie is set by server
               isAuthenticated: true,
               isLoading: false,
               error: null
@@ -64,7 +64,7 @@ const useAuthStore = create(
           if (result.success) {
             set({
               user: result.user,
-              token: result.token,
+              // token: result.token, // NO LONGER NEEDED - Cookie is set by server
               isAuthenticated: true,
               isLoading: false,
               error: null
@@ -89,7 +89,7 @@ const useAuthStore = create(
 
       logout: async () => {
         try {
-          // Call logout API (to invalidate token on backend)
+          // Call logout API (to clear HTTP-only cookie on backend)
           await authApi.logout()
         } catch (error) {
           console.error('Logout error:', error)
@@ -98,7 +98,7 @@ const useAuthStore = create(
           // Always clear local state
           set({
             user: null,
-            token: null,
+            // token: null, // NO LONGER NEEDED
             isAuthenticated: false,
             error: null
           })
@@ -174,7 +174,7 @@ const useAuthStore = create(
             // Logout user after account deletion
             set({
               user: null,
-              token: null,
+              // token: null, // NO LONGER NEEDED
               isAuthenticated: false,
               isLoading: false,
               error: null
@@ -213,10 +213,10 @@ const useAuthStore = create(
             })
             return { success: true }
           } else {
-            // If token is no longer valid, logout
+            // If cookie is no longer valid, logout
             set({
               user: null,
-              token: null,
+              // token: null, // NO LONGER NEEDED
               isAuthenticated: false,
               isLoading: false,
               error: null
@@ -226,7 +226,7 @@ const useAuthStore = create(
         } catch (error) {
           set({
             user: null,
-            token: null,
+            // token: null, // NO LONGER NEEDED
             isAuthenticated: false,
             isLoading: false,
             error: null
@@ -239,7 +239,7 @@ const useAuthStore = create(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
+        // token: state.token, // NO LONGER NEEDED - Don't persist token
         isAuthenticated: state.isAuthenticated
       }),
     }
