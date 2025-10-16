@@ -4,11 +4,12 @@ import { toast } from 'react-hot-toast'
 import { useReservations } from '../../hooks/useReservations'
 import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
+import { TIME_SLOTS, getLabelFromSlot } from '../../constants/reservationSlots'
 
 const Reservations = () => {
   const { user } = useAuthStore()
   const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('')
+  const [selectedSlotId, setSelectedSlotId] = useState(null)
   const [partySize, setPartySize] = useState(2)
   const [contactPhone, setContactPhone] = useState('')
   const [specialRequests, setSpecialRequests] = useState('')
@@ -29,10 +30,6 @@ const Reservations = () => {
     cancelReservation,
     validateReservationData
   } = useReservations()
-
-  const availableTimes = [
-    '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
-  ]
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -68,7 +65,7 @@ const Reservations = () => {
 
     const reservationData = {
       date: selectedDate,
-      time: selectedTime,
+      slot: selectedSlotId, // Send slot number (type: number)
       guests: partySize,
       contactPhone: contactPhone,
       requests: specialRequests
@@ -86,7 +83,7 @@ const Reservations = () => {
 
       // Reset form (keep phone if it's from profile)
       setSelectedDate('')
-      setSelectedTime('')
+      setSelectedSlotId(null)
       setPartySize(2)
       if (!user?.phone) {
         setContactPhone('')
@@ -100,7 +97,7 @@ const Reservations = () => {
   const handleEdit = (reservation) => {
     setEditingId(reservation.id)
     setSelectedDate(reservation.date)
-    setSelectedTime(reservation.time)
+    setSelectedSlotId(reservation.slot) // Use slot number from reservation
     setPartySize(reservation.guests)
     setContactPhone(reservation.contactPhone || '')
     setSpecialRequests(reservation.specialRequests || '')
@@ -116,7 +113,7 @@ const Reservations = () => {
 
     const reservationData = {
       date: selectedDate,
-      time: selectedTime,
+      slot: selectedSlotId, // Send slot number (type: number)
       guests: partySize,
       contactPhone: contactPhone,
       requests: specialRequests
@@ -134,7 +131,7 @@ const Reservations = () => {
 
       // Reset form and editing state (keep phone if from profile)
       setSelectedDate('')
-      setSelectedTime('')
+      setSelectedSlotId(null)
       setPartySize(2)
       if (!user?.phone) {
         setContactPhone('')
@@ -196,18 +193,18 @@ const Reservations = () => {
                   Time
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {availableTimes.map((time) => (
+                  {TIME_SLOTS.map((slotObj) => (
                     <button
-                      key={time}
+                      key={slotObj.slot}
                       type="button"
-                      onClick={() => setSelectedTime(time)}
+                      onClick={() => setSelectedSlotId(slotObj.slot)}
                       className={`p-2 text-sm rounded-md border transition-colors ${
-                        selectedTime === time
+                        selectedSlotId === slotObj.slot
                           ? 'bg-primary-600 text-white border-primary-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                       }`}
                     >
-                      {time}
+                      {slotObj.label}
                     </button>
                   ))}
                 </div>
@@ -272,19 +269,19 @@ const Reservations = () => {
               <div className="flex space-x-2">
                 <button
                   type="submit"
-                  disabled={!selectedDate || !selectedTime}
+                  disabled={!selectedDate || !selectedSlotId}
                   className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {editingId ? '✏️ Update' : '🗓️ Book'}
                 </button>
-                
+
                 {editingId && (
                   <button
                     type="button"
                     onClick={() => {
                       setEditingId(null)
                       setSelectedDate('')
-                      setSelectedTime('')
+                      setSelectedSlotId(null)
                       setPartySize(2)
                       if (!user?.phone) {
                         setContactPhone('')
@@ -315,6 +312,8 @@ const Reservations = () => {
                   const statusInfo = getStatusInfo(reservation.status)
                   const StatusIcon = statusInfo.icon
 
+                  const displayTime = getLabelFromSlot(reservation.slot)
+
                   return (
                     <div key={reservation.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-3">
@@ -323,7 +322,7 @@ const Reservations = () => {
                             <span className="font-semibold">
                               {new Date(reservation.date).toLocaleDateString('en-US')}
                             </span>
-                            <span className="text-gray-500">at {reservation.time}</span>
+                            <span className="text-gray-500">at {displayTime}</span>
                           </div>
                           <p className="text-sm text-gray-600">
                             <span className='mr-2'>👥</span> {reservation.guests} guest{reservation.guests > 1 ? 's' : ''}

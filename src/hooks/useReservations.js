@@ -112,12 +112,16 @@ export const useReservations = () => {
       errors.push('Date is required')
     }
 
-    if (!data.time) {
-      errors.push('Time is required')
+    if (!data.slot || typeof data.slot !== 'number') {
+      errors.push('Time slot is required')
     }
 
     if (!data.guests || data.guests < 1) {
       errors.push('Number of guests must be at least 1')
+    }
+
+    if (!data.contactPhone) {
+      errors.push('Contact phone is required')
     }
 
     // Check that date is not in the past
