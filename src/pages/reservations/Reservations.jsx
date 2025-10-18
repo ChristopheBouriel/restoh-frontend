@@ -68,7 +68,8 @@ const Reservations = () => {
       slot: selectedSlotId, // Send slot number (type: number)
       guests: partySize,
       contactPhone: contactPhone,
-      requests: specialRequests
+      specialRequest: specialRequests.trim() || null,
+      tableNumber: [] // Empty array by default, assigned by admin later
     }
 
     // Validation
@@ -116,7 +117,8 @@ const Reservations = () => {
       slot: selectedSlotId, // Send slot number (type: number)
       guests: partySize,
       contactPhone: contactPhone,
-      requests: specialRequests
+      specialRequest: specialRequests.trim() || null,
+      tableNumber: [] // Empty array by default, assigned by admin later
     }
 
     // Validation
@@ -269,7 +271,7 @@ const Reservations = () => {
               <div className="flex space-x-2">
                 <button
                   type="submit"
-                  disabled={!selectedDate || !selectedSlotId}
+                  disabled={!selectedDate || !selectedSlotId || !contactPhone.trim()}
                   className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {editingId ? '✏️ Update' : '🗓️ Book'}

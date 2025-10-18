@@ -24,18 +24,9 @@ export const useReservations = () => {
     }
 
     try {
-      const fullReservationData = {
-        ...reservationData,
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.name,
-        phone: user.phone || '',
-        guests: reservationData.guests,
-        specialRequests: reservationData.requests || ''
-      }
-
-
-      const result = await createReservation(fullReservationData)
+      // User info is attached by authentication middleware on backend
+      // Only send reservation-specific data
+      const result = await createReservation(reservationData)
       if (result.success) {
         toast.success('Reservation created successfully!')
         return result
