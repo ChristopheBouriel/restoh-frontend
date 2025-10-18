@@ -50,7 +50,9 @@ export const createMenuItem = async (itemData) => {
       const response = await apiClient.post('/menu', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        // Ensure cookies are sent with this request too
+        withCredentials: true
       })
       return { success: true, ...response }
     } else {
@@ -88,7 +90,9 @@ export const updateMenuItem = async (itemId, itemData) => {
       const response = await apiClient.put(`/menu/${itemId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        // Ensure cookies are sent with this request too
+        withCredentials: true
       })
       return { success: true, ...response }
     } else {

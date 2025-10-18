@@ -36,6 +36,23 @@ function App() {
   const { initializeUsers } = useUsersStore()
   const { fetchMessages } = useContactsStore()
 
+  // Clean up old token from localStorage (migration to cookie auth)
+  useEffect(() => {
+    const authStorage = localStorage.getItem('auth-storage')
+    if (authStorage) {
+      try {
+        const data = JSON.parse(authStorage)
+        if (data.state && data.state.token) {
+          delete data.state.token
+          localStorage.setItem('auth-storage', JSON.stringify(data))
+          console.log('✅ Cleaned up old JWT token from localStorage')
+        }
+      } catch (error) {
+        console.error('Error cleaning old auth data:', error)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     // Load initial data on app startup
     const loadInitialData = async () => {
