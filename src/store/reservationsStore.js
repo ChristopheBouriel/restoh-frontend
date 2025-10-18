@@ -85,10 +85,13 @@ const useReservationsStore = create(
           const result = await reservationsApi.createReservation(reservationData)
 
           if (result.success) {
-            // Reload reservations after creation
-            await get().fetchReservations()
-            set({ isLoading: false })
-            return { success: true, reservationId: result.data._id || result.data.id }
+            // Add new reservation to state directly
+            const newReservation = result.data
+            set({
+              reservations: [...get().reservations, newReservation],
+              isLoading: false
+            })
+            return { success: true, reservationId: newReservation._id || newReservation.id }
           } else {
             set({
               error: result.error,

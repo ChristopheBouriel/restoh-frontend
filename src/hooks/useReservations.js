@@ -10,11 +10,9 @@ export const useReservations = () => {
     updateReservationStatus
   } = useReservationsStore()
 
-  // Filter reservations for logged-in user only
-  // ✅ Use allReservations directly for reactivity
-  const userReservations = user
-    ? allReservations.filter(r => r.userId === user.id)
-    : []
+  // Backend already filters reservations by user (via auth middleware)
+  // No need to filter again on frontend
+  const userReservations = allReservations
 
 
   const handleCreateReservation = async (reservationData) => {
