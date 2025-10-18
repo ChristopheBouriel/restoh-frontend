@@ -161,8 +161,18 @@ const Login = () => {
             </p>
             <div className="text-xs text-gray-500 space-y-1">
               <p>🔐 Admin : admin@restoh.com / admin123</p>
-              <p>👤 Client : test@example.com / password123</p>
+              <p>👤 Client : demo@test.com / 123456</p>
             </div>
+          </div>
+
+          {/* Return to home */}
+          <div className="mt-6 text-center">
+            <Link
+              to={ROUTES.HOME}
+              className="text-sm font-medium text-primary-600 hover:text-primary-500"
+            >
+              ← Return to home
+            </Link>
           </div>
         </div>
       </div>

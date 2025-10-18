@@ -280,6 +280,16 @@ const Register = () => {
               </button>
             </div>
           </form>
+
+          {/* Return to home */}
+          <div className="mt-6 text-center">
+            <Link
+              to={ROUTES.HOME}
+              className="text-sm font-medium text-primary-600 hover:text-primary-500"
+            >
+              ← Return to home
+            </Link>
+          </div>
         </div>
       </div>
     </div>
