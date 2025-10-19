@@ -238,7 +238,7 @@ const useOrdersStore = create(
           delivered: orders.filter(o => o.status === 'delivered').length,
           cancelled: orders.filter(o => o.status === 'cancelled').length,
           totalRevenue: orders
-            .filter(o => ['delivered'].includes(o.status))
+            .filter(o => ['delivered'].includes(o.status) && o.paymentStatus === 'paid')
             .reduce((sum, order) => sum + order.totalPrice, 0)
         }
       }

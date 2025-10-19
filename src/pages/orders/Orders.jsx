@@ -133,9 +133,13 @@ const Orders = () => {
                       </p>
 
                       <p className="text-sm text-gray-700 mb-2">
-                        {order.items.map(item =>
-                          `${item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`
-                        ).join(', ')}
+                        {order.items && order.items.length > 0 ? (
+                          order.items.map(item =>
+                            `${item.name || 'Unknown item'}${item.quantity > 1 ? ` x${item.quantity}` : ''}`
+                          ).join(', ')
+                        ) : (
+                          'No items'
+                        )}
                       </p>
 
                       <p className="text-lg font-bold text-primary-600">
@@ -188,12 +192,16 @@ const Orders = () => {
                         <div>
                           <h4 className="font-semibold text-gray-900 mb-2">Order details</h4>
                           <div className="space-y-1">
-                            {order.items.map((item, idx) => (
-                              <div key={idx} className="flex justify-between text-sm">
-                                <span>{item.name} x{item.quantity}</span>
-                                <span>{formatPrice(item.price * item.quantity)}</span>
-                              </div>
-                            ))}
+                            {order.items && order.items.length > 0 ? (
+                              order.items.map((item, idx) => (
+                                <div key={idx} className="flex justify-between text-sm">
+                                  <span>{item.name || 'Unknown item'} x{item.quantity || 1}</span>
+                                  <span>{formatPrice((item.price || 0) * (item.quantity || 1))}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-sm text-gray-500">No items</div>
+                            )}
                             <div className="border-t pt-1 mt-2">
                               <div className="flex justify-between font-semibold">
                                 <span>Total</span>

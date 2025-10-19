@@ -3,6 +3,7 @@ import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Filter, Trash2 } from
 import useOrdersStore from '../../store/ordersStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
+import ImageWithFallback from '../../components/common/ImageWithFallback'
 import { toast } from 'react-hot-toast'
 
 const OrdersManagement = () => {
@@ -47,7 +48,7 @@ const OrdersManagement = () => {
     if (order.status === 'delivered' || order.status === 'cancelled') {
       // Cas n°1 : Livré ou annulé - gris clair mais plus foncé que la pastille
       return 'bg-gray-100 hover:bg-gray-200'
-    } else if (order.isPaid) {
+    } else if (order.paymentStatus === 'paid') {
       // Cas n°2 : Payé avec autre statut - orange clair
       return 'bg-orange-50 hover:bg-orange-100'
     } else {
@@ -193,10 +194,10 @@ const OrdersManagement = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Revenue</p>
-              <p className="text-2xl font-bold text-green-600">{formatPrice(stats.totalRevenue)}</p>
+              <p className="text-sm font-medium text-gray-600">Ready Orders</p>
+              <p className="text-2xl font-bold text-orange-600">{stats.ready}</p>
             </div>
-            <Truck className="h-8 w-8 text-green-400" />
+            <Truck className="h-8 w-8 text-orange-400" />
           </div>
         </div>
       </div>
@@ -331,10 +332,6 @@ const OrdersManagement = () => {
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
                             {order.items.length} item(s)
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {order.items.slice(0, 2).map(item => item.name).join(', ')}
-                            {order.items.length > 2 && '...'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -481,7 +478,7 @@ const OrdersManagement = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">
-                  Order details {selectedOrder.id}
+                  Order details #{selectedOrder.orderNumber}
                 </h2>
                 <button
                   onClick={() => setSelectedOrder(null)}
@@ -508,25 +505,25 @@ const OrdersManagement = () => {
                   <div className="space-y-3">
                     {selectedOrder.items.map((item, index) => (
                       <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-                        <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden">
-                          <img
-                            src={`/images/menu/${item.image}`}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden flex-shrink-0">
+                            <ImageWithFallback
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{item.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {formatPrice(item.price)} × {item.quantity}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">
+                              {formatPrice(item.price * item.quantity)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{item.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {formatPrice(item.price)} × {item.quantity}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium text-gray-900">
-                            {formatPrice(item.price * item.quantity)}
-                          </p>
-                        </div>
-                      </div>
                     ))}
                   </div>
                 </div>
@@ -544,11 +541,11 @@ const OrdersManagement = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Payment status:</span>
                       <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                        selectedOrder.isPaid
+                        selectedOrder.paymentStatus === 'paid'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-orange-100 text-orange-700'
                       }`}>
-                        {selectedOrder.isPaid
+                        {selectedOrder.paymentStatus === 'paid'
                           ? '✅ Paid'
                           : selectedOrder.paymentMethod === 'cash'
                             ? '💰 To pay on delivery'
@@ -575,16 +572,6 @@ const OrdersManagement = () => {
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex justify-end pt-4 border-t">
-                  <button
-                    onClick={() => handleDeleteOrder(selectedOrder.id)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span>Delete order</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>

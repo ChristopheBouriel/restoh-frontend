@@ -4,6 +4,7 @@ import { CreditCard, MapPin, User, ShoppingBag, Check } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
 import { useAuth } from '../../hooks/useAuth'
 import useOrdersStore from '../../store/ordersStore'
+import ImageWithFallback from '../../components/common/ImageWithFallback'
 import { toast } from 'react-hot-toast'
 import { ROUTES } from '../../constants'
 
@@ -77,6 +78,7 @@ const Checkout = () => {
         phone: formData.phone,
         notes: formData.notes,
         paymentMethod: formData.paymentMethod,
+        paymentStatus: formData.paymentMethod === 'card' ? 'paid' : 'pending',
         orderType: formData.type
       }
 
@@ -361,8 +363,8 @@ const Checkout = () => {
                 {availableItems.map((item) => (
                   <div key={item.id} className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden">
-                      <img
-                        src={`/images/menu/${item.image}`}
+                      <ImageWithFallback
+                        src={item.image}
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />

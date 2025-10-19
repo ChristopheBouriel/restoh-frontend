@@ -62,13 +62,13 @@ const UsersManagement = () => {
   })
 
   // Handle status change
-  const handleStatusToggle = async (userId) => {
-    await toggleUserStatus(userId)
+  const handleStatusToggle = async (user) => {
+    await toggleUserStatus(user._id || user.id)
   }
 
   // Handle role change
-  const handleRoleChange = async (userId, newRole) => {
-    await updateUserRole(userId, newRole)
+  const handleRoleChange = async (user, newRole) => {
+    await updateUserRole(user._id || user.id, newRole)
   }
 
   // Open detail modal
@@ -263,14 +263,14 @@ const UsersManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr key={user._id || user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
                             {user.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {user.id}
+                            ID: {user._id || user.id}
                           </div>
                         </div>
                       </td>
@@ -283,29 +283,40 @@ const UsersManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col space-y-2">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
                             {getRoleLabel(user.role)}
                           </span>
                           <SimpleSelect
                             value={user.role}
-                            onChange={(newRole) => handleRoleChange(user.id, newRole)}
+                            onChange={(newRole) => handleRoleChange(user, newRole)}
                             options={roleUpdateOptions}
                             className="w-[120px]"
                           />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="space-y-1">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </span>
+                        <div className="space-y-2">
+                          {/* Toggle isActive */}
+                          <button
+                            onClick={() => handleStatusToggle(user)}
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                              user.isActive ? 'bg-green-600' : 'bg-gray-200'
+                            }`}
+                            role="switch"
+                            aria-checked={user.isActive}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                user.isActive ? 'translate-x-5' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
                           {user.emailVerified ? (
                             <div className="text-xs text-green-600">✓ Email verified</div>
                           ) : (
-                            <div className="text-xs text-orange-600">⚠ Email not verified</div>
+                            <div className="text-xs text-orange-600">⚠ Not verified</div>
                           )}
                         </div>
                       </td>
@@ -324,7 +335,7 @@ const UsersManagement = () => {
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleStatusToggle(user.id)}
+                            onClick={() => handleStatusToggle(user)}
                             className={`transition-colors ${
                               user.isActive
                                 ? 'text-red-400 hover:text-red-600'
@@ -345,7 +356,7 @@ const UsersManagement = () => {
             {/* Mobile/Tablet View - Cards */}
             <div className="lg:hidden divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <div key={user.id} className="p-4 hover:bg-gray-50">
+                <div key={user._id || user.id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <button
@@ -365,10 +376,10 @@ const UsersManagement = () => {
                       </span>
                     </div>
                     <button
-                      onClick={() => handleStatusToggle(user.id)}
+                      onClick={() => handleStatusToggle(user)}
                       className={`transition-colors ${
-                        user.isActive 
-                          ? 'text-red-400 hover:text-red-600' 
+                        user.isActive
+                          ? 'text-red-400 hover:text-red-600'
                           : 'text-green-400 hover:text-green-600'
                       }`}
                     >
@@ -379,7 +390,7 @@ const UsersManagement = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-900">{user.name}</span>
-                      <span className="text-xs text-gray-500">ID: {user.id}</span>
+                      <span className="text-xs text-gray-500">ID: {user._id || user.id}</span>
                     </div>
                     
                     <div className="flex items-center justify-between">

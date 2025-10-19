@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import * as usersApi from '../api/usersApi'
 
 const useUsersStore = create(
   persist(
@@ -11,188 +12,58 @@ const useUsersStore = create(
       // Actions
       setLoading: (loading) => set({ isLoading: loading }),
 
-      // Initialiser en lisant depuis registered-users et en enrichissant avec les données admin
-      initializeUsers: () => {
-        // Nettoyer l'ancienne clé admin-users si elle existe
-        if (localStorage.getItem('admin-users')) {
-          localStorage.removeItem('admin-users')
-        }
-        
-        const registeredUsers = JSON.parse(localStorage.getItem('registered-users') || '[]')
-        const orders = JSON.parse(localStorage.getItem('admin-orders-v2') || '[]')
-        const reservations = JSON.parse(localStorage.getItem('admin-reservations') || '[]')
-        
-        // Calculer des dates de base pour les comptes par défaut
-        const today = new Date()
-        const oneMonthAgo = new Date(today)
-        oneMonthAgo.setDate(oneMonthAgo.getDate() - 30)
-        
-        // Comptes par défaut (admin et client test)
-        const defaultUsers = [
-          {
-            id: 'admin',
-            email: 'admin@restoh.fr',
-            name: 'Administrateur',
-            role: 'admin',
-            phone: '01 23 45 67 89',
-            address: '456 Avenue de l\'Administration, 75008 Paris',
-            isActive: true,
-            emailVerified: true,
-            createdAt: oneMonthAgo.toISOString(),
-            lastLoginAt: today.toISOString(),
-            password: 'hashed' // Placeholder, vraie valeur dans authStore
-          },
-          {
-            id: 'client',
-            email: 'client@example.com',
-            name: 'Jean Dupont',
-            role: 'user',
-            phone: '06 12 34 56 78',
-            address: '123 Rue de la République, 75001 Paris',
-            isActive: true,
-            emailVerified: true,
-            createdAt: oneMonthAgo.toISOString(),
-            lastLoginAt: today.toISOString(),
-            password: 'hashed' // Placeholder, vraie valeur dans authStore
-          }
-        ]
+      // Charger les utilisateurs depuis l'API
+      initializeUsers: async () => {
+        set({ isLoading: true })
 
-        // Merge default users with registered users
-        const allBaseUsers = [...defaultUsers]
+        try {
+          const result = await usersApi.getAllUsers()
 
-        // Add registered users that are not already in defaults
-        registeredUsers.forEach(regUser => {
-          if (!allBaseUsers.find(u => u.email === regUser.email)) {
-            allBaseUsers.push({
-              ...regUser,
-              phone: regUser.phone || '',
-              address: regUser.address || '',
-              isActive: regUser.isActive !== undefined ? regUser.isActive : true,
-              emailVerified: regUser.emailVerified !== undefined ? regUser.emailVerified : false,
-              lastLoginAt: regUser.lastLoginAt || null,
-              createdAt: regUser.createdAt || new Date().toISOString()
+          if (result.success) {
+            set({
+              users: result.data || [],
+              isLoading: false
             })
+          } else {
+            set({ isLoading: false })
           }
-        })
-
-        // Enrichir chaque utilisateur avec ses statistiques d'activité
-        const enrichedUsers = allBaseUsers.map(user => {
-          // Calculer les commandes de l'utilisateur
-          const userOrders = orders.filter(order => order.userId === user.id)
-          const deliveredOrders = userOrders.filter(order => order.status === 'delivered')
-          const totalSpent = deliveredOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
-
-          // Calculer les réservations de l'utilisateur
-          const userReservations = reservations.filter(reservation => reservation.userId === user.id)
-
-          return {
-            ...user,
-            totalOrders: userOrders.length,
-            totalSpent: totalSpent,
-            totalReservations: userReservations.length
-          }
-        })
-
-        set({ users: enrichedUsers })
-      },
-
-      // Sauvegarder les modifications dans registered-users (et garder les comptes par défaut séparés)
-      saveUserChangesToStorage: (users) => {
-        const registeredUsers = JSON.parse(localStorage.getItem('registered-users') || '[]')
-        const defaultUserIds = ['admin', 'client']
-        
-        // Séparer les utilisateurs par défaut des utilisateurs enregistrés
-        const updatedRegisteredUsers = users
-          .filter(user => !defaultUserIds.includes(user.id))
-          .map(user => ({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            password: user.password,
-            role: user.role,
-            phone: user.phone,
-            address: user.address,
-            isActive: user.isActive,
-            emailVerified: user.emailVerified,
-            lastLoginAt: user.lastLoginAt,
-            createdAt: user.createdAt
-          }))
-
-        // Mettre à jour registered-users avec les nouvelles données
-        localStorage.setItem('registered-users', JSON.stringify(updatedRegisteredUsers))
-      },
-
-      // Créer un nouvel utilisateur (appelé depuis l'inscription - cette méthode est maintenant principalement pour l'admin)
-      createUser: async (userData) => {
-        set({ isLoading: true })
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const newUser = {
-            id: `user-${Date.now()}`,
-            ...userData,
-            role: 'user',
-            isActive: true,
-            emailVerified: false,
-            createdAt: new Date().toISOString(),
-            lastLoginAt: null,
-            totalOrders: 0,
-            totalSpent: 0,
-            totalReservations: 0
-          }
-          
-          const updatedUsers = [newUser, ...get().users]
-          set({ users: updatedUsers, isLoading: false })
-          get().saveUserChangesToStorage(updatedUsers)
-          
-          return { success: true, userId: newUser.id }
         } catch (error) {
+          console.error('Error loading users:', error)
           set({ isLoading: false })
-          return { success: false, error: error.message }
         }
       },
 
-      // Mettre à jour le profil d'un utilisateur
-      updateUser: async (userId, userData) => {
-        set({ isLoading: true })
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedUsers = get().users.map(user =>
-            user.id === userId 
-              ? { ...user, ...userData, updatedAt: new Date().toISOString() }
-              : user
-          )
-          
-          set({ users: updatedUsers, isLoading: false })
-          get().saveUserChangesToStorage(updatedUsers)
-          
-          return { success: true }
-        } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
-        }
-      },
 
       // Activer/désactiver un utilisateur
       toggleUserStatus: async (userId) => {
         set({ isLoading: true })
-        
+
         try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedUsers = get().users.map(user =>
-            user.id === userId 
-              ? { ...user, isActive: !user.isActive, updatedAt: new Date().toISOString() }
-              : user
-          )
-          
-          set({ users: updatedUsers, isLoading: false })
-          get().saveUserChangesToStorage(updatedUsers)
-          
-          return { success: true }
+          // Find current user to get current status
+          const user = get().users.find(u => u.id === userId || u._id === userId)
+          if (!user) {
+            throw new Error('User not found')
+          }
+
+          // Toggle isActive
+          const result = await usersApi.updateUser(userId, {
+            isActive: !user.isActive
+          })
+
+          if (result.success) {
+            // Update local state
+            const updatedUsers = get().users.map(u =>
+              (u.id === userId || u._id === userId)
+                ? { ...u, isActive: !u.isActive }
+                : u
+            )
+
+            set({ users: updatedUsers, isLoading: false })
+            return { success: true }
+          } else {
+            set({ isLoading: false })
+            return { success: false, error: result.error }
+          }
         } catch (error) {
           set({ isLoading: false })
           return { success: false, error: error.message }
@@ -202,20 +73,27 @@ const useUsersStore = create(
       // Changer le rôle d'un utilisateur
       updateUserRole: async (userId, newRole) => {
         set({ isLoading: true })
-        
+
         try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedUsers = get().users.map(user =>
-            user.id === userId 
-              ? { ...user, role: newRole, updatedAt: new Date().toISOString() }
-              : user
-          )
-          
-          set({ users: updatedUsers, isLoading: false })
-          get().saveUserChangesToStorage(updatedUsers)
-          
-          return { success: true }
+          // Update role via API
+          const result = await usersApi.updateUser(userId, {
+            role: newRole
+          })
+
+          if (result.success) {
+            // Update local state
+            const updatedUsers = get().users.map(user =>
+              (user.id === userId || user._id === userId)
+                ? { ...user, role: newRole }
+                : user
+            )
+
+            set({ users: updatedUsers, isLoading: false })
+            return { success: true }
+          } else {
+            set({ isLoading: false })
+            return { success: false, error: result.error }
+          }
         } catch (error) {
           set({ isLoading: false })
           return { success: false, error: error.message }
@@ -225,13 +103,12 @@ const useUsersStore = create(
       // Mettre à jour la dernière connexion (utilisé par authStore)
       updateLastLogin: (userId) => {
         const updatedUsers = get().users.map(user =>
-          user.id === userId 
+          (user.id === userId || user._id === userId)
             ? { ...user, lastLoginAt: new Date().toISOString() }
             : user
         )
-        
+
         set({ users: updatedUsers })
-        get().saveUserChangesToStorage(updatedUsers)
       },
 
       // Rafraîchir les statistiques dynamiquement
