@@ -17,10 +17,10 @@ const Reservations = () => {
 
   // Pre-fill phone from user profile
   useEffect(() => {
-    if (user?.phone && !contactPhone) {
+    if (user?.phone) {
       setContactPhone(user.phone)
     }
-  }, [user, contactPhone])
+  }, [user])
 
   // Use reservations hook with persistence
   const {

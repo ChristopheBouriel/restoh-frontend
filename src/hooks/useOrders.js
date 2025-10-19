@@ -63,8 +63,8 @@ export const useOrders = () => {
 
   // Function to determine if an order can be cancelled
   const canCancelOrder = (order) => {
-    const cancelableStatuses = ['pending', 'confirmed', 'preparing']
-    return cancelableStatuses.includes(order.status)
+    // Only pending orders can be cancelled by users
+    return order.status === 'pending'
   }
 
   // Function to get recent orders (last 30 days)

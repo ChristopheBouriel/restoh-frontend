@@ -120,7 +120,7 @@ const Orders = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Command #{order.id}
+                          Command #{order.orderNumber}
                         </h3>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
