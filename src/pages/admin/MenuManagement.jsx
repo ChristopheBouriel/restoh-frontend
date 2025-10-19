@@ -133,7 +133,7 @@ const MenuManagement = () => {
     resetForm()
   }
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
 
     if (!formData.name || !formData.price || !formData.description) {
@@ -162,14 +162,14 @@ const MenuManagement = () => {
     }
 
     if (editingItem) {
-      const result = updateItem(editingItem.id, itemData)
+      const result = await updateItem(editingItem.id, itemData)
       if (result.success) {
         toast.success('Item updated successfully!')
       } else {
         toast.error('Error updating item')
       }
     } else {
-      const result = addItem(itemData)
+      const result = await addItem(itemData)
       if (result.success) {
         toast.success('Item added successfully!')
       } else {

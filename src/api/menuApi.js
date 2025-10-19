@@ -38,9 +38,11 @@ export const createMenuItem = async (itemData) => {
       // Append all other fields
       Object.keys(itemData).forEach(key => {
         if (key !== 'image') {
-          // Handle arrays (allergens, ingredients)
+          // Handle arrays (allergens, ingredients) - send each item separately
           if (Array.isArray(itemData[key])) {
-            formData.append(key, JSON.stringify(itemData[key]))
+            itemData[key].forEach(item => {
+              formData.append(`${key}[]`, item)
+            })
           } else {
             formData.append(key, itemData[key])
           }
@@ -78,9 +80,11 @@ export const updateMenuItem = async (itemId, itemData) => {
       // Append all other fields
       Object.keys(itemData).forEach(key => {
         if (key !== 'image') {
-          // Handle arrays (allergens, ingredients)
+          // Handle arrays (allergens, ingredients) - send each item separately
           if (Array.isArray(itemData[key])) {
-            formData.append(key, JSON.stringify(itemData[key]))
+            itemData[key].forEach(item => {
+              formData.append(`${key}[]`, item)
+            })
           } else {
             formData.append(key, itemData[key])
           }
