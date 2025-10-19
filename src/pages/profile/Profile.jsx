@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, Mail, Phone, MapPin, Lock, Save } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -9,7 +9,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  
+
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -32,6 +32,27 @@ const Profile = () => {
     newsletter: user?.notifications?.newsletter ?? false,
     promotions: user?.notifications?.promotions ?? false,
   })
+
+  // Sync profileData with user when user changes
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        street: user.address?.street || '',
+        city: user.address?.city || '',
+        zipCode: user.address?.zipCode || '',
+        state: user.address?.state || '',
+      })
+      setNotifications({
+        orderConfirmations: user.notifications?.orderConfirmations ?? true,
+        reservationReminders: user.notifications?.reservationReminders ?? true,
+        newsletter: user.notifications?.newsletter ?? false,
+        promotions: user.notifications?.promotions ?? false,
+      })
+    }
+  }, [user])
 
   const handleProfileChange = (e) => {
     setProfileData({
@@ -56,10 +77,22 @@ const Profile = () => {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault()
-    const success = await updateProfile({
-      ...profileData,
+
+    // Restructure data to match backend schema
+    const dataToSend = {
+      name: profileData.name,
+      email: profileData.email,
+      phone: profileData.phone,
+      address: {
+        street: profileData.street,
+        city: profileData.city,
+        zipCode: profileData.zipCode,
+        state: profileData.state
+      },
       notifications
-    })
+    }
+
+    const success = await updateProfile(dataToSend)
     if (success) {
       setIsEditing(false)
     }

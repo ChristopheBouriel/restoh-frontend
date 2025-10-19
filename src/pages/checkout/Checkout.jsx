@@ -33,6 +33,13 @@ const Checkout = () => {
     type: 'delivery'
   })
 
+  // Prefill phone from user profile
+  useEffect(() => {
+    if (user?.phone) {
+      setFormData(prev => ({ ...prev, phone: user.phone }))
+    }
+  }, [user])
+
   // Auto-switch to card if pickup is selected with cash
   useEffect(() => {
     if (formData.type === 'pickup' && formData.paymentMethod === 'cash') {

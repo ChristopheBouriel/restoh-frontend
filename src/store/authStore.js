@@ -72,7 +72,7 @@ const useAuthStore = create(
 
           if (result.success) {
             set({
-              user: result.user,
+              user: normalizeUser(result.user),
               // token: result.token, // NO LONGER NEEDED - Cookie is set by server
               isAuthenticated: true,
               isLoading: false,
@@ -122,7 +122,7 @@ const useAuthStore = create(
 
           if (result.success) {
             set({
-              user: result.user,
+              user: normalizeUser(result.user),
               isLoading: false,
               error: null
             })
@@ -215,7 +215,7 @@ const useAuthStore = create(
 
           if (result.success) {
             set({
-              user: result.user,
+              user: normalizeUser(result.user),
               isAuthenticated: true,
               isLoading: false,
               error: null

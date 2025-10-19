@@ -28,13 +28,23 @@ import Checkout from './pages/checkout/Checkout'
 import { ROUTES } from './constants'
 
 function App() {
-  const { user } = useAuthStore()
+  const { user, isAuthenticated, fetchCurrentUser } = useAuthStore()
   const { setCurrentUser } = useCartStore()
   const { fetchMenuItems } = useMenuStore()
   const { fetchOrders } = useOrdersStore()
   const { fetchReservations } = useReservationsStore()
   const { initializeUsers } = useUsersStore()
   const { fetchMessages } = useContactsStore()
+
+  // Fetch current user from backend on app startup (if authenticated)
+  useEffect(() => {
+    const refreshUserData = async () => {
+      if (isAuthenticated) {
+        await fetchCurrentUser()
+      }
+    }
+    refreshUserData()
+  }, []) // Run once on mount
 
   // Clean up old token from localStorage (migration to cookie auth)
   useEffect(() => {
