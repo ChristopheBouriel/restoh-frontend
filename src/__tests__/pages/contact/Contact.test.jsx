@@ -115,16 +115,23 @@ describe('Contact Component', () => {
   test('should change contact reason when user selects different option', async () => {
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
-    const selectField = screen.getByDisplayValue('General inquiry')
-    
-    // Change to reservation
-    await user.selectOptions(selectField, 'reservation')
-    expect(selectField).toHaveValue('reservation')
-    
-    // Change to complaint
-    await user.selectOptions(selectField, 'complaint')
-    expect(selectField).toHaveValue('complaint')
+
+    // SimpleSelect shows selected option text
+    expect(screen.getByText('General inquiry')).toBeInTheDocument()
+
+    // Click to open dropdown
+    await user.click(screen.getByText('General inquiry'))
+
+    // Select reservation option
+    await user.click(screen.getByText('Reservation'))
+    expect(screen.getByText('Reservation')).toBeInTheDocument()
+
+    // Click to open dropdown again
+    await user.click(screen.getByText('Reservation'))
+
+    // Select complaint
+    await user.click(screen.getByText('Complaint'))
+    expect(screen.getByText('Complaint')).toBeInTheDocument()
   })
 
   test('should display character count for message field', async () => {
@@ -162,7 +169,7 @@ describe('Contact Component', () => {
     expect(screen.getByPlaceholderText('your@email.com')).toHaveValue('')
     expect(screen.getByPlaceholderText('The subject of your message')).toHaveValue('')
     expect(screen.getByPlaceholderText('Your message...')).toHaveValue('')
-    expect(screen.getByDisplayValue('General inquiry')).toBeInTheDocument() // Reset to default
+    expect(screen.getByText('General inquiry')).toBeInTheDocument() // Reset to default
   })
 
   // 3. FORM VALIDATION (3 tests)
@@ -240,8 +247,9 @@ describe('Contact Component', () => {
     await user.type(screen.getByPlaceholderText('The subject of your message'), 'Important question')
     await user.type(screen.getByPlaceholderText('Your message...'), 'This is a test message avec suffisamment de caractères')
     
-    // Change contact reason
-    await user.selectOptions(screen.getByDisplayValue('General inquiry'), 'reservation')
+    // Change contact reason with SimpleSelect
+    await user.click(screen.getByText('General inquiry'))
+    await user.click(screen.getByText('Reservation'))
     
     // Submit form
     await user.click(screen.getByRole('button', { name: /Send message/i }))
@@ -266,20 +274,20 @@ describe('Contact Component', () => {
 
   test('should show loading state during form submission', async () => {
     const user = userEvent.setup()
-    
+
     // Mock loading state
     vi.mocked(useContactsStore).mockReturnValue({
       createMessage: mockCreateMessage,
       isLoading: true
     })
-    
+
     render(<ContactWrapper />)
-    
-    // Should show loading button
-    const submitButton = screen.getByRole('button')
+
+    // Should show loading button (use more specific query to get submit button)
+    const submitButton = screen.getByRole('button', { name: /Sending/i })
     expect(submitButton).toBeDisabled()
     expect(screen.getByText('Sending...')).toBeInTheDocument()
-    
+
     // Should show loading spinner
     expect(document.querySelector('.animate-spin')).toBeInTheDocument()
   })

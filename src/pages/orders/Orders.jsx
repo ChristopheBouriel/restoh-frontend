@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, Package, CheckCircle, XCircle, Eye, Star, MapPin } from 'lucide-react'
-import { toast } from 'react-hot-toast'
+import { Clock, Package, CheckCircle, XCircle, Eye } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import useOrdersStore from '../../store/ordersStore'
 
@@ -15,10 +14,6 @@ const Orders = () => {
     // Load orders for the logged-in user
     fetchOrders(false) // false = user (not admin)
   }, [fetchOrders])
-
-  const handleLeaveReview = () => {
-    toast.success('Review feature under development')
-  }
 
   const filteredOrders = orders.filter(order => 
     filter === 'all' || order.status === filter
@@ -155,33 +150,19 @@ const Orders = () => {
                         <Eye className="w-4 h-4" />
                         <span>{showDetails === order.id ? 'Hide' : 'View details'}</span>
                       </button>
-                      
-                      {order.status === 'delivered' && (
-                        <button 
-                          onClick={handleLeaveReview}
-                          className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-                        >
-                          <Star className="w-4 h-4" />
-                          <span>Leave a review</span>
-                        </button>
-                      )}
 
-                      {['preparing', 'ready'].includes(order.status) && (
-                        <button className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                          <MapPin className="w-4 h-4" />
-                          <span>Track</span>
-                        </button>
-                      )}
-
-                      {canCancelOrder(order) && (
-                        <button
-                          onClick={() => cancelOrder(order.id)}
-                          className="flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                        >
-                          <XCircle className="w-4 h-4" />
-                          <span>Cancel</span>
-                        </button>
-                      )}
+                      <button
+                        onClick={() => cancelOrder(order.id)}
+                        disabled={!canCancelOrder(order)}
+                        className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                          canCancelOrder(order)
+                            ? 'bg-red-600 text-white hover:bg-red-700'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        <XCircle className="w-4 h-4" />
+                        <span>Cancel</span>
+                      </button>
                     </div>
                   </div>
 

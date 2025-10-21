@@ -11,6 +11,7 @@ import useOrdersStore from '../../../store/ordersStore'
 const mockOrders = [
   {
     id: '1',
+    orderNumber: 'ORD-001',
     status: 'delivered',
     createdAt: '2024-01-15T10:30:00Z',
     totalPrice: 28.50,
@@ -21,10 +22,12 @@ const mockOrders = [
     deliveryAddress: '123 Rue de la Paix, Paris',
     phone: '0123456789',
     paymentMethod: 'card',
+    paymentStatus: 'paid',
     notes: 'Sonnez au 2ème étage'
   },
   {
     id: '2',
+    orderNumber: 'ORD-002',
     status: 'preparing',
     createdAt: '2024-01-20T14:15:00Z',
     totalPrice: 45.00,
@@ -35,10 +38,12 @@ const mockOrders = [
     ],
     deliveryAddress: '456 Avenue des Champs, Lyon',
     phone: '0987654321',
-    paymentMethod: 'cash'
+    paymentMethod: 'cash',
+    paymentStatus: 'pending'
   },
   {
     id: '3',
+    orderNumber: 'ORD-003',
     status: 'pending',
     createdAt: '2024-01-22T16:45:00Z',
     totalPrice: 19.50,
@@ -48,11 +53,13 @@ const mockOrders = [
     ],
     deliveryAddress: '789 Boulevard Saint-Germain, Paris',
     phone: '0147258369',
-    paymentMethod: 'card',
+    paymentMethod: 'cash',
+    paymentStatus: 'pending',
     notes: 'Delivery rapide svp'
   },
   {
     id: '4',
+    orderNumber: 'ORD-004',
     status: 'cancelled',
     createdAt: '2024-01-18T12:20:00Z',
     totalPrice: 32.00,
@@ -61,7 +68,8 @@ const mockOrders = [
       { name: 'Bruschetta', quantity: 2, price: 7.75 }
     ],
     deliveryAddress: '321 Rue de Rivoli, Paris',
-    paymentMethod: 'cash'
+    paymentMethod: 'cash',
+    paymentStatus: 'pending'
   }
 ]
 
@@ -87,7 +95,12 @@ describe('Orders Component', () => {
     vi.mocked(useOrders).mockReturnValue({
       orders: mockOrders,
       cancelOrder: mockCancelOrder,
-      canCancelOrder: (order) => ['pending', 'confirmed', 'preparing'].includes(order.status),
+      canCancelOrder: (order) => {
+        const allowedStatuses = ['pending', 'confirmed']
+        const isAllowedStatus = allowedStatuses.includes(order.status)
+        const isNotPaid = order.paymentStatus !== 'paid'
+        return isAllowedStatus && isNotPaid
+      },
       formatPrice: (price) => `${price.toFixed(2)}€`,
       formatDate: (dateStr) => new Date(dateStr).toLocaleDateString('fr-FR')
     })
@@ -128,9 +141,9 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Check order IDs
-    expect(screen.getByText('Command #1')).toBeInTheDocument()
-    expect(screen.getByText('Command #2')).toBeInTheDocument()
-    expect(screen.getByText('Command #3')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-001')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-002')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-003')).toBeInTheDocument()
     
     // Check order totals
     expect(screen.getByText('28.50€')).toBeInTheDocument()
@@ -181,9 +194,9 @@ describe('Orders Component', () => {
     await user.click(screen.getByRole('button', { name: 'Delivered' }))
     
     // Should only show delivered orders
-    expect(screen.getByText('Command #1')).toBeInTheDocument()
-    expect(screen.queryByText('Command #2')).not.toBeInTheDocument()
-    expect(screen.queryByText('Command #3')).not.toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-001')).toBeInTheDocument()
+    expect(screen.queryByText('Command #ORD-002')).not.toBeInTheDocument()
+    expect(screen.queryByText('Command #ORD-003')).not.toBeInTheDocument()
   })
 
   test('should show all orders when "All orders" is selected', async () => {
@@ -192,15 +205,15 @@ describe('Orders Component', () => {
     
     // First filter by delivered orders
     await user.click(screen.getByRole('button', { name: 'Delivered' }))
-    expect(screen.queryByText('Command #2')).not.toBeInTheDocument()
+    expect(screen.queryByText('Command #ORD-002')).not.toBeInTheDocument()
 
     // Then click "All orders"
     await user.click(screen.getByRole('button', { name: 'All orders' }))
 
     // Should show all orders again
-    expect(screen.getByText('Command #1')).toBeInTheDocument()
-    expect(screen.getByText('Command #2')).toBeInTheDocument()
-    expect(screen.getByText('Command #3')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-001')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-002')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-003')).toBeInTheDocument()
   })
 
   test('should update active filter button styling correctly', async () => {
@@ -262,34 +275,30 @@ describe('Orders Component', () => {
   })
 
   // 5. ORDER ACTIONS (3 tests)
-  test('should show cancel button only for cancelable orders', () => {
+  test('should show cancel button for all orders but disabled for non-cancelable ones', () => {
     render(<OrdersWrapper />)
-    
-    // Check that cancel button appears for pending and preparing orders
+
+    // Check that cancel button appears for all orders (4 total)
     const cancelButtons = screen.getAllByText('Cancel')
-    expect(cancelButtons).toHaveLength(2) // pending and preparing orders
-    
-    // Check that delivered and cancelled orders don't have cancel button
-    // This is tested by counting - delivered and cancelled orders shouldn't add to the count
+    expect(cancelButtons).toHaveLength(4)
+
+    // Check that only order 3 (pending + not paid) has an enabled cancel button
+    const enabledButtons = cancelButtons.filter(btn => !btn.closest('button').disabled)
+    expect(enabledButtons).toHaveLength(1) // Only order 3 (pending + not paid)
   })
 
   test('should call cancelOrder function when cancel button is clicked', async () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
-    
+
+    // Find the enabled cancel button (order 3 - pending + not paid)
     const cancelButtons = screen.getAllByText('Cancel')
-    await user.click(cancelButtons[0])
-    
+    const enabledButton = cancelButtons.find(btn => !btn.closest('button').disabled)
+
+    await user.click(enabledButton)
+
     expect(mockCancelOrder).toHaveBeenCalledTimes(1)
-    expect(mockCancelOrder).toHaveBeenCalledWith('2') // preparing order ID
-  })
-
-  test('should show review button only for delivered orders', () => {
-    render(<OrdersWrapper />)
-
-    // Only delivered orders should have "Leave a review" button
-    const reviewButtons = screen.getAllByText('Leave a review')
-    expect(reviewButtons).toHaveLength(1) // only one delivered order
+    expect(mockCancelOrder).toHaveBeenCalledWith('3') // order 3 ID
   })
 
   // 6. EMPTY STATE (1 test)
@@ -318,10 +327,10 @@ describe('Orders Component', () => {
     render(<OrdersWrapper />)
     
     // Should display all orders when data is available
-    expect(screen.getByText('Command #1')).toBeInTheDocument()
-    expect(screen.getByText('Command #2')).toBeInTheDocument()
-    expect(screen.getByText('Command #3')).toBeInTheDocument()
-    expect(screen.getByText('Command #4')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-001')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-002')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-003')).toBeInTheDocument()
+    expect(screen.getByText('Command #ORD-004')).toBeInTheDocument()
     
     // Should not show empty state
     expect(screen.queryByText('No orders found')).not.toBeInTheDocument()

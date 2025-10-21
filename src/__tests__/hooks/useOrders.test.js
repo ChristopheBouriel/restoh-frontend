@@ -234,16 +234,20 @@ describe('useOrders Hook', () => {
   // 4. BUSINESS LOGIC AND VALIDATION (2 tests)
   test('should determine order cancellation eligibility correctly', () => {
     const { result } = renderHook(() => useOrders())
-    
-    // Cancelable statuses
-    expect(result.current.canCancelOrder({ status: 'pending' })).toBe(true)
-    expect(result.current.canCancelOrder({ status: 'confirmed' })).toBe(true)
-    expect(result.current.canCancelOrder({ status: 'preparing' })).toBe(true)
-    
-    // Non-cancelable statuses
-    expect(result.current.canCancelOrder({ status: 'ready' })).toBe(false)
-    expect(result.current.canCancelOrder({ status: 'delivered' })).toBe(false)
-    expect(result.current.canCancelOrder({ status: 'cancelled' })).toBe(false)
+
+    // Cancelable: pending OR confirmed AND not paid
+    expect(result.current.canCancelOrder({ status: 'pending', paymentStatus: 'pending' })).toBe(true)
+    expect(result.current.canCancelOrder({ status: 'confirmed', paymentStatus: 'pending' })).toBe(true)
+
+    // Non-cancelable: paid orders even if pending/confirmed
+    expect(result.current.canCancelOrder({ status: 'pending', paymentStatus: 'paid' })).toBe(false)
+    expect(result.current.canCancelOrder({ status: 'confirmed', paymentStatus: 'paid' })).toBe(false)
+
+    // Non-cancelable: other statuses regardless of payment
+    expect(result.current.canCancelOrder({ status: 'preparing', paymentStatus: 'pending' })).toBe(false)
+    expect(result.current.canCancelOrder({ status: 'ready', paymentStatus: 'pending' })).toBe(false)
+    expect(result.current.canCancelOrder({ status: 'delivered', paymentStatus: 'paid' })).toBe(false)
+    expect(result.current.canCancelOrder({ status: 'cancelled', paymentStatus: 'pending' })).toBe(false)
   })
 
   test('should filter recent orders within 30 days', () => {

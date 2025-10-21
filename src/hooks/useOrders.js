@@ -63,8 +63,12 @@ export const useOrders = () => {
 
   // Function to determine if an order can be cancelled
   const canCancelOrder = (order) => {
-    // Only pending orders can be cancelled by users
-    return order.status === 'pending'
+    // Backend rules: only 'pending' or 'confirmed' AND not paid
+    const allowedStatuses = ['pending', 'confirmed']
+    const isAllowedStatus = allowedStatuses.includes(order.status)
+    const isNotPaid = order.paymentStatus !== 'paid'
+
+    return isAllowedStatus && isNotPaid
   }
 
   // Function to get recent orders (last 30 days)

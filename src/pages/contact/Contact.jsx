@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Phone, Mail, MapPin, Clock, Send, MessageSquare } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useContactsStore from '../../store/contactsStore'
+import SimpleSelect from '../../components/common/SimpleSelect'
 
 const Contact = () => {
   const { createMessage, isLoading } = useContactsStore()
@@ -200,18 +201,12 @@ const Contact = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Reason for contact
                   </label>
-                  <select
-                    name="contactReason"
+                  <SimpleSelect
+                    options={contactReasons}
                     value={formData.contactReason}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    {contactReasons.map(reason => (
-                      <option key={reason.value} value={reason.value}>
-                        {reason.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData(prev => ({ ...prev, contactReason: value }))}
+                    className="w-full"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
