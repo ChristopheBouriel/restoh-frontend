@@ -167,13 +167,13 @@ describe('OrdersManagement Component', () => {
     expect(screen.getByText(/Deleted user.*Paid in progress/)).toBeInTheDocument()
     expect(screen.getByText(/Deleted user.*Unpaid/)).toBeInTheDocument()
 
-    // Statistics cards
+    // Statistics cards - now shows: Total orders, Pending, In progress, Ready Orders (no Revenue)
     expect(screen.getByText('Total orders')).toBeInTheDocument()
     expect(screen.getByText('4')).toBeInTheDocument() // Total orders
     expect(screen.getAllByText('Pending')).toHaveLength(8) // Appears in stats + filter options + order selects
     expect(screen.getByText('In progress')).toBeInTheDocument()
-    expect(screen.getByText('Revenue')).toBeInTheDocument()
-    expect(screen.getAllByText('18,00 €')).toHaveLength(3) // Revenue appears in stats + order totals
+    expect(screen.getByText('Ready Orders')).toBeInTheDocument()
+    // Revenue card was removed - now displays Ready Orders instead
   })
 
   test('should display loading state when isLoading is true', () => {
@@ -211,8 +211,8 @@ describe('OrdersManagement Component', () => {
     expect(screen.getByText('No orders have been placed yet.')).toBeInTheDocument()
     
     // Should show empty statistics (use getAllByText since "0" appears multiple times)
-    expect(screen.getAllByText('0')).toHaveLength(3) // Total, pending, in progress
-    expect(screen.getByText('0,00 €')).toBeInTheDocument() // Revenue
+    expect(screen.getAllByText('0')).toHaveLength(4) // Total, Pending, In progress, Ready Orders
+    // Revenue card was removed, so no "0,00 €" check needed
   })
 
   // 2. FILTERING SYSTEM (3 tests)
@@ -463,7 +463,7 @@ describe('OrdersManagement Component', () => {
     // Verify statistics display matches mock data
     expect(screen.getByText('4')).toBeInTheDocument() // Total orders
     expect(screen.getByText('3')).toBeInTheDocument() // In progress (confirmed + preparing = 1 + 2)
-    expect(screen.getAllByText('18,00 €')).toHaveLength(3) // Revenue appears in stats + order totals
+    expect(screen.getAllByText('18,00 €')).toHaveLength(2) // Only in order totals (Revenue card was removed)
     
     // Verify getOrdersStats was called
     expect(mockGetOrdersStats).toHaveBeenCalled()

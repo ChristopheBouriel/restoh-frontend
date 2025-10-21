@@ -66,7 +66,7 @@ describe('Login Component', () => {
       // Demo credentials
       expect(screen.getByText('Demo accounts:')).toBeInTheDocument()
       expect(screen.getByText('🔐 Admin : admin@restoh.com / admin123')).toBeInTheDocument()
-      expect(screen.getByText('👤 Client : test@example.com / password123')).toBeInTheDocument()
+      expect(screen.getByText('👤 Client : demo@test.com / 123456')).toBeInTheDocument()
     })
 
     test('should have proper form structure and attributes', () => {
@@ -377,10 +377,10 @@ describe('Login Component', () => {
   describe('Demo Credentials Section', () => {
     test('should display demo credentials with correct formatting', () => {
       render(<LoginWrapper />)
-      
+
       expect(screen.getByText('Demo accounts:')).toBeInTheDocument()
       expect(screen.getByText('🔐 Admin : admin@restoh.com / admin123')).toBeInTheDocument()
-      expect(screen.getByText('👤 Client : test@example.com / password123')).toBeInTheDocument()
+      expect(screen.getByText('👤 Client : demo@test.com / 123456')).toBeInTheDocument()
     })
 
     test('should have proper styling for demo credentials section', () => {

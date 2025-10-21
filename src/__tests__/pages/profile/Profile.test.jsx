@@ -29,9 +29,12 @@ describe('Profile Component', () => {
     name: 'Jean Dupont',
     email: 'jean@example.com',
     phone: '0123456789',
-    address: '123 Rue de la République',
-    city: 'Paris',
-    postalCode: '75001',
+    address: {
+      street: '123 Rue de la République',
+      city: 'Paris',
+      zipCode: '75001',
+      state: 'Île-de-France'
+    },
     notifications: {
       orderConfirmations: true,
       reservationReminders: true,
@@ -120,7 +123,7 @@ describe('Profile Component', () => {
   describe('Personal Information Tab - Display Mode', () => {
     it('should display all user profile fields', () => {
       render(<Profile />)
-      
+
       // Check tous les champs du profil
       expect(screen.getByDisplayValue('Jean Dupont')).toBeInTheDocument()
       expect(screen.getByDisplayValue('jean@example.com')).toBeInTheDocument()
@@ -128,6 +131,7 @@ describe('Profile Component', () => {
       expect(screen.getByDisplayValue('123 Rue de la République')).toBeInTheDocument()
       expect(screen.getByDisplayValue('Paris')).toBeInTheDocument()
       expect(screen.getByDisplayValue('75001')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Île-de-France')).toBeInTheDocument()
     })
 
     it('should show notification preferences as checkboxes', () => {
@@ -267,9 +271,12 @@ describe('Profile Component', () => {
           name: 'Pierre Martin',
           email: 'jean@example.com',
           phone: '0123456789',
-          address: '123 Rue de la République',
-          city: 'Paris',
-          postalCode: '75001',
+          address: {
+            street: '123 Rue de la République',
+            city: 'Paris',
+            zipCode: '75001',
+            state: 'Île-de-France'
+          },
           notifications: {
             orderConfirmations: true,
             reservationReminders: true,

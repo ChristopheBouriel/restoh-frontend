@@ -94,7 +94,7 @@ describe('Auth Store', () => {
       const { result } = renderHook(() => useAuthStore())
       
       expect(result.current.user).toBeNull()
-      expect(result.current.token).toBeNull()
+      // Token is now stored in HTTP-only cookies, not in state
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.isLoading).toBe(false)
       expect(result.current.error).toBeNull()
@@ -154,7 +154,7 @@ describe('Auth Store', () => {
         role: 'client'
       })
       expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.token).toBe('mock-jwt-token')
+      // Token is now stored in HTTP-only cookies, not in state
       expect(loginResult.success).toBe(true)
     })
 
@@ -186,7 +186,7 @@ describe('Auth Store', () => {
         role: 'admin'
       })
       expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.token).toBe('admin-jwt-token')
+      // Token is now stored in HTTP-only cookies, not in state
       expect(loginResult.success).toBe(true)
     })
 
@@ -218,7 +218,7 @@ describe('Auth Store', () => {
         role: 'user'
       })
       expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.token).toBe('client-jwt-token')
+      // Token is now stored in HTTP-only cookies, not in state
       expect(loginResult.success).toBe(true)
     })
 
@@ -273,7 +273,7 @@ describe('Auth Store', () => {
         role: 'client'
       })
       expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.token).toBe('mock-jwt-token')
+      // Token is now stored in HTTP-only cookies, not in state
       expect(registerResult.success).toBe(true)
     })
 
@@ -338,7 +338,7 @@ describe('Auth Store', () => {
       // Set logged in user
       act(() => {
         result.current.setUser({ id: '1', name: 'Test User' })
-        result.current.setToken('test-token')
+        // Token is now stored in HTTP-only cookies, not in state
       })
 
       expect(result.current.isAuthenticated).toBe(true)
@@ -349,7 +349,7 @@ describe('Auth Store', () => {
 
       expect(mockLogout).toHaveBeenCalled()
       expect(result.current.user).toBeNull()
-      expect(result.current.token).toBeNull()
+      // Token is now stored in HTTP-only cookies, not in state
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.error).toBeNull()
     })
@@ -363,7 +363,7 @@ describe('Auth Store', () => {
       // Set logged in user
       act(() => {
         result.current.setUser({ id: '123', email: 'user@example.com', name: 'Test User' })
-        result.current.setToken('user-token')
+        // Token is now stored in HTTP-only cookies, not in state
       })
 
       let deleteResult
@@ -373,7 +373,7 @@ describe('Auth Store', () => {
 
       expect(mockDeleteAccount).toHaveBeenCalledWith({ password: 'password123' })
       expect(result.current.user).toBeNull()
-      expect(result.current.token).toBeNull()
+      // Token is now stored in HTTP-only cookies, not in state
       expect(result.current.isAuthenticated).toBe(false)
       expect(deleteResult.success).toBe(true)
     })

@@ -206,7 +206,8 @@ describe('Checkout Component', () => {
       phone: '0123456789',
       notes: 'Ring at 2nd',
       orderType: 'delivery',
-      paymentMethod: 'card'
+      paymentMethod: 'card',
+      paymentStatus: 'paid' // Card payments are automatically paid
     })
     
     expect(mockClearCart).toHaveBeenCalled()

@@ -80,7 +80,8 @@ describe('useReservations Hook', () => {
     })
 
     vi.mocked(useReservationsStore).mockReturnValue({
-      reservations: mockReservations,
+      // Backend filters reservations by user, so store only contains user's reservations
+      reservations: mockReservations.filter(r => r.userId === 'user-1'),
       createReservation: mockCreateReservation,
       updateReservationStatus: mockUpdateReservationStatus,
       getReservationsByUser: mockGetReservationsByUser,
@@ -105,6 +106,14 @@ describe('useReservations Hook', () => {
   // 1. ÉTAT INITIAL ET CALCULS (4 tests)
   test('should return empty reservations when user is not authenticated', () => {
     vi.mocked(useAuth).mockReturnValue({ user: null })
+    // When not authenticated, backend returns empty array
+    vi.mocked(useReservationsStore).mockReturnValue({
+      reservations: [],
+      createReservation: mockCreateReservation,
+      updateReservationStatus: mockUpdateReservationStatus,
+      getReservationsByUser: mockGetReservationsByUser,
+      getUpcomingReservations: vi.fn()
+    })
 
     const { result } = renderHook(() => useReservations())
 
@@ -163,16 +172,12 @@ describe('useReservations Hook', () => {
       createResult = await result.current.createReservation(reservationData)
     })
 
+    // Only reservation data is sent - user info is attached by backend auth middleware
     expect(mockCreateReservation).toHaveBeenCalledWith({
       date: '2025-03-15',
       time: '19:00',
       guests: 4,
-      requests: 'Quiet table',
-      specialRequests: 'Quiet table',
-      userId: 'user-1',
-      userEmail: 'test@example.com',
-      userName: 'Test User',
-      phone: '123456789'
+      requests: 'Quiet table'
     })
 
     expect(toast.success).toHaveBeenCalledWith('Reservation created successfully!')
@@ -242,21 +247,24 @@ describe('useReservations Hook', () => {
     // Valid data
     const validData = {
       date: '2025-03-15',
-      time: '19:00',
-      guests: 4
+      slot: 5, // Time slot number
+      guests: 4,
+      contactPhone: '0123456789'
     }
     expect(result.current.validateReservationData(validData)).toEqual([])
 
     // Invalid data - missing fields
     const invalidData = {
       date: '',
-      time: '',
-      guests: 0
+      slot: null,
+      guests: 0,
+      contactPhone: ''
     }
     const errors = result.current.validateReservationData(invalidData)
     expect(errors).toContain('Date is required')
-    expect(errors).toContain('Time is required')
+    expect(errors).toContain('Time slot is required')
     expect(errors).toContain('Number of guests must be at least 1')
+    expect(errors).toContain('Contact phone is required')
   })
 
   test('should reject past dates in validation', () => {
@@ -329,8 +337,9 @@ describe('useReservations Hook', () => {
 
     const errors = result.current.validateReservationData({})
     expect(errors).toContain('Date is required')
-    expect(errors).toContain('Time is required')
+    expect(errors).toContain('Time slot is required')
     expect(errors).toContain('Number of guests must be at least 1')
+    expect(errors).toContain('Contact phone is required')
   })
 
   // 6. TESTS D'AUTHENTIFICATION POUR TOUTES LES ACTIONS (1 test additionnel)

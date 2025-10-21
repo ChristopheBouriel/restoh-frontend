@@ -53,7 +53,7 @@ const mockExistingOrders = [
     totalPrice: 15.00,
     status: 'delivered',
     paymentMethod: 'card',
-    isPaid: true,
+    paymentStatus: 'paid',
     createdAt: '2024-01-20T10:00:00Z',
     updatedAt: '2024-01-20T12:00:00Z',
     notes: 'Delivered successfully'
@@ -69,7 +69,7 @@ const mockExistingOrders = [
     totalPrice: 18.00,
     status: 'preparing',
     paymentMethod: 'cash',
-    isPaid: false,
+    paymentStatus: 'pending',
     createdAt: '2024-01-21T14:30:00Z',
     updatedAt: '2024-01-21T14:30:00Z',
     notes: 'Cash payment pending'
@@ -85,7 +85,7 @@ const mockExistingOrders = [
     totalPrice: 16.50,
     status: 'cancelled',
     paymentMethod: 'card',
-    isPaid: true,
+    paymentStatus: 'paid',
     createdAt: '2024-01-19T09:15:00Z',
     updatedAt: '2024-01-19T11:00:00Z',
     notes: 'Cancelled by customer'
@@ -394,17 +394,17 @@ describe('ordersStore', () => {
 
   test('should return correct revenue from delivered orders only', () => {
     const ordersWithMixedStatus = [
-      { ...mockExistingOrders[0], status: 'delivered', totalPrice: 20.00 },
-      { ...mockExistingOrders[1], status: 'delivered', totalPrice: 25.00 },
-      { ...mockExistingOrders[2], status: 'cancelled', totalPrice: 30.00 }, // Should not count
-      { id: 'order-004', status: 'preparing', totalPrice: 15.00, isPaid: true } // Should not count
+      { ...mockExistingOrders[0], status: 'delivered', totalPrice: 20.00, paymentStatus: 'paid' },
+      { ...mockExistingOrders[1], status: 'delivered', totalPrice: 25.00, paymentStatus: 'paid' },
+      { ...mockExistingOrders[2], status: 'cancelled', totalPrice: 30.00, paymentStatus: 'paid' }, // Should not count
+      { id: 'order-004', status: 'preparing', totalPrice: 15.00, paymentStatus: 'paid' } // Should not count
     ]
-    
+
     useOrdersStore.setState({ orders: ordersWithMixedStatus })
     const store = useOrdersStore.getState()
-    
+
     const stats = store.getOrdersStats()
-    
+
     expect(stats.totalRevenue).toBe(45.00) // Only 20.00 + 25.00 from delivered orders
     expect(stats.delivered).toBe(2)
     expect(stats.cancelled).toBe(1)
