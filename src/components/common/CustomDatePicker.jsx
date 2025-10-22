@@ -333,17 +333,19 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
           {/* Header avec navigation */}
           <div className="flex items-center justify-between mb-4">
             <button
+              type="button"
               onClick={goToPreviousMonth}
               className="p-1 rounded-md hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-colors"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            
+
             <h3 className="text-sm font-semibold text-gray-900">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h3>
-            
+
             <button
+              type="button"
               onClick={goToNextMonth}
               className="p-1 rounded-md hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-colors"
             >
@@ -390,14 +392,16 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
           {/* Actions */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-200">
             <button
+              type="button"
               onClick={goToToday}
               className="text-xs text-orange-600 hover:text-orange-800 font-medium"
             >
               Today
             </button>
-            
+
             {selectedDate && (
               <button
+                type="button"
                 onClick={clearDate}
                 className="text-xs text-gray-500 hover:text-gray-700 font-medium flex items-center space-x-1"
               >

@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast'
 import { useReservations } from '../../hooks/useReservations'
 import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
+import TableMap from '../../components/reservations/TableMap'
 import { TIME_SLOTS, getLabelFromSlot } from '../../constants/reservationSlots'
 
 const Reservations = () => {
@@ -13,6 +14,7 @@ const Reservations = () => {
   const [partySize, setPartySize] = useState(2)
   const [contactPhone, setContactPhone] = useState('')
   const [specialRequests, setSpecialRequests] = useState('')
+  const [selectedTables, setSelectedTables] = useState([])
   const [editingId, setEditingId] = useState(null)
 
   // Pre-fill phone from user profile
@@ -66,6 +68,16 @@ const Reservations = () => {
     }
   }
 
+  const handleTableSelect = (tableId) => {
+    setSelectedTables(prev => {
+      if (prev.includes(tableId)) {
+        return prev.filter(id => id !== tableId)
+      } else {
+        return [...prev, tableId]
+      }
+    })
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -75,7 +87,7 @@ const Reservations = () => {
       guests: partySize,
       contactPhone: contactPhone,
       specialRequest: specialRequests.trim() || null,
-      tableNumber: [] // Empty array by default, assigned by admin later
+      tableNumber: selectedTables // Send selected tables array
     }
 
     // Validation
@@ -92,6 +104,7 @@ const Reservations = () => {
       setSelectedDate('')
       setSelectedSlotId(null)
       setPartySize(2)
+      setSelectedTables([])
       if (!user?.phone) {
         setContactPhone('')
       }
@@ -108,6 +121,7 @@ const Reservations = () => {
     setPartySize(reservation.guests)
     setContactPhone(reservation.contactPhone || '')
     setSpecialRequests(reservation.specialRequests || '')
+    setSelectedTables(reservation.tableNumber || [])
     toast.info('Edit mode enabled - use the form above')
   }
 
@@ -124,7 +138,7 @@ const Reservations = () => {
       guests: partySize,
       contactPhone: contactPhone,
       specialRequest: specialRequests.trim() || null,
-      tableNumber: [] // Empty array by default, assigned by admin later
+      tableNumber: selectedTables // Send selected tables array
     }
 
     // Validation
@@ -141,6 +155,7 @@ const Reservations = () => {
       setSelectedDate('')
       setSelectedSlotId(null)
       setPartySize(2)
+      setSelectedTables([])
       if (!user?.phone) {
         setContactPhone('')
       }
@@ -163,9 +178,9 @@ const Reservations = () => {
           <p className="text-gray-600">Book a table and manage your reservations</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* New Reservation */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 max-w-full overflow-hidden">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
               <Plus className="w-5 h-5 mr-2" />
               New reservation
@@ -179,22 +194,67 @@ const Reservations = () => {
                   </p>
                 </div>
               )}
-              {/* Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="w-4 h-4 inline mr-2" />
-                  Date
-                </label>
-                <CustomDatePicker
-                  value={selectedDate}
-                  onChange={setSelectedDate}
-                  minDate={today}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Select a date"
-                />
+              {/* Date, Guests, and Phone - Side by side on tablet/laptop */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Calendar className="w-4 h-4 inline mr-2" />
+                    Date
+                  </label>
+                  <CustomDatePicker
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    minDate={today}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Select a date"
+                  />
+                </div>
+
+                {/* Number of guests */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Users className="w-4 h-4 inline mr-2" />
+                    Number of guests
+                  </label>
+                  <div className="flex items-center w-full border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent bg-white overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setPartySize(Math.max(1, partySize - 1))}
+                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-colors font-bold text-lg h-full"
+                    >
+                      -
+                    </button>
+                    <span className="flex-1 text-xl font-semibold text-gray-900 text-center">
+                      {partySize}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPartySize(partySize + 1)}
+                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-colors font-bold text-lg h-full"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contact Phone */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Contact Phone *
+                  </label>
+                  <input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="06 12 34 56 78"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
               </div>
 
-              {/* Heure */}
+              {/* Time */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   <Clock className="w-4 h-4 inline mr-2" />
@@ -218,45 +278,15 @@ const Reservations = () => {
                 </div>
               </div>
 
-              {/* Nombre de personnes */}
+              {/* Table Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Users className="w-4 h-4 inline mr-2" />
-                  Number of guests
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Select Tables (Optional)
                 </label>
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setPartySize(Math.max(1, partySize - 1))}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                  >
-                    -
-                  </button>
-                  <span className="text-xl font-semibold w-12 text-center">
-                    {partySize}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setPartySize(partySize + 1)}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Contact Phone */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Phone *
-                </label>
-                <input
-                  type="tel"
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="06 12 34 56 78"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                <TableMap
+                  selectedTables={selectedTables}
+                  onTableSelect={handleTableSelect}
+                  occupiedTables={[]}
                 />
               </div>
 
@@ -291,6 +321,7 @@ const Reservations = () => {
                       setSelectedDate('')
                       setSelectedSlotId(null)
                       setPartySize(2)
+                      setSelectedTables([])
                       if (!user?.phone) {
                         setContactPhone('')
                       } else {
@@ -309,7 +340,7 @@ const Reservations = () => {
           </div>
 
           {/* My Reservations */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               My reservations
             </h2>
