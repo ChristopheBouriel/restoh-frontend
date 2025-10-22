@@ -26,11 +26,11 @@ const mockReservations = [
   },
   {
     id: '2',
-    userId: 'user-1', 
+    userId: 'user-1',
     date: '2025-01-10',
     time: '20:00',
     guests: 2,
-    status: 'pending',
+    status: 'confirmed',
     specialRequests: ''
   },
   {
@@ -64,7 +64,8 @@ vi.mock('react-hot-toast', () => ({
 }))
 
 const mockCreateReservation = vi.fn()
-const mockUpdateReservationStatus = vi.fn()
+const mockUpdateReservation = vi.fn()
+const mockCancelReservation = vi.fn()
 const mockGetReservationsByUser = vi.fn()
 
 describe('useReservations Hook', () => {
@@ -83,19 +84,21 @@ describe('useReservations Hook', () => {
       // Backend filters reservations by user, so store only contains user's reservations
       reservations: mockReservations.filter(r => r.userId === 'user-1'),
       createReservation: mockCreateReservation,
-      updateReservationStatus: mockUpdateReservationStatus,
+      updateReservation: mockUpdateReservation,
+      cancelReservation: mockCancelReservation,
       getReservationsByUser: mockGetReservationsByUser,
       getUpcomingReservations: vi.fn()
     })
 
     // Mock getReservationsByUser to return user's reservations
-    mockGetReservationsByUser.mockImplementation((userId) => 
+    mockGetReservationsByUser.mockImplementation((userId) =>
       mockReservations.filter(r => r.userId === userId)
     )
 
     // Mock successful operations by default
     mockCreateReservation.mockResolvedValue({ success: true })
-    mockUpdateReservationStatus.mockResolvedValue({ success: true })
+    mockUpdateReservation.mockResolvedValue({ success: true })
+    mockCancelReservation.mockResolvedValue({ success: true })
   })
 
   afterEach(() => {
@@ -110,7 +113,8 @@ describe('useReservations Hook', () => {
     vi.mocked(useReservationsStore).mockReturnValue({
       reservations: [],
       createReservation: mockCreateReservation,
-      updateReservationStatus: mockUpdateReservationStatus,
+      updateReservation: mockUpdateReservation,
+      cancelReservation: mockCancelReservation,
       getReservationsByUser: mockGetReservationsByUser,
       getUpcomingReservations: vi.fn()
     })
@@ -121,7 +125,7 @@ describe('useReservations Hook', () => {
     expect(result.current.upcomingReservations).toEqual([])
     expect(result.current.totalReservations).toBe(0)
     expect(result.current.confirmedReservations).toBe(0)
-    expect(result.current.pendingReservations).toBe(0)
+    expect(result.current.completedReservations).toBe(0)
   })
 
   test('should filter reservations for authenticated user only', () => {
@@ -152,8 +156,8 @@ describe('useReservations Hook', () => {
     const { result } = renderHook(() => useReservations())
 
     expect(result.current.totalReservations).toBe(3)
-    expect(result.current.confirmedReservations).toBe(1)
-    expect(result.current.pendingReservations).toBe(1)
+    expect(result.current.confirmedReservations).toBe(2) // Both future reservations are confirmed
+    expect(result.current.completedReservations).toBe(0)
   })
 
   // 2. ACTIONS CRÉER/MODIFIER/SUPPRIMER (4 tests)
@@ -209,7 +213,7 @@ describe('useReservations Hook', () => {
 
     const reservationData = {
       date: '2025-03-20',
-      time: '20:00',
+      slot: 8,
       guests: 6,
       requests: 'Modification'
     }
@@ -218,7 +222,7 @@ describe('useReservations Hook', () => {
       await result.current.updateReservation('1', reservationData)
     })
 
-    expect(mockUpdateReservationStatus).toHaveBeenCalledWith('1', 'pending')
+    expect(mockUpdateReservation).toHaveBeenCalledWith('1', reservationData)
     expect(toast.success).toHaveBeenCalledWith('Reservation updated successfully!')
   })
 
@@ -236,8 +240,8 @@ describe('useReservations Hook', () => {
 
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
     expect(cancelResult).toBe(true)
-    expect(mockUpdateReservationStatus).toHaveBeenCalledWith('1', 'cancelled')
-    expect(toast.success).toHaveBeenCalledWith('Reservation cancelled')
+    expect(mockCancelReservation).toHaveBeenCalledWith('1')
+    expect(toast.success).toHaveBeenCalledWith('Reservation cancelled successfully')
   })
 
   // 3. VALIDATION ET GESTION D'ERREURS (3 tests) 
@@ -329,7 +333,7 @@ describe('useReservations Hook', () => {
 
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
     expect(cancelResult).toBe(false)
-    expect(mockUpdateReservationStatus).not.toHaveBeenCalled()
+    expect(mockCancelReservation).not.toHaveBeenCalled()
   })
 
   test('should handle empty reservation data', () => {

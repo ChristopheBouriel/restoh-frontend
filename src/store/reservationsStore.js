@@ -2,6 +2,15 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as reservationsApi from '../api/reservationsApi'
 
+// Normalize reservation ID (_id from MongoDB to id for frontend)
+const normalizeReservation = (reservation) => {
+  if (!reservation) return reservation
+  return {
+    ...reservation,
+    id: reservation._id || reservation.id
+  }
+}
+
 const useReservationsStore = create(
   persist(
     (set, get) => ({
@@ -28,7 +37,7 @@ const useReservationsStore = create(
 
           if (result.success) {
             set({
-              reservations: result.data || [],
+              reservations: (result.data || []).map(normalizeReservation),
               isLoading: false,
               error: null
             })
@@ -86,12 +95,12 @@ const useReservationsStore = create(
 
           if (result.success) {
             // Add new reservation to state directly
-            const newReservation = result.data
+            const newReservation = normalizeReservation(result.data)
             set({
               reservations: [...get().reservations, newReservation],
               isLoading: false
             })
-            return { success: true, reservationId: newReservation._id || newReservation.id }
+            return { success: true, reservationId: newReservation.id }
           } else {
             set({
               error: result.error,
@@ -169,6 +178,74 @@ const useReservationsStore = create(
         }
       },
 
+      // Update user's own reservation
+      updateReservation: async (reservationId, reservationData) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await reservationsApi.updateReservation(reservationId, reservationData)
+
+          if (result.success) {
+            // Update the reservation in state
+            const updatedReservation = normalizeReservation(result.data)
+            set({
+              reservations: get().reservations.map(r =>
+                r.id === reservationId ? updatedReservation : r
+              ),
+              isLoading: false
+            })
+            return { success: true, reservation: updatedReservation }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error updating reservation'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      // Cancel user's own reservation
+      cancelReservation: async (reservationId) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await reservationsApi.cancelReservation(reservationId)
+
+          if (result.success) {
+            // Update the reservation status in state
+            const updatedReservation = normalizeReservation(result.data)
+            set({
+              reservations: get().reservations.map(r =>
+                r.id === reservationId ? updatedReservation : r
+              ),
+              isLoading: false
+            })
+            return { success: true, reservation: updatedReservation }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error canceling reservation'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
       // Getters (local computations on loaded data)
       getReservationsByStatus: (status) => {
         return get().reservations.filter(reservation => reservation.status === status)
@@ -209,14 +286,13 @@ const useReservationsStore = create(
 
         return {
           total: reservations.length,
-          pending: reservations.filter(r => r.status === 'pending').length,
           confirmed: reservations.filter(r => r.status === 'confirmed').length,
           seated: reservations.filter(r => r.status === 'seated').length,
           completed: reservations.filter(r => r.status === 'completed').length,
           cancelled: reservations.filter(r => r.status === 'cancelled').length,
           todayTotal: todaysReservations.length,
-          todayPending: todaysReservations.filter(r => r.status === 'pending').length,
           todayConfirmed: todaysReservations.filter(r => r.status === 'confirmed').length,
+          todaySeated: todaysReservations.filter(r => r.status === 'seated').length,
           totalGuests: reservations
             .filter(r => ['confirmed', 'seated', 'completed'].includes(r.status))
             .reduce((sum, reservation) => sum + reservation.guests, 0),

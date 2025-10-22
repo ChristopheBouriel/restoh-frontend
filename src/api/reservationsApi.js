@@ -67,3 +67,23 @@ export const assignTable = async (reservationId, tableNumber) => {
     return { success: false, error: error.error || 'Error assigning table' }
   }
 }
+
+// Update user's own reservation
+export const updateReservation = async (reservationId, reservationData) => {
+  try {
+    const response = await apiClient.put(`/reservations/${reservationId}`, reservationData)
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error updating reservation' }
+  }
+}
+
+// Cancel user's own reservation
+export const cancelReservation = async (reservationId) => {
+  try {
+    const response = await apiClient.delete(`/reservations/${reservationId}`)
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error canceling reservation' }
+  }
+}

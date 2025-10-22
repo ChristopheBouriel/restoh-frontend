@@ -39,11 +39,17 @@ const Reservations = () => {
           color: 'text-green-600 bg-green-50',
           icon: CheckCircle
         }
-      case 'pending':
+      case 'seated':
         return {
-          label: 'Pending',
-          color: 'text-yellow-600 bg-yellow-50',
-          icon: AlertCircle
+          label: 'Seated',
+          color: 'text-blue-600 bg-blue-50',
+          icon: CheckCircle
+        }
+      case 'completed':
+        return {
+          label: 'Completed',
+          color: 'text-gray-600 bg-gray-50',
+          icon: CheckCircle
         }
       case 'cancelled':
         return {
@@ -342,22 +348,25 @@ const Reservations = () => {
                         </span>
                       </div>
 
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => handleEdit(reservation)}
-                          className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                        >
-                          <Edit className="w-3 h-3" />
-                          <span>Edit</span>
-                        </button>
-                        <button 
-                          onClick={() => handleCancelReservation(reservation.id)}
-                          className="flex items-center space-x-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span>Cancel</span>
-                        </button>
-                      </div>
+                      {/* Only show action buttons for confirmed reservations */}
+                      {reservation.status === 'confirmed' && (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEdit(reservation)}
+                            className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                          >
+                            <Edit className="w-3 h-3" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleCancelReservation(reservation.id)}
+                            className="flex items-center space-x-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )
                 })

@@ -22,7 +22,7 @@ const mockReservations = [
     date: '2025-01-20',
     time: '20:30',
     guests: 2,
-    status: 'pending',
+    status: 'confirmed',
     specialRequests: ''
   }
 ]
@@ -119,11 +119,10 @@ describe('Reservations Component', () => {
     // Check special requests
     expect(screen.getByText('📝 Table by the window')).toBeInTheDocument()
     
-    // Check status badges
-    expect(screen.getByText('Confirmed')).toBeInTheDocument()
-    expect(screen.getByText('Pending')).toBeInTheDocument()
-    
-    // Check action buttons
+    // Check status badges - both reservations are confirmed
+    expect(screen.getAllByText('Confirmed')).toHaveLength(2)
+
+    // Check action buttons - only shown for confirmed reservations
     expect(screen.getAllByText('Edit')).toHaveLength(2)
     expect(screen.getAllByText('Cancel')).toHaveLength(2)
   })

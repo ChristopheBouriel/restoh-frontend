@@ -7,13 +7,13 @@ export const useReservations = () => {
   const {
     reservations: allReservations,
     createReservation,
-    updateReservationStatus
+    updateReservation,
+    cancelReservation
   } = useReservationsStore()
 
   // Backend already filters reservations by user (via auth middleware)
   // No need to filter again on frontend
   const userReservations = allReservations
-
 
   const handleCreateReservation = async (reservationData) => {
     if (!user) {
@@ -37,21 +37,26 @@ export const useReservations = () => {
     }
   }
 
-  const handleUpdateReservation = async (reservationId) => {
+  const handleUpdateReservation = async (reservationId, reservationData) => {
     if (!user) {
       toast.error('You must be logged in to update a reservation')
       throw new Error('User not authenticated')
     }
 
     try {
-      const result = await updateReservationStatus(reservationId, 'pending') // Reset to pending for re-validation
+      // Backend will validate:
+      // - Only 'confirmed' reservations can be updated
+      // - Must be at least 1h before original time
+      // - New time must be at least 1h from now
+      const result = await updateReservation(reservationId, reservationData)
       if (result.success) {
         toast.success('Reservation updated successfully!')
+        return result
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast.error('Error updating reservation')
+      toast.error(error.message || 'Error updating reservation')
       throw error
     }
   }
@@ -63,15 +68,19 @@ export const useReservations = () => {
     }
 
     try {
-      const result = await updateReservationStatus(reservationId, 'cancelled')
+      // Backend will validate:
+      // - Only 'confirmed' reservations can be cancelled
+      // - Must be at least 2h before reservation time
+      const result = await cancelReservation(reservationId)
 
       if (result.success) {
-        toast.success('Reservation cancelled')
+        toast.success('Reservation cancelled successfully')
+        return result
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast.error('Error cancelling reservation')
+      toast.error(error.message || 'Error cancelling reservation')
       throw error
     }
   }
@@ -91,6 +100,43 @@ export const useReservations = () => {
 
   const formatDateTime = (date, time) => {
     return `${formatDate(date)} at ${time}`
+  }
+
+  // Business rules helpers
+  const canEditReservation = (reservation) => {
+    // Can only edit 'confirmed' reservations
+    if (reservation.status !== 'confirmed') {
+      return { canEdit: false, reason: 'Only confirmed reservations can be edited' }
+    }
+
+    // Must be at least 1h before reservation time
+    const now = new Date()
+    const reservationDateTime = new Date(`${reservation.date}T${reservation.time || '00:00'}:00`)
+    const hoursUntilReservation = (reservationDateTime - now) / (1000 * 60 * 60)
+
+    if (hoursUntilReservation < 1) {
+      return { canEdit: false, reason: 'Cannot edit less than 1 hour before reservation time' }
+    }
+
+    return { canEdit: true }
+  }
+
+  const canCancelReservation = (reservation) => {
+    // Can only cancel 'confirmed' reservations
+    if (reservation.status !== 'confirmed') {
+      return { canCancel: false, reason: 'Only confirmed reservations can be cancelled' }
+    }
+
+    // Must be at least 2h before reservation time
+    const now = new Date()
+    const reservationDateTime = new Date(`${reservation.date}T${reservation.time || '00:00'}:00`)
+    const hoursUntilReservation = (reservationDateTime - now) / (1000 * 60 * 60)
+
+    if (hoursUntilReservation < 2) {
+      return { canCancel: false, reason: 'Cannot cancel less than 2 hours before reservation time' }
+    }
+
+    return { canCancel: true }
   }
 
   // Validation
@@ -144,10 +190,12 @@ export const useReservations = () => {
     formatDate,
     formatDateTime,
     validateReservationData,
+    canEditReservation,
+    canCancelReservation,
 
     // User statistics
     totalReservations: userReservations.length,
     confirmedReservations: userReservations.filter(r => r.status === 'confirmed').length,
-    pendingReservations: userReservations.filter(r => r.status === 'pending').length
+    completedReservations: userReservations.filter(r => r.status === 'completed').length
   }
 }
