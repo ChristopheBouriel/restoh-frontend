@@ -17,12 +17,17 @@ export const getAvailableTables = async (date, slot, capacity) => {
       }
     })
 
+    const data = response.data.data || response.data
+    const availableTables = data.availableTables || data.available || []
+    const occupiedTables = data.occupiedTables || data.occupied || []
+
     return {
       success: true,
-      availableTables: response.data.availableTables || [],
-      occupiedTables: response.data.occupiedTables || []
+      availableTables,
+      occupiedTables
     }
   } catch (error) {
+    console.error('❌ API Error:', error)
     return {
       success: false,
       error: error.response?.data?.error || error.message || 'Error fetching available tables',

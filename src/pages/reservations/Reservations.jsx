@@ -49,10 +49,10 @@ const Reservations = () => {
         } else {
           // If error, show all tables as available (optimistic approach)
           setOccupiedTables([])
-          console.error('Error fetching available tables:', result.error)
+          console.error('❌ Error fetching available tables:', result.error)
         }
       } catch (error) {
-        console.error('Error fetching available tables:', error)
+        console.error('❌ Exception fetching available tables:', error)
         setOccupiedTables([])
       } finally {
         setIsLoadingTables(false)

@@ -63,9 +63,11 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], isL
   }
 
   const getTableStatus = (tableId) => {
-    if (occupiedTables.includes(tableId)) return 'occupied'
-    if (selectedTables.includes(tableId)) return 'selected'
-    return 'available'
+    const status = occupiedTables.includes(tableId) ? 'occupied'
+      : selectedTables.includes(tableId) ? 'selected'
+      : 'available'
+
+    return status
   }
 
   const getTableStyle = (status, isHovered) => {
