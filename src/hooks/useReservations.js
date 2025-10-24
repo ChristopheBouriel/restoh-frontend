@@ -159,6 +159,10 @@ export const useReservations = () => {
       errors.push('Contact phone is required')
     }
 
+    if (!data.tableNumber || !Array.isArray(data.tableNumber) || data.tableNumber.length === 0) {
+      errors.push('At least one table must be selected')
+    }
+
     // Check that date is not in the past
     const today = new Date()
     today.setHours(0, 0, 0, 0)

@@ -319,7 +319,7 @@ const Reservations = () => {
               {/* Table Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Select Tables (Optional)
+                  Select Tables *
                 </label>
                 {!selectedDate || selectedSlotId === null ? (
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
@@ -354,7 +354,7 @@ const Reservations = () => {
               <div className="flex space-x-2">
                 <button
                   type="submit"
-                  disabled={!selectedDate || !selectedSlotId || !contactPhone.trim()}
+                  disabled={!selectedDate || !selectedSlotId || !contactPhone.trim() || selectedTables.length === 0}
                   className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {editingId ? '✏️ Update' : '🗓️ Book'}
