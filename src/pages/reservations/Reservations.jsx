@@ -6,6 +6,7 @@ import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
 import { TIME_SLOTS, getLabelFromSlot } from '../../constants/reservationSlots'
+import { getAvailableTables } from '../../api/tablesApi'
 
 const Reservations = () => {
   const { user } = useAuthStore()
@@ -15,6 +16,8 @@ const Reservations = () => {
   const [contactPhone, setContactPhone] = useState('')
   const [specialRequests, setSpecialRequests] = useState('')
   const [selectedTables, setSelectedTables] = useState([])
+  const [occupiedTables, setOccupiedTables] = useState([])
+  const [isLoadingTables, setIsLoadingTables] = useState(false)
   const [editingId, setEditingId] = useState(null)
 
   // Pre-fill phone from user profile
@@ -23,6 +26,41 @@ const Reservations = () => {
       setContactPhone(user.phone)
     }
   }, [user])
+
+  // Fetch available tables when date and slot are selected
+  useEffect(() => {
+    const fetchAvailableTables = async () => {
+      // Only fetch if both date and slot are selected
+      if (!selectedDate || selectedSlotId === null) {
+        setOccupiedTables([])
+        return
+      }
+
+      setIsLoadingTables(true)
+      try {
+        const result = await getAvailableTables(selectedDate, selectedSlotId, partySize)
+
+        if (result.success) {
+          setOccupiedTables(result.occupiedTables)
+          // Clear selected tables if any of them are now occupied
+          setSelectedTables(prev =>
+            prev.filter(tableId => !result.occupiedTables.includes(tableId))
+          )
+        } else {
+          // If error, show all tables as available (optimistic approach)
+          setOccupiedTables([])
+          console.error('Error fetching available tables:', result.error)
+        }
+      } catch (error) {
+        console.error('Error fetching available tables:', error)
+        setOccupiedTables([])
+      } finally {
+        setIsLoadingTables(false)
+      }
+    }
+
+    fetchAvailableTables()
+  }, [selectedDate, selectedSlotId, partySize])
 
   // Use reservations hook with persistence
   const {
@@ -283,11 +321,20 @@ const Reservations = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Select Tables (Optional)
                 </label>
-                <TableMap
-                  selectedTables={selectedTables}
-                  onTableSelect={handleTableSelect}
-                  occupiedTables={[]}
-                />
+                {!selectedDate || selectedSlotId === null ? (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                    <p className="text-sm text-orange-800">
+                      📅 Please select a date and time slot to view available tables
+                    </p>
+                  </div>
+                ) : (
+                  <TableMap
+                    selectedTables={selectedTables}
+                    onTableSelect={handleTableSelect}
+                    occupiedTables={occupiedTables}
+                    isLoading={isLoadingTables}
+                  />
+                )}
               </div>
 
               {/* Demandes spéciales */}

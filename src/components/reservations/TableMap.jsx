@@ -54,7 +54,7 @@ const DECORATIONS = [
   { id: 'bar', type: 'bar', x: 480, y: 80, width: 60, height: 330 }
 ]
 
-const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [] }) => {
+const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], isLoading = false }) => {
   const [hoveredTable, setHoveredTable] = useState(null)
 
   const handleTableClick = (tableId) => {
@@ -90,7 +90,17 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [] }) =
   }
 
   return (
-    <div className="bg-gray-50 rounded-lg p-2 sm:p-4">
+    <div className="bg-gray-50 rounded-lg p-2 sm:p-4 relative">
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg z-10 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent"></div>
+            <p className="mt-2 text-sm text-gray-600">Loading tables...</p>
+          </div>
+        </div>
+      )}
+
       {/* Legend */}
       <div className="mb-3 flex flex-wrap gap-2 sm:gap-4 text-xs">
         <div className="flex items-center gap-1 sm:gap-2">
@@ -108,7 +118,7 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [] }) =
       </div>
 
       {/* Floor Plan - Responsive container */}
-      <div className="flex justify-center w-full overflow-x-auto pb-4">
+      <div className="flex justify-center w-full overflow-x-auto pt-4">
         <div className="inline-block">
           <div
             className="relative bg-white rounded-lg border-2 border-orange-500 overflow-hidden origin-top"
@@ -192,7 +202,7 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [] }) =
               {/* Box decoration if needed */}
               {table.isBox && (
                 <div
-                  className="absolute border-2 border-dashed border-purple-400 bg-purple-50 rounded-lg"
+                  className="absolute border-2 border-dashed border-orange-400 bg-orange-50 rounded-lg"
                   style={{
                     left: `${table.x - 15}px`,
                     top: `${table.y - 35}px`,
@@ -200,7 +210,7 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [] }) =
                     height: `${height + 55}px`
                   }}
                 >
-                  <div className="text-xs font-semibold text-purple-700 text-center mt-1">
+                  <div className="text-xs font-semibold text-orange-700 text-center mt-1">
                     Box {table.id === 21 ? '1' : '2'}
                   </div>
                 </div>
@@ -208,6 +218,7 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [] }) =
 
               {/* Table */}
               <button
+                type="button"
                 onClick={() => handleTableClick(table.id)}
                 onMouseEnter={() => setHoveredTable(table.id)}
                 onMouseLeave={() => setHoveredTable(null)}

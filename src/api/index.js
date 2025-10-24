@@ -14,13 +14,15 @@ import * as menuApi from './menuApi'
 import * as ordersApi from './ordersApi'
 import * as reservationsApi from './reservationsApi'
 import * as contactsApi from './contactsApi'
+import * as tablesApi from './tablesApi'
 
 export {
   authApi,
   menuApi,
   ordersApi,
   reservationsApi,
-  contactsApi
+  contactsApi,
+  tablesApi
 }
 
 // Default export for alternative usage
@@ -29,5 +31,6 @@ export default {
   menu: menuApi,
   orders: ordersApi,
   reservations: reservationsApi,
-  contacts: contactsApi
+  contacts: contactsApi,
+  tables: tablesApi
 }
