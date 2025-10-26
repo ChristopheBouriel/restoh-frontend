@@ -305,7 +305,7 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
           placeholder="DD/MM/YYYY"
-          className="flex-1 px-3 py-1.5 text-xs bg-transparent border-none outline-none text-gray-900 placeholder-gray-500"
+          className="flex-1 px-3 py-0.5 text-s bg-transparent border-none outline-none text-gray-900 placeholder-gray-500"
         />
         
         {/* Bouton calendrier */}

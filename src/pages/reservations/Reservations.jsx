@@ -263,7 +263,7 @@ const Reservations = () => {
                     >
                       -
                     </button>
-                    <span className="flex-1 text-xl font-semibold text-gray-900 text-center">
+                    <span className="flex-1 text-l text-gray-900 text-center">
                       {partySize}
                     </span>
                     <button
@@ -287,7 +287,7 @@ const Reservations = () => {
                     onChange={(e) => setContactPhone(e.target.value)}
                     placeholder="06 12 34 56 78"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -485,9 +485,13 @@ const Reservations = () => {
               Weekend: 12:00 PM - 11:00 PM
             </div>
             <div>
-              <strong>Cancellation policy:</strong>
+              <strong>Cancellation/Modification policy:</strong>
               <br />
               Free cancellation up to 2 hours before reservation.
+              <br />
+              Modification must be done at least one hour before before the original time.
+              <br />
+              New reservation time must be at least 1 hour from the moment of your modification.
               <br />
               For groups of 6+ people, please call.
             </div>

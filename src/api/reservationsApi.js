@@ -51,7 +51,7 @@ export const createReservation = async (reservationData) => {
 // Update reservation status (ADMIN)
 export const updateReservationStatus = async (reservationId, status) => {
   try {
-    const response = await apiClient.patch(`/reservations/${reservationId}/status`, { status })
+    const response = await apiClient.patch(`/reservations/admin/${reservationId}/status`, { status })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error updating status' }
@@ -61,7 +61,7 @@ export const updateReservationStatus = async (reservationId, status) => {
 // Assign a table to a reservation (ADMIN)
 export const assignTable = async (reservationId, tableNumber) => {
   try {
-    const response = await apiClient.patch(`/reservations/${reservationId}/table`, { tableNumber })
+    const response = await apiClient.patch(`/reservations/admin/${reservationId}/table`, { tableNumber })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error assigning table' }

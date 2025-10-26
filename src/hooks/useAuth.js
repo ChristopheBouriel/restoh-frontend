@@ -17,13 +17,16 @@ export const useAuth = () => {
     updateProfile,
     deleteAccount,
     changePassword,
-    clearError
+    clearError,
+    fetchCurrentUser
   } = useAuthStore()
 
   const handleLogin = async (credentials) => {
     const result = await login(credentials)
-    
+
     if (result.success) {
+      // Fetch complete user profile data after login
+      await fetchCurrentUser()
       toast.success('Successfully logged in!')
       navigate(ROUTES.HOME)
       return true
@@ -35,8 +38,10 @@ export const useAuth = () => {
 
   const handleRegister = async (userData) => {
     const result = await register(userData)
-    
+
     if (result.success) {
+      // Fetch complete user profile data after registration
+      await fetchCurrentUser()
       toast.success('Registration successful! Welcome!')
       navigate(ROUTES.HOME)
       return true
