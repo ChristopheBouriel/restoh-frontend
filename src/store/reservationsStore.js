@@ -290,6 +290,7 @@ const useReservationsStore = create(
           seated: reservations.filter(r => r.status === 'seated').length,
           completed: reservations.filter(r => r.status === 'completed').length,
           cancelled: reservations.filter(r => r.status === 'cancelled').length,
+          noShow: reservations.filter(r => r.status === 'no-show').length,
           todayTotal: todaysReservations.length,
           todayConfirmed: todaysReservations.filter(r => r.status === 'confirmed').length,
           todaySeated: todaysReservations.filter(r => r.status === 'seated').length,

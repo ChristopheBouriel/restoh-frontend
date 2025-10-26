@@ -29,7 +29,9 @@ export const ORDER_STATUS = {
 }
 
 export const RESERVATION_STATUS = {
-  PENDING: 'pending',
   CONFIRMED: 'confirmed',
-  CANCELLED: 'cancelled'
+  SEATED: 'seated',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  NO_SHOW: 'no-show'
 }

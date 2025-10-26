@@ -97,6 +97,12 @@ const Reservations = () => {
           color: 'text-red-600 bg-red-50',
           icon: AlertCircle
         }
+      case 'no-show':
+        return {
+          label: 'No-show',
+          color: 'text-orange-600 bg-orange-50',
+          icon: AlertCircle
+        }
       default:
         return {
           label: 'Unknown',

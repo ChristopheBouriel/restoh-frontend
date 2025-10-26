@@ -34,3 +34,27 @@ export const getLabelFromSlot = (slotNumber) => {
 export const getSlotByNumber = (slotNumber) => {
   return TIME_SLOTS.find(s => s.slot === slotNumber) || null
 }
+
+/**
+ * Check if reservation time has passed
+ * @param {string} reservationDate - Date in YYYY-MM-DD format
+ * @param {number} slotNumber - Slot number
+ * @returns {boolean} True if reservation time has passed
+ */
+export const isReservationTimePassed = (reservationDate, slotNumber) => {
+  if (!reservationDate || !slotNumber) return false
+
+  const slot = getSlotByNumber(slotNumber)
+  if (!slot) return false
+
+  // Parse the time from slot label (format: "HH:MM")
+  const [hours, minutes] = slot.label.split(':').map(Number)
+
+  // Create reservation datetime
+  const reservationDateTime = new Date(reservationDate)
+  reservationDateTime.setHours(hours, minutes, 0, 0)
+
+  // Compare with current time
+  const now = new Date()
+  return now > reservationDateTime
+}

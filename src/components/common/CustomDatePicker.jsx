@@ -136,8 +136,22 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
   // Aller à aujourd'hui
   const goToToday = () => {
     const today = new Date()
+
+    // Vérifier les contraintes min/max
+    if (minDate && today < new Date(minDate)) return
+    if (maxDate && today > new Date(maxDate)) return
+
     setCurrentDate(today)
-    selectDate(today.getDate())
+    setSelectedDate(today)
+    setInputValue(formatDateForInput(today))
+
+    // Format as YYYY-MM-DD avoiding timezone issues
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const dayPart = String(today.getDate()).padStart(2, '0')
+    const formattedDate = `${year}-${month}-${dayPart}`
+    onChange(formattedDate)
+    setIsOpen(false)
   }
 
   // Effacer la sélection

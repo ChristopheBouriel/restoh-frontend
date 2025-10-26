@@ -3,6 +3,7 @@ import { Eye, Users, Calendar, Clock, MapPin } from 'lucide-react'
 import useReservationsStore from '../../store/reservationsStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
+import { isReservationTimePassed } from '../../constants/reservationSlots'
 
 const ReservationsManagement = () => {
   const {
@@ -30,11 +31,11 @@ const ReservationsManagement = () => {
   // Options pour les filtres
   const statusOptions = [
     { value: 'all', label: 'All statuses' },
-    { value: 'pending', label: 'Pending' },
     { value: 'confirmed', label: 'Confirmed' },
     { value: 'seated', label: 'Seated' },
     { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' }
+    { value: 'cancelled', label: 'Cancelled' },
+    { value: 'no-show', label: 'No-show' }
   ]
 
   const dateOptions = [
@@ -44,13 +45,34 @@ const ReservationsManagement = () => {
     { value: 'past', label: 'Past' }
   ]
 
-  const newStatusOptions = [
-    { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'seated', label: 'Seated' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' }
-  ]
+  // Generate status options based on reservation time
+  const getStatusOptionsForReservation = (reservation) => {
+    const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
+    const timeRestrictedReason = 'Only available after reservation time'
+
+    return [
+      { value: 'confirmed', label: 'Confirmed' },
+      {
+        value: 'seated',
+        label: 'Seated',
+        disabled: !timePassed,
+        disabledReason: timeRestrictedReason
+      },
+      {
+        value: 'completed',
+        label: 'Completed',
+        disabled: !timePassed,
+        disabledReason: timeRestrictedReason
+      },
+      { value: 'cancelled', label: 'Cancelled' },
+      {
+        value: 'no-show',
+        label: 'No-show',
+        disabled: !timePassed,
+        disabledReason: timeRestrictedReason
+      }
+    ]
+  }
 
   // Fonction de filtrage
   const filteredReservations = reservations.filter(reservation => {
@@ -126,11 +148,11 @@ const ReservationsManagement = () => {
   // Fonction pour obtenir la couleur du badge selon le statut
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
       case 'confirmed': return 'bg-blue-100 text-blue-800'
       case 'seated': return 'bg-purple-100 text-purple-800'
       case 'completed': return 'bg-green-100 text-green-800'
       case 'cancelled': return 'bg-red-100 text-red-800'
+      case 'no-show': return 'bg-orange-100 text-orange-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -138,11 +160,11 @@ const ReservationsManagement = () => {
   // Fonction pour obtenir le libellé du statut
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'pending': return 'Pending'
       case 'confirmed': return 'Confirmed'
       case 'seated': return 'Seated'
       case 'completed': return 'Completed'
       case 'cancelled': return 'Cancelled'
+      case 'no-show': return 'No-show'
       default: return status
     }
   }
@@ -156,33 +178,14 @@ const ReservationsManagement = () => {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Row 1 - General Stats */}
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-blue-500 mr-3" />
+            <Calendar className="h-8 w-8 text-gray-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Total</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-yellow-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-blue-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Confirmed</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.confirmed}</p>
             </div>
           </div>
         </div>
@@ -209,10 +212,62 @@ const ReservationsManagement = () => {
 
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
-            <Users className="h-8 w-8 text-orange-500 mr-3" />
+            <Users className="h-8 w-8 text-green-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Today's guests</p>
               <p className="text-2xl font-bold text-gray-900">{stats.todayGuests}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2 - Status Stats */}
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 text-blue-500 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Confirmed</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.confirmed}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <Users className="h-8 w-8 text-purple-500 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Seated</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.seated}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <Calendar className="h-8 w-8 text-green-500 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 text-red-500 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Cancelled</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.cancelled}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 3 - Problem Stats */}
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 text-orange-500 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">No-show</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.noShow || 0}</p>
             </div>
           </div>
         </div>
@@ -379,7 +434,7 @@ const ReservationsManagement = () => {
                           <SimpleSelect
                             value={reservation.status}
                             onChange={(newStatus) => handleStatusChange(reservation.id, newStatus)}
-                            options={newStatusOptions}
+                            options={getStatusOptionsForReservation(reservation)}
                             className="w-[110px]"
                           />
                         </div>
@@ -411,7 +466,7 @@ const ReservationsManagement = () => {
                       <SimpleSelect
                         value={reservation.status}
                         onChange={(newStatus) => handleStatusChange(reservation.id, newStatus)}
-                        options={newStatusOptions}
+                        options={getStatusOptionsForReservation(reservation)}
                         className="w-[110px]"
                       />
                     </div>

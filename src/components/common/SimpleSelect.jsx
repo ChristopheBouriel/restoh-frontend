@@ -62,25 +62,37 @@ const SimpleSelect = ({ value, onChange, options = [], className = '', disabled 
 
       {isOpen && !disabled && (
         <div className={`absolute top-0 left-0 bg-white border-2 border-primary-500 rounded-lg shadow-lg z-50 ${className || 'w-auto min-w-[100px]'}`}>
-          {options.map((option) => (
-            <div
-              key={option.value}
-              className={`px-3 ${sizeClasses[size]} cursor-pointer transition-colors ${
-                value === option.value ? 'text-primary-600' : 'text-gray-900 hover:text-primary-600 hover:font-semibold'
-              }`}
-              onClick={() => {
-                onChange(option.value)
-                setIsOpen(false)
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <span>{option.label}</span>
-                {value === option.value && (
-                  <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
-                )}
+          {options.map((option) => {
+            const isDisabled = option.disabled || false
+            const disabledReason = option.disabledReason || ''
+
+            return (
+              <div
+                key={option.value}
+                title={isDisabled ? disabledReason : ''}
+                className={`px-3 ${sizeClasses[size]} transition-colors ${
+                  isDisabled
+                    ? 'cursor-not-allowed text-gray-400 bg-gray-50'
+                    : value === option.value
+                      ? 'cursor-pointer text-primary-600'
+                      : 'cursor-pointer text-gray-900 hover:text-primary-600 hover:font-semibold'
+                }`}
+                onClick={() => {
+                  if (!isDisabled) {
+                    onChange(option.value)
+                    setIsOpen(false)
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{option.label}</span>
+                  {value === option.value && !isDisabled && (
+                    <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
