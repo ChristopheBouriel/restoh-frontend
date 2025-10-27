@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Filter, Trash2 } from 'lucide-react'
 import useOrdersStore from '../../store/ordersStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
@@ -7,14 +7,12 @@ import ImageWithFallback from '../../components/common/ImageWithFallback'
 import { toast } from 'react-hot-toast'
 
 const OrdersManagement = () => {
-  const {
-    orders = [],
-    isLoading,
-    fetchOrders,
-    updateOrderStatus,
-    deleteOrder,
-    getOrdersStats
-  } = useOrdersStore()
+  const orders = useOrdersStore((state) => state.orders || [])
+  const isLoading = useOrdersStore((state) => state.isLoading)
+  const fetchOrders = useOrdersStore((state) => state.fetchOrders)
+  const updateOrderStatus = useOrdersStore((state) => state.updateOrderStatus)
+  const deleteOrder = useOrdersStore((state) => state.deleteOrder)
+  const getOrdersStats = useOrdersStore((state) => state.getOrdersStats)
 
   const [filterStatus, setFilterStatus] = useState('all')
   const [startDate, setStartDate] = useState('')
@@ -86,8 +84,8 @@ const OrdersManagement = () => {
     return statusMatch && dateMatch
   })
 
-  // Statistiques
-  const stats = getOrdersStats()
+  // Recalculate stats whenever orders change
+  const stats = useMemo(() => getOrdersStats(), [orders, getOrdersStats])
 
   // Handle status change
   const handleStatusChange = async (orderId, newStatus) => {
@@ -223,6 +221,7 @@ const OrdersManagement = () => {
                 { value: 'cancelled', label: 'Cancelled' }
               ]}
               className="w-full"
+              size="md"
             />
           </div>
           <div>
