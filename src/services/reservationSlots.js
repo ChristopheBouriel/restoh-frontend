@@ -50,9 +50,14 @@ export const isReservationTimePassed = (reservationDate, slotNumber) => {
   // Parse the time from slot label (format: "HH:MM")
   const [hours, minutes] = slot.label.split(':').map(Number)
 
-  // Create reservation datetime
-  const reservationDateTime = new Date(reservationDate)
-  reservationDateTime.setHours(hours, minutes, 0, 0)
+  // Parse date safely in local timezone (avoid UTC conversion)
+  const dateParts = reservationDate.split('T')[0].split('-')
+  const year = parseInt(dateParts[0], 10)
+  const month = parseInt(dateParts[1], 10) - 1 // Month is 0-indexed
+  const day = parseInt(dateParts[2], 10)
+
+  // Create reservation datetime in local timezone
+  const reservationDateTime = new Date(year, month, day, hours, minutes, 0, 0)
 
   // Compare with current time
   const now = new Date()
