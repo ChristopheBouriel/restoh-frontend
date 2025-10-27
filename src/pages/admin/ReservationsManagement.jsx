@@ -171,12 +171,46 @@ const ReservationsManagement = () => {
     }
   }
 
+  // Fonction helper pour déterminer la couleur de fond des réservations d'utilisateurs supprimés
+  const getDeletedUserRowClass = (reservation) => {
+    // Regex pattern to match deleted user emails: deleted-{id}@account.com
+    const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
+
+    // Check if user is deleted (by email pattern or userId)
+    const isDeletedUser = deletedEmailPattern.test(reservation.userEmail) || reservation.userId === 'deleted-user'
+
+    if (!isDeletedUser) {
+      return 'hover:bg-gray-50' // Comportement normal
+    }
+
+    // Check if reservation time has passed
+    const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
+
+    // Cas d'utilisateur supprimé
+    if (reservation.status === 'completed' || reservation.status === 'cancelled' || reservation.status === 'no-show') {
+      // Cas n°1 : Statuts finaux - gris clair
+      return 'bg-gray-100 hover:bg-gray-200'
+    } else if (!timePassed) {
+      // Cas n°2 : Date future (pas encore passée) - rouge clair
+      return 'bg-red-50 hover:bg-red-100'
+    } else {
+      // Cas n°3 : Date passée mais pas encore terminé - orange clair
+      return 'bg-orange-50 hover:bg-orange-100'
+    }
+  }
+
   return (
     <div className="p-6">
       {/* En-tête */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Reservations Management</h1>
         <p className="text-gray-600">Manage all restaurant reservations</p>
+        <div className="mt-3 text-xs text-gray-500">
+          <strong>Color codes:</strong>
+          <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Completed/Cancelled/No-show
+          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Upcoming reservation
+          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Past reservation not completed
+        </div>
       </div>
 
       {/* Statistiques */}
@@ -388,7 +422,7 @@ const ReservationsManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredReservations.map((reservation) => (
-                    <tr key={reservation.id} className="hover:bg-gray-50">
+                    <tr key={reservation.id} className={getDeletedUserRowClass(reservation)}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
@@ -457,7 +491,7 @@ const ReservationsManagement = () => {
             {/* Vue Mobile/Tablet - Cards */}
             <div className="lg:hidden divide-y divide-gray-200">
               {filteredReservations.map((reservation) => (
-                <div key={reservation.id} className="p-4 hover:bg-gray-50">
+                <div key={reservation.id} className={`p-4 ${getDeletedUserRowClass(reservation)}`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <button
