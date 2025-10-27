@@ -5,7 +5,7 @@ import { useReservations } from '../../hooks/useReservations'
 import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
-import { TIME_SLOTS, getLabelFromSlot } from '../../constants/reservationSlots'
+import { TIME_SLOTS, getLabelFromSlot } from '../../services/reservationSlots'
 import { getAvailableTables } from '../../api/tablesApi'
 
 const Reservations = () => {

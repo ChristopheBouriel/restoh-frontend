@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Eye, Users, Calendar, Clock, MapPin } from 'lucide-react'
 import useReservationsStore from '../../store/reservationsStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
-import { isReservationTimePassed } from '../../constants/reservationSlots'
+import { isReservationTimePassed } from '../../services/reservationSlots'
+import { getTodayLocalDate, normalizeDateString } from '../../utils/dateUtils'
 
 const ReservationsManagement = () => {
-  const {
-    reservations,
-    fetchReservations,
-    updateReservationStatus,
-    assignTable,
-    getReservationsStats
-  } = useReservationsStore()
+  const reservations = useReservationsStore((state) => state.reservations)
+  const fetchReservations = useReservationsStore((state) => state.fetchReservations)
+  const updateReservationStatus = useReservationsStore((state) => state.updateReservationStatus)
+  const assignTable = useReservationsStore((state) => state.assignTable)
+  const getReservationsStats = useReservationsStore((state) => state.getReservationsStats)
 
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
@@ -26,7 +25,8 @@ const ReservationsManagement = () => {
     fetchReservations(true)
   }, [fetchReservations])
 
-  const stats = getReservationsStats()
+  // Recalculate stats whenever reservations change
+  const stats = useMemo(() => getReservationsStats(), [reservations, getReservationsStats])
 
   // Options pour les filtres
   const statusOptions = [
@@ -77,32 +77,34 @@ const ReservationsManagement = () => {
   // Fonction de filtrage
   const filteredReservations = reservations.filter(reservation => {
     const statusMatch = statusFilter === 'all' || reservation.status === statusFilter
-    
+
     let dateMatch = true
+    // Normalize reservation date to YYYY-MM-DD
+    const reservationDateStr = normalizeDateString(reservation.date)
     const reservationDate = new Date(reservation.date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
     // Vérifier d'abord si on utilise la période (date range)
     const hasDateRange = startDate || endDate
-    
+
     if (hasDateRange) {
       // Utiliser le filtrage par période
       if (startDate && endDate) {
         // Les deux dates sont définies
-        dateMatch = reservation.date >= startDate && reservation.date <= endDate
+        dateMatch = reservationDateStr >= startDate && reservationDateStr <= endDate
       } else if (startDate) {
         // Seulement la date de début
-        dateMatch = reservation.date >= startDate
+        dateMatch = reservationDateStr >= startDate
       } else if (endDate) {
         // Seulement la date de fin
-        dateMatch = reservation.date <= endDate
+        dateMatch = reservationDateStr <= endDate
       }
     } else {
       // Utiliser le filtrage par date simple (existant)
       if (dateFilter === 'today') {
-        const todayStr = today.toISOString().split('T')[0]
-        dateMatch = reservation.date === todayStr
+        const todayStr = getTodayLocalDate()
+        dateMatch = reservationDateStr === todayStr
       } else if (dateFilter === 'upcoming') {
         dateMatch = reservationDate >= today
       } else if (dateFilter === 'past') {
@@ -286,6 +288,7 @@ const ReservationsManagement = () => {
               onChange={setStatusFilter}
               options={statusOptions}
               className="w-full"
+              size="md"
             />
           </div>
           <div>
@@ -297,6 +300,7 @@ const ReservationsManagement = () => {
               onChange={setDateFilter}
               options={dateOptions}
               className="w-full"
+              size="md"
               disabled={startDate || endDate}
             />
           </div>

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as reservationsApi from '../api/reservationsApi'
+import { getTodayLocalDate, normalizeDateString } from '../utils/dateUtils'
 
 // Normalize reservation ID (_id from MongoDB to id for frontend)
 const normalizeReservation = (reservation) => {
@@ -281,8 +282,14 @@ const useReservationsStore = create(
       // Statistics (computed locally)
       getReservationsStats: () => {
         const reservations = get().reservations
-        const today = new Date().toISOString().split('T')[0]
-        const todaysReservations = reservations.filter(r => r.date === today)
+        const today = getTodayLocalDate()
+
+        // Normalize dates before comparison
+        const todaysReservations = reservations.filter(r => {
+          if (!r.date) return false
+          const reservationDate = normalizeDateString(r.date)
+          return reservationDate === today
+        })
 
         return {
           total: reservations.length,
