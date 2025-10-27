@@ -81,7 +81,7 @@ export const changePassword = async (currentPassword, newPassword) => {
 // Delete account (GDPR)
 export const deleteAccount = async (password) => {
   try {
-    const response = await apiClient.delete('/auth/account', {
+    const response = await apiClient.delete('/auth/delete-account', {
       data: { password }
     })
     return { success: true, ...response }

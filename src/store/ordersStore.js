@@ -28,6 +28,8 @@ const useOrdersStore = create(
           id: _id || order.id,
           // Price normalization
           totalPrice: order.totalPrice ?? 0,
+          // Payment status normalization
+          paymentStatus: order.paymentStatus || 'pending',
           // User info normalization (handle both populated and plain formats)
           userId: order.userId || user?._id || 'unknown',
           userName: order.userName || user?.name || 'Unknown',

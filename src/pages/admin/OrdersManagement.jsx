@@ -38,19 +38,40 @@ const OrdersManagement = () => {
 
   // Fonction helper pour déterminer la couleur de fond des commandes d'utilisateurs supprimés
   const getDeletedUserRowClass = (order) => {
-    if (order.userId !== 'deleted-user') {
+    // Regex pattern to match deleted user emails: deleted-{id}@account.com
+    const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
+
+    // Check if user is deleted (by email pattern or userId)
+    const isDeletedUser = deletedEmailPattern.test(order.userEmail) || order.userId === 'deleted-user'
+
+    // Debug logging for deleted users
+    if (isDeletedUser) {
+      console.log('🔍 Deleted user order found:', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        userId: order.userId,
+        userEmail: order.userEmail,
+        status: order.status,
+        paymentStatus: order.paymentStatus
+      })
+    }
+
+    if (!isDeletedUser) {
       return 'hover:bg-gray-50' // Comportement normal
     }
 
     // Cas d'utilisateur supprimé
     if (order.status === 'delivered' || order.status === 'cancelled') {
       // Cas n°1 : Livré ou annulé - gris clair mais plus foncé que la pastille
+      console.log('→ Applying GRAY (delivered/cancelled)')
       return 'bg-gray-100 hover:bg-gray-200'
     } else if (order.paymentStatus === 'paid') {
       // Cas n°2 : Payé avec autre statut - orange clair
+      console.log('→ Applying ORANGE (paid, in progress)')
       return 'bg-orange-50 hover:bg-orange-100'
     } else {
-      // Cas n°3 : Non payé avec autre statut - rouge très clair
+      // Cas n°3 : Non payé et autre statut - rouge très clair
+      console.log('→ Applying RED (unpaid, in progress)')
       return 'bg-red-50 hover:bg-red-100'
     }
   }
@@ -152,8 +173,8 @@ const OrdersManagement = () => {
         <div className="mt-3 text-xs text-gray-500">
           <strong>Color codes:</strong>
           <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Delivered/Cancelled
-          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Paid in progress
-          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid
+          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Paid order in progress
+          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid order in progress
         </div>
       </div>
 
@@ -319,7 +340,7 @@ const OrdersManagement = () => {
                       <tr key={order.id} className={getDeletedUserRowClass(order)}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {order.id}
+                            #{order.orderNumber}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -396,7 +417,7 @@ const OrdersManagement = () => {
                     {/* Header de la card */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-900">#{order.id}</span>
+                        <span className="text-sm font-medium text-gray-900">#{order.orderNumber}</span>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {statusConfig[order.status]?.label}
