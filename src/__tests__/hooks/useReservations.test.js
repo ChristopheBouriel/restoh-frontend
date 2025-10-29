@@ -253,7 +253,8 @@ describe('useReservations Hook', () => {
       date: '2025-03-15',
       slot: 5, // Time slot number
       guests: 4,
-      contactPhone: '0123456789'
+      contactPhone: '0123456789',
+      tableNumber: [12] // At least one table must be selected
     }
     expect(result.current.validateReservationData(validData)).toEqual([])
 
@@ -262,13 +263,15 @@ describe('useReservations Hook', () => {
       date: '',
       slot: null,
       guests: 0,
-      contactPhone: ''
+      contactPhone: '',
+      tableNumber: []
     }
     const errors = result.current.validateReservationData(invalidData)
     expect(errors).toContain('Date is required')
     expect(errors).toContain('Time slot is required')
     expect(errors).toContain('Number of guests must be at least 1')
     expect(errors).toContain('Contact phone is required')
+    expect(errors).toContain('At least one table must be selected')
   })
 
   test('should reject past dates in validation', () => {

@@ -82,9 +82,11 @@ describe('Reservations Component', () => {
     expect(screen.getByText('Time')).toBeInTheDocument()
     expect(screen.getByText('18:00')).toBeInTheDocument() // Time slots
     // Party size - should show default value of 2
-    const partySizeDisplay = document.querySelector('.text-xl.font-semibold.w-12.text-center')
-    expect(partySizeDisplay).toBeInTheDocument()
-    expect(partySizeDisplay?.textContent).toBe('2')
+    // Look for Number of guests label
+    expect(screen.getByText('Number of guests')).toBeInTheDocument()
+    // Verify increment and decrement buttons exist
+    expect(screen.getByRole('button', { name: '-' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '+' })).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Allergies, table preferences, special occasion...')).toBeInTheDocument()
   })
 
@@ -145,23 +147,29 @@ describe('Reservations Component', () => {
     
     const decrementButton = screen.getByRole('button', { name: '-' })
     const incrementButton = screen.getByRole('button', { name: '+' })
-    
-    // Find party size by its container class structure
-    const partySizeContainer = document.querySelector('.text-xl.font-semibold.w-12.text-center')
+
+    // Find party size display - it's a span between the + and - buttons
+    const partySizeContainer = decrementButton.parentElement?.querySelector('span.flex-1')
     expect(partySizeContainer).toBeInTheDocument()
     expect(partySizeContainer?.textContent).toBe('2')
-    
+
     // Increment party size
     await user.click(incrementButton)
-    expect(partySizeContainer?.textContent).toBe('3')
-    
+    await waitFor(() => {
+      expect(partySizeContainer?.textContent).toBe('3')
+    })
+
     // Decrement party size back to 2
     await user.click(decrementButton)
-    expect(partySizeContainer?.textContent).toBe('2')
-    
+    await waitFor(() => {
+      expect(partySizeContainer?.textContent).toBe('2')
+    })
+
     // Decrement one more time to 1
     await user.click(decrementButton)
-    expect(partySizeContainer?.textContent).toBe('1')
+    await waitFor(() => {
+      expect(partySizeContainer?.textContent).toBe('1')
+    })
   })
 
   test('should disable submit button when required fields are missing', () => {
@@ -293,11 +301,11 @@ describe('Reservations Component', () => {
   // 7. INFORMATIONS ET CONTENU STATIQUE (1 test)
   test('should display important information section', () => {
     render(<ReservationsWrapper />)
-    
+
     expect(screen.getByText('Important information')).toBeInTheDocument()
     expect(screen.getByText(/Opening hours:/)).toBeInTheDocument()
     expect(screen.getByText(/Monday - Friday: 11:30 AM - 2:30 PM, 6:30 PM - 10:30 PM/)).toBeInTheDocument()
-    expect(screen.getByText(/Cancellation policy:/)).toBeInTheDocument()
+    expect(screen.getByText(/Cancellation\/Modification policy:/)).toBeInTheDocument()
     expect(screen.getByText(/Free cancellation up to 2 hours before reservation./)).toBeInTheDocument()
   })
 })

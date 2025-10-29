@@ -45,6 +45,7 @@ const mockGetOrdersStats = vi.fn()
 const mockOrders = [
   {
     id: 'order-001',
+    orderNumber: 'ORD-001',
     userId: 'client',
     userEmail: 'client@example.com',
     userName: 'Jean Dupont',
@@ -64,6 +65,7 @@ const mockOrders = [
   },
   {
     id: 'order-002',
+    orderNumber: 'ORD-002',
     userId: 'client',
     userEmail: 'client@example.com',
     userName: 'Marie Martin',
@@ -82,6 +84,7 @@ const mockOrders = [
   },
   {
     id: 'order-003',
+    orderNumber: 'ORD-003',
     userId: 'deleted-user',
     userEmail: 'deleted@account.com',
     userName: 'Deleted user',
@@ -100,6 +103,7 @@ const mockOrders = [
   },
   {
     id: 'order-004',
+    orderNumber: 'ORD-004',
     userId: 'deleted-user',
     userEmail: 'deleted@account.com',
     userName: 'Deleted user',
@@ -137,18 +141,22 @@ const OrdersManagementWrapper = () => (
 )
 
 describe('OrdersManagement Component', () => {
+  const mockStoreState = {
+    orders: mockOrders,
+    isLoading: false,
+    fetchOrders: mockFetchOrders,
+    updateOrderStatus: mockUpdateOrderStatus,
+    getOrdersStats: mockGetOrdersStats
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Default successful mock setup
-    vi.mocked(useOrdersStore).mockReturnValue({
-      orders: mockOrders,
-      isLoading: false,
-      fetchOrders: mockFetchOrders,
-      updateOrderStatus: mockUpdateOrderStatus,
-      getOrdersStats: mockGetOrdersStats
+    // Mock to work with Zustand selectors
+    vi.mocked(useOrdersStore).mockImplementation((selector) => {
+      return selector(mockStoreState)
     })
-    
+
     mockGetOrdersStats.mockReturnValue(mockStats)
     mockUpdateOrderStatus.mockResolvedValue({ success: true })
   })
@@ -163,9 +171,9 @@ describe('OrdersManagement Component', () => {
     
     // Color coding legend (use regex for broken text)
     expect(screen.getByText('Color codes:')).toBeInTheDocument()
-    expect(screen.getByText(/Deleted user.*Delivered\/Cancelled/)).toBeInTheDocument()
-    expect(screen.getByText(/Deleted user.*Paid in progress/)).toBeInTheDocument()
-    expect(screen.getByText(/Deleted user.*Unpaid/)).toBeInTheDocument()
+    expect(screen.getByText(/Deleted user - Delivered\/Cancelled/)).toBeInTheDocument()
+    expect(screen.getByText(/Deleted user - Paid order in progress/)).toBeInTheDocument()
+    expect(screen.getByText(/Deleted user - Unpaid order in progress/)).toBeInTheDocument()
 
     // Statistics cards - now shows: Total orders, Pending, In progress, Ready Orders (no Revenue)
     expect(screen.getByText('Total orders')).toBeInTheDocument()
@@ -177,35 +185,37 @@ describe('OrdersManagement Component', () => {
   })
 
   test('should display loading state when isLoading is true', () => {
-    vi.mocked(useOrdersStore).mockReturnValue({
+    const loadingStoreState = {
+      ...mockStoreState,
       orders: [],
-      isLoading: true,
-      fetchOrders: mockFetchOrders,
-      updateOrderStatus: mockUpdateOrderStatus,
-      getOrdersStats: mockGetOrdersStats
+      isLoading: true
+    }
+    vi.mocked(useOrdersStore).mockImplementation((selector) => {
+      return selector(loadingStoreState)
     })
-    
+
     render(<OrdersManagementWrapper />)
-    
+
     // Should show loading spinner
     expect(document.querySelector('.animate-spin')).toBeInTheDocument()
-    
+
     // Should not show main content
     expect(screen.queryByText('Orders Management')).not.toBeInTheDocument()
   })
 
   test('should show empty state when no orders match filters', async () => {
     // Mock empty orders
-    vi.mocked(useOrdersStore).mockReturnValue({
+    const emptyStoreState = {
+      ...mockStoreState,
       orders: [],
-      isLoading: false,
-      fetchOrders: mockFetchOrders,
-      updateOrderStatus: mockUpdateOrderStatus,
       getOrdersStats: () => ({ total: 0, pending: 0, confirmed: 0, preparing: 0, ready: 0, delivered: 0, cancelled: 0, totalRevenue: 0 })
+    }
+    vi.mocked(useOrdersStore).mockImplementation((selector) => {
+      return selector(emptyStoreState)
     })
-    
+
     render(<OrdersManagementWrapper />)
-    
+
     // Should show empty state
     expect(screen.getByText('No orders')).toBeInTheDocument()
     expect(screen.getByText('No orders have been placed yet.')).toBeInTheDocument()
@@ -317,7 +327,7 @@ describe('OrdersManagement Component', () => {
     expect(screen.getByText('Actions')).toBeInTheDocument()
     
     // Should show order data
-    expect(screen.getByText('order-001')).toBeInTheDocument()
+    expect(screen.getAllByText(/#ORD-001/).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Jean Dupont')).toHaveLength(2) // Desktop + mobile view
     expect(screen.getAllByText('client@example.com')).toHaveLength(4) // Desktop + mobile view for 2 orders with same email
     expect(screen.getAllByText('2 item(s)')).toHaveLength(2) // Desktop + mobile view
@@ -482,10 +492,10 @@ describe('OrdersManagement Component', () => {
     // Should call fetchOrders on mount
     expect(mockFetchOrders).toHaveBeenCalled()
 
-    // Should access orders data from store
-    expect(screen.getByText('order-001')).toBeInTheDocument()
-    expect(screen.getByText('order-002')).toBeInTheDocument()
-    expect(screen.getByText('order-003')).toBeInTheDocument()
-    expect(screen.getByText('order-004')).toBeInTheDocument()
+    // Should access orders data from store - order numbers are displayed with #
+    expect(screen.getAllByText(/#ORD-001/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/#ORD-002/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/#ORD-003/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/#ORD-004/).length).toBeGreaterThan(0)
   })
 })
