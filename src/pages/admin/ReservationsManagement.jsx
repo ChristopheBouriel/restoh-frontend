@@ -173,6 +173,28 @@ const ReservationsManagement = () => {
     }
   }
 
+  const formatTableNumbers = (tableNumber) => {
+    if (!tableNumber) return 'Not assigned'
+
+    // Handle both single number and array
+    const tables = Array.isArray(tableNumber) ? tableNumber : [tableNumber]
+
+    if (tables.length === 0) return 'Not assigned'
+
+    const tableLabel = tables.length === 1 ? 'Table' : 'Tables'
+    const sortedTables = [...tables].sort((a, b) => a - b)
+
+    // If 4 or less tables, show all
+    if (sortedTables.length <= 4) {
+      return `${tableLabel} ${sortedTables.join(', ')}`
+    }
+
+    // If more than 4, show first 3 and ellipsis
+    const firstThree = sortedTables.slice(0, 3).join(', ')
+    const remaining = sortedTables.length - 3
+    return `${tableLabel} ${firstThree}... (+${remaining})`
+  }
+
   return (
     <div className="p-6">
       {/* En-tête */}
@@ -424,15 +446,13 @@ const ReservationsManagement = () => {
                           <span className="text-sm text-gray-900">{reservation.guests}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {reservation.tableNumber ? (
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 text-gray-400 mr-1" />
-                            <span className="text-sm text-gray-900">Table {reservation.tableNumber}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not assigned</span>
-                        )}
+                      <td className="px-6 py-4">
+                        <div className="flex items-start">
+                          <MapPin className="h-4 w-4 text-gray-400 mr-1 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-900">
+                            {formatTableNumbers(reservation.tableNumber)}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
@@ -501,19 +521,17 @@ const ReservationsManagement = () => {
                       <span className="text-sm text-gray-500">{reservation.phone}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between">
                       <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="h-4 w-4 mr-1" />
+                        <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
                         {formatDate(reservation.date)} - {reservation.time}
                       </div>
-                      {reservation.tableNumber ? (
-                        <div className="flex items-center text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          Table {reservation.tableNumber}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-400">Not assigned</span>
-                      )}
+                      <div className="flex items-start text-sm text-gray-500 max-w-[45%]">
+                        <MapPin className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
+                        <span className="text-right break-words">
+                          {formatTableNumbers(reservation.tableNumber)}
+                        </span>
+                      </div>
                     </div>
                     
                     {reservation.specialRequests && (
@@ -561,11 +579,11 @@ const ReservationsManagement = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Reservation</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><strong>ID:</strong> {selectedReservation.id}</p>
+                    <p><strong>Reservation #:</strong> {selectedReservation.reservationNumber}</p>
                     <p><strong>Date:</strong> {formatDate(selectedReservation.date)}</p>
                     <p><strong>Time:</strong> {selectedReservation.time}</p>
                     <p><strong>Guests:</strong> {selectedReservation.guests}</p>
-                    <p><strong>Table:</strong> {selectedReservation.tableNumber || 'Not assigned'}</p>
+                    <p><strong>{Array.isArray(selectedReservation.tableNumber) && selectedReservation.tableNumber.length > 1 ? 'Tables:' : 'Table:'}</strong> {formatTableNumbers(selectedReservation.tableNumber)}</p>
                     <p>
                       <strong>Status:</strong>{' '}
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedReservation.status)}`}>
