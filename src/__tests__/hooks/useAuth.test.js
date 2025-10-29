@@ -24,7 +24,8 @@ describe('useAuth Hook', () => {
     updateProfile: vi.fn(),
     deleteAccount: vi.fn(),
     changePassword: vi.fn(),
-    clearError: vi.fn()
+    clearError: vi.fn(),
+    fetchCurrentUser: vi.fn()
   }
 
   beforeEach(() => {

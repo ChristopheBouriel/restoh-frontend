@@ -3,7 +3,7 @@ import { Eye, Users, Calendar, Clock, MapPin } from 'lucide-react'
 import useReservationsStore from '../../store/reservationsStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
-import { isReservationTimePassed } from '../../services/reservationSlots'
+import { isReservationTimePassed, getLabelFromSlot } from '../../services/reservationSlots'
 import { getTodayLocalDate, normalizeDateString } from '../../utils/dateUtils'
 
 const ReservationsManagement = () => {
@@ -70,39 +70,52 @@ const ReservationsManagement = () => {
     ]
   }
 
-  const filteredReservations = reservations.filter(reservation => {
-    const statusMatch = statusFilter === 'all' || reservation.status === statusFilter
+  const filteredReservations = reservations
+    .filter(reservation => {
+      const statusMatch = statusFilter === 'all' || reservation.status === statusFilter
 
-    let dateMatch = true
-    // Normalize reservation date to YYYY-MM-DD
-    const reservationDateStr = normalizeDateString(reservation.date)
-    const reservationDate = new Date(reservation.date)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+      let dateMatch = true
+      // Normalize reservation date to YYYY-MM-DD
+      const reservationDateStr = normalizeDateString(reservation.date)
+      const reservationDate = new Date(reservation.date)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-    const hasDateRange = startDate || endDate
+      const hasDateRange = startDate || endDate
 
-    if (hasDateRange) {
-      if (startDate && endDate) {
-        dateMatch = reservationDateStr >= startDate && reservationDateStr <= endDate
-      } else if (startDate) {
-        dateMatch = reservationDateStr >= startDate
-      } else if (endDate) {
-        dateMatch = reservationDateStr <= endDate
+      if (hasDateRange) {
+        if (startDate && endDate) {
+          dateMatch = reservationDateStr >= startDate && reservationDateStr <= endDate
+        } else if (startDate) {
+          dateMatch = reservationDateStr >= startDate
+        } else if (endDate) {
+          dateMatch = reservationDateStr <= endDate
+        }
+      } else {
+        if (dateFilter === 'today') {
+          const todayStr = getTodayLocalDate()
+          dateMatch = reservationDateStr === todayStr
+        } else if (dateFilter === 'upcoming') {
+          dateMatch = reservationDate >= today
+        } else if (dateFilter === 'past') {
+          dateMatch = reservationDate < today
+        }
       }
-    } else {
-      if (dateFilter === 'today') {
-        const todayStr = getTodayLocalDate()
-        dateMatch = reservationDateStr === todayStr
-      } else if (dateFilter === 'upcoming') {
-        dateMatch = reservationDate >= today
-      } else if (dateFilter === 'past') {
-        dateMatch = reservationDate < today
-      }
-    }
 
-    return statusMatch && dateMatch
-  })
+      return statusMatch && dateMatch
+    })
+    .sort((a, b) => {
+      // Sort by date first
+      const dateA = new Date(a.date)
+      const dateB = new Date(b.date)
+
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA - dateB
+      }
+
+      // If same date, sort by slot (time)
+      return (a.slot || 0) - (b.slot || 0)
+    })
 
   const clearDateRange = () => {
     setStartDate('')
@@ -154,11 +167,7 @@ const ReservationsManagement = () => {
   }
 
   const getDeletedUserRowClass = (reservation) => {
-    const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
-
-    const isDeletedUser = deletedEmailPattern.test(reservation.userEmail) || reservation.userId === 'deleted-user'
-
-    if (!isDeletedUser) {
+    if (!isDeletedUser(reservation)) {
       return 'hover:bg-gray-50'
     }
 
@@ -171,6 +180,11 @@ const ReservationsManagement = () => {
     } else {
       return 'bg-orange-50 hover:bg-orange-100'
     }
+  }
+
+  const isDeletedUser = (reservation) => {
+    const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
+    return deletedEmailPattern.test(reservation.userEmail) || reservation.userId === 'deleted-user'
   }
 
   const formatTableNumbers = (tableNumber) => {
@@ -420,24 +434,27 @@ const ReservationsManagement = () => {
                   {filteredReservations.map((reservation) => (
                     <tr key={reservation.id} className={getDeletedUserRowClass(reservation)}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {reservation.userName}
+                        {isDeletedUser(reservation) ? (
+                          <div className="text-sm text-gray-500 italic">
+                            Deleted user
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {reservation.userEmail}
+                        ) : (
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {reservation.userName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {reservation.userEmail}
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {reservation.phone}
-                          </div>
-                        </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {formatDate(reservation.date)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {reservation.time}
+                          {getLabelFromSlot(reservation.slot)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -509,22 +526,27 @@ const ReservationsManagement = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">{reservation.userName}</span>
+                      {isDeletedUser(reservation) ? (
+                        <span className="text-sm text-gray-500 italic">Deleted user</span>
+                      ) : (
+                        <span className="text-sm font-medium text-gray-900">{reservation.userName}</span>
+                      )}
                       <div className="flex items-center text-sm text-gray-500">
                         <Users className="h-4 w-4 mr-1" />
                         {reservation.guests} guests
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">{reservation.userEmail}</span>
-                      <span className="text-sm text-gray-500">{reservation.phone}</span>
-                    </div>
-                    
+
+                    {!isDeletedUser(reservation) && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-500">{reservation.userEmail}</span>
+                      </div>
+                    )}
+
                     <div className="flex items-start justify-between">
                       <div className="flex items-center text-sm text-gray-500">
                         <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
-                        {formatDate(reservation.date)} - {reservation.time}
+                        {formatDate(reservation.date)} - {getLabelFromSlot(reservation.slot)}
                       </div>
                       <div className="flex items-start text-sm text-gray-500 max-w-[45%]">
                         <MapPin className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
@@ -569,9 +591,15 @@ const ReservationsManagement = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Client</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><strong>Name:</strong> {selectedReservation.userName}</p>
-                    <p><strong>Email:</strong> {selectedReservation.userEmail}</p>
-                    <p><strong>Phone:</strong> {selectedReservation.phone}</p>
+                    {isDeletedUser(selectedReservation) ? (
+                      <p className="text-gray-500 italic">Deleted user</p>
+                    ) : (
+                      <>
+                        <p><strong>Name:</strong> {selectedReservation.userName}</p>
+                        <p><strong>Email:</strong> {selectedReservation.userEmail}</p>
+                        <p><strong>Contact Phone:</strong> {selectedReservation.contactPhone}</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -581,7 +609,7 @@ const ReservationsManagement = () => {
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <p><strong>Reservation #:</strong> {selectedReservation.reservationNumber}</p>
                     <p><strong>Date:</strong> {formatDate(selectedReservation.date)}</p>
-                    <p><strong>Time:</strong> {selectedReservation.time}</p>
+                    <p><strong>Time:</strong> {getLabelFromSlot(selectedReservation.slot)}</p>
                     <p><strong>Guests:</strong> {selectedReservation.guests}</p>
                     <p><strong>{Array.isArray(selectedReservation.tableNumber) && selectedReservation.tableNumber.length > 1 ? 'Tables:' : 'Table:'}</strong> {formatTableNumbers(selectedReservation.tableNumber)}</p>
                     <p>
