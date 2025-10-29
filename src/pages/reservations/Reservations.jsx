@@ -17,6 +17,7 @@ const Reservations = () => {
   const [specialRequests, setSpecialRequests] = useState('')
   const [selectedTables, setSelectedTables] = useState([])
   const [occupiedTables, setOccupiedTables] = useState([])
+  const [notEligibleTables, setNotEligibleTables] = useState([])
   const [isLoadingTables, setIsLoadingTables] = useState(false)
   const [editingId, setEditingId] = useState(null)
 
@@ -33,6 +34,7 @@ const Reservations = () => {
       // Only fetch if both date and slot are selected
       if (!selectedDate || selectedSlotId === null) {
         setOccupiedTables([])
+        setNotEligibleTables([])
         return
       }
 
@@ -42,18 +44,24 @@ const Reservations = () => {
 
         if (result.success) {
           setOccupiedTables(result.occupiedTables)
-          // Clear selected tables if any of them are now occupied
+          setNotEligibleTables(result.notEligibleTables || [])
+          // Clear selected tables if any of them are now occupied or not eligible
           setSelectedTables(prev =>
-            prev.filter(tableId => !result.occupiedTables.includes(tableId))
+            prev.filter(tableId =>
+              !result.occupiedTables.includes(tableId) &&
+              !result.notEligibleTables?.includes(tableId)
+            )
           )
         } else {
           // If error, show all tables as available (optimistic approach)
           setOccupiedTables([])
+          setNotEligibleTables([])
           console.error('❌ Error fetching available tables:', result.error)
         }
       } catch (error) {
         console.error('❌ Exception fetching available tables:', error)
         setOccupiedTables([])
+        setNotEligibleTables([])
       } finally {
         setIsLoadingTables(false)
       }
@@ -338,7 +346,9 @@ const Reservations = () => {
                     selectedTables={selectedTables}
                     onTableSelect={handleTableSelect}
                     occupiedTables={occupiedTables}
+                    notEligibleTables={notEligibleTables}
                     isLoading={isLoadingTables}
+                    partySize={partySize}
                   />
                 )}
               </div>

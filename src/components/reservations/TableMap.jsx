@@ -54,17 +54,49 @@ const DECORATIONS = [
   { id: 'bar', type: 'bar', x: 480, y: 80, width: 60, height: 330 }
 ]
 
-const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], isLoading = false }) => {
+const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], notEligibleTables = [], isLoading = false, partySize = 1 }) => {
   const [hoveredTable, setHoveredTable] = useState(null)
 
+  // Calculate current total capacity of selected tables
+  const currentCapacity = selectedTables.reduce((sum, tableId) => {
+    const table = TABLES_CONFIG.find(t => t.id === tableId)
+    return sum + (table?.capacity || 0)
+  }, 0)
+
+  // Maximum allowed capacity is partySize + 1 (1 extra seat allowed)
+  const maxAllowedCapacity = partySize + 1
+
+  // Check if adding a table would exceed the maximum capacity
+  const wouldExceedCapacity = (tableId) => {
+    // If table is already selected, we're deselecting it, so no capacity check needed
+    if (selectedTables.includes(tableId)) {
+      return false
+    }
+
+    const table = TABLES_CONFIG.find(t => t.id === tableId)
+    if (!table) return false
+
+    return currentCapacity + table.capacity > maxAllowedCapacity
+  }
+
   const handleTableClick = (tableId) => {
+    // Can't select occupied tables
     if (occupiedTables.includes(tableId)) return
+
+    // Can't select tables that are too large (from backend)
+    if (notEligibleTables.includes(tableId)) return
+
+    // Can't select if it would exceed capacity (unless deselecting)
+    if (wouldExceedCapacity(tableId)) return
+
     onTableSelect(tableId)
   }
 
   const getTableStatus = (tableId) => {
     const status = occupiedTables.includes(tableId) ? 'occupied'
+      : notEligibleTables.includes(tableId) ? 'not-eligible'
       : selectedTables.includes(tableId) ? 'selected'
+      : wouldExceedCapacity(tableId) ? 'not-eligible'
       : 'available'
 
     return status
@@ -75,6 +107,9 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], isL
 
     if (status === 'occupied') {
       return `${baseStyle} bg-red-100 border-red-300 text-red-700 cursor-not-allowed opacity-60`
+    }
+    if (status === 'not-eligible') {
+      return `${baseStyle} bg-gray-200 border-gray-400 text-gray-500 cursor-not-allowed opacity-50`
     }
     if (status === 'selected') {
       return `${baseStyle} bg-orange-500 border-orange-600 text-white shadow-lg transform scale-105`
@@ -116,6 +151,10 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], isL
         <div className="flex items-center gap-1 sm:gap-2">
           <div className="w-4 h-4 sm:w-6 sm:h-6 bg-red-100 border-2 border-red-300 rounded opacity-60"></div>
           <span className="text-xs">Occupied</span>
+        </div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-200 border-2 border-gray-400 rounded opacity-50"></div>
+          <span className="text-xs">Not eligible</span>
         </div>
       </div>
 
@@ -224,7 +263,7 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], isL
                 onClick={() => handleTableClick(table.id)}
                 onMouseEnter={() => setHoveredTable(table.id)}
                 onMouseLeave={() => setHoveredTable(null)}
-                disabled={status === 'occupied'}
+                disabled={status === 'occupied' || status === 'not-eligible'}
                 className={getTableStyle(status, isHovered)}
                 style={{
                   position: 'absolute',
