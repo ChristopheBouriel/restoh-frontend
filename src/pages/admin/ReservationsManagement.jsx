@@ -21,14 +21,11 @@ const ReservationsManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    // Charger toutes les réservations (mode admin)
     fetchReservations(true)
   }, [fetchReservations])
 
-  // Recalculate stats whenever reservations change
   const stats = useMemo(() => getReservationsStats(), [reservations, getReservationsStats])
 
-  // Options pour les filtres
   const statusOptions = [
     { value: 'all', label: 'All statuses' },
     { value: 'confirmed', label: 'Confirmed' },
@@ -45,7 +42,6 @@ const ReservationsManagement = () => {
     { value: 'past', label: 'Past' }
   ]
 
-  // Generate status options based on reservation time
   const getStatusOptionsForReservation = (reservation) => {
     const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
     const timeRestrictedReason = 'Only available after reservation time'
@@ -74,7 +70,6 @@ const ReservationsManagement = () => {
     ]
   }
 
-  // Fonction de filtrage
   const filteredReservations = reservations.filter(reservation => {
     const statusMatch = statusFilter === 'all' || reservation.status === statusFilter
 
@@ -85,23 +80,17 @@ const ReservationsManagement = () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Vérifier d'abord si on utilise la période (date range)
     const hasDateRange = startDate || endDate
 
     if (hasDateRange) {
-      // Utiliser le filtrage par période
       if (startDate && endDate) {
-        // Les deux dates sont définies
         dateMatch = reservationDateStr >= startDate && reservationDateStr <= endDate
       } else if (startDate) {
-        // Seulement la date de début
         dateMatch = reservationDateStr >= startDate
       } else if (endDate) {
-        // Seulement la date de fin
         dateMatch = reservationDateStr <= endDate
       }
     } else {
-      // Utiliser le filtrage par date simple (existant)
       if (dateFilter === 'today') {
         const todayStr = getTodayLocalDate()
         dateMatch = reservationDateStr === todayStr
@@ -115,30 +104,25 @@ const ReservationsManagement = () => {
     return statusMatch && dateMatch
   })
 
-  // Fonction pour vider les champs de période
   const clearDateRange = () => {
     setStartDate('')
     setEndDate('')
   }
 
-  // Handle status change
   const handleStatusChange = async (reservationId, newStatus) => {
     await updateReservationStatus(reservationId, newStatus)
   }
 
-  // Ouvrir le modal de détail
   const openReservationModal = (reservation) => {
     setSelectedReservation(reservation)
     setIsModalOpen(true)
   }
 
-  // Fermer le modal
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedReservation(null)
   }
 
-  // Fonction pour formater la date
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -147,7 +131,6 @@ const ReservationsManagement = () => {
     })
   }
 
-  // Fonction pour obtenir la couleur du badge selon le statut
   const getStatusColor = (status) => {
     switch (status) {
       case 'confirmed': return 'bg-blue-100 text-blue-800'
@@ -159,7 +142,6 @@ const ReservationsManagement = () => {
     }
   }
 
-  // Fonction pour obtenir le libellé du statut
   const getStatusLabel = (status) => {
     switch (status) {
       case 'confirmed': return 'Confirmed'
@@ -171,30 +153,22 @@ const ReservationsManagement = () => {
     }
   }
 
-  // Fonction helper pour déterminer la couleur de fond des réservations d'utilisateurs supprimés
   const getDeletedUserRowClass = (reservation) => {
-    // Regex pattern to match deleted user emails: deleted-{id}@account.com
     const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
 
-    // Check if user is deleted (by email pattern or userId)
     const isDeletedUser = deletedEmailPattern.test(reservation.userEmail) || reservation.userId === 'deleted-user'
 
     if (!isDeletedUser) {
-      return 'hover:bg-gray-50' // Comportement normal
+      return 'hover:bg-gray-50'
     }
 
-    // Check if reservation time has passed
     const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
 
-    // Cas d'utilisateur supprimé
     if (reservation.status === 'completed' || reservation.status === 'cancelled' || reservation.status === 'no-show') {
-      // Cas n°1 : Statuts finaux - gris clair
       return 'bg-gray-100 hover:bg-gray-200'
     } else if (!timePassed) {
-      // Cas n°2 : Date future (pas encore passée) - rouge clair
       return 'bg-red-50 hover:bg-red-100'
     } else {
-      // Cas n°3 : Date passée mais pas encore terminé - orange clair
       return 'bg-orange-50 hover:bg-orange-100'
     }
   }

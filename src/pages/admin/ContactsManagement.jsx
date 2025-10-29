@@ -17,11 +17,9 @@ const ContactsManagement = () => {
   const [selectedMessage, setSelectedMessage] = useState(null)
 
   useEffect(() => {
-    // Charger tous les messages de contact (admin)
     fetchMessages()
   }, [fetchMessages])
 
-  // Configuration des statuts
   const statusConfig = {
     new: {
       label: 'New',
@@ -40,13 +38,11 @@ const ContactsManagement = () => {
     }
   }
 
-  // Filtrer les messages
   const filteredMessages = messages.filter(message => {
     if (filterStatus === 'all') return true
     return message.status === filterStatus
   })
 
-  // Gérer les actions sur les messages
   const handleMarkAsRead = async (messageId) => {
     await markAsRead(messageId)
   }
@@ -64,7 +60,6 @@ const ContactsManagement = () => {
     }
   }
 
-  // Statistiques
   const stats = getMessagesStats()
 
   return (

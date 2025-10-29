@@ -60,13 +60,9 @@ const MenuManagement = () => {
     { value: 'continental', label: 'Continental' }
   ]
 
-  // Remove loadMenuItems as useMenu hook handles initialization
-
   useEffect(() => {
     filterItems()
   }, [menuItems, searchTerm, selectedCategory])
-
-  // loadMenuItems function removed - handled by useMenu
 
   const filterItems = () => {
     let filtered = menuItems
@@ -84,8 +80,6 @@ const MenuManagement = () => {
 
     setFilteredItems(filtered)
   }
-
-  // saveToStorage removed - handled by useMenu
 
   const resetForm = () => {
     setFormData({
@@ -141,7 +135,6 @@ const MenuManagement = () => {
       return
     }
 
-    // Validation: image is required for new items
     if (!editingItem && !formData.image) {
       toast.error('Please upload an image for the item')
       return

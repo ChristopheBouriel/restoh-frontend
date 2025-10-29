@@ -18,70 +18,45 @@ const OrdersManagement = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  // Validation des dates : empêcher que la date de fin soit antérieure à la date de début
   const handleStartDateChange = (newStartDate) => {
     setStartDate(newStartDate)
-    // Si la date de fin est antérieure à la nouvelle date de début, la réinitialiser
     if (endDate && newStartDate && new Date(endDate) < new Date(newStartDate)) {
       setEndDate('')
     }
   }
 
   const handleEndDateChange = (newEndDate) => {
-    // Ne pas permettre une date de fin antérieure à la date de début
     if (startDate && newEndDate && new Date(newEndDate) < new Date(startDate)) {
-      return // Ignorer le changement
+      return
     }
     setEndDate(newEndDate)
   }
   const [selectedOrder, setSelectedOrder] = useState(null)
 
-  // Fonction helper pour déterminer la couleur de fond des commandes d'utilisateurs supprimés
   const getDeletedUserRowClass = (order) => {
-    // Regex pattern to match deleted user emails: deleted-{id}@account.com
     const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
-
-    // Check if user is deleted (by email pattern or userId)
     const isDeletedUser = deletedEmailPattern.test(order.userEmail) || order.userId === 'deleted-user'
 
-    // Debug logging for deleted users
-    if (isDeletedUser) {
-      console.log('🔍 Deleted user order found:', {
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        userId: order.userId,
-        userEmail: order.userEmail,
-        status: order.status,
-        paymentStatus: order.paymentStatus
-      })
-    }
-
     if (!isDeletedUser) {
-      return 'hover:bg-gray-50' // Comportement normal
+      return 'hover:bg-gray-50'
     }
 
-    // Cas d'utilisateur supprimé
     if (order.status === 'delivered' || order.status === 'cancelled') {
-      // Cas n°1 : Livré ou annulé - gris clair mais plus foncé que la pastille
       console.log('→ Applying GRAY (delivered/cancelled)')
       return 'bg-gray-100 hover:bg-gray-200'
     } else if (order.paymentStatus === 'paid') {
-      // Cas n°2 : Payé avec autre statut - orange clair
       console.log('→ Applying ORANGE (paid, in progress)')
       return 'bg-orange-50 hover:bg-orange-100'
     } else {
-      // Cas n°3 : Non payé et autre statut - rouge très clair
       console.log('→ Applying RED (unpaid, in progress)')
       return 'bg-red-50 hover:bg-red-100'
     }
   }
 
   useEffect(() => {
-    // Charger toutes les commandes (mode admin)
     fetchOrders(true)
   }, [fetchOrders])
 
-  // Filtrer les commandes selon le statut et les dates
   const filteredOrders = orders.filter(order => {
     const statusMatch = filterStatus === 'all' || order.status === filterStatus
 

@@ -28,7 +28,6 @@ const UsersManagement = () => {
 
   const stats = getUsersStats()
 
-  // Options for filters
   const roleOptions = [
     { value: 'all', label: 'All roles' },
     { value: 'admin', label: 'Administrators' },
@@ -46,7 +45,6 @@ const UsersManagement = () => {
     { value: 'admin', label: 'Administrator' }
   ]
 
-  // Filtering function
   const filteredUsers = users.filter(user => {
     const searchMatch = searchQuery === '' || 
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -61,29 +59,24 @@ const UsersManagement = () => {
     return searchMatch && roleMatch && statusMatch
   })
 
-  // Handle status change
   const handleStatusToggle = async (user) => {
     await toggleUserStatus(user._id || user.id)
   }
 
-  // Handle role change
   const handleRoleChange = async (user, newRole) => {
     await updateUserRole(user._id || user.id, newRole)
   }
 
-  // Open detail modal
   const openUserModal = (user) => {
     setSelectedUser(user)
     setIsModalOpen(true)
   }
 
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedUser(null)
   }
 
-  // Function to format date
   const formatDate = (dateStr) => {
     if (!dateStr) return 'Never'
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -95,14 +88,12 @@ const UsersManagement = () => {
     })
   }
 
-  // Function to get badge color based on role
   const getRoleColor = (role) => {
     return role === 'admin' 
       ? 'bg-purple-100 text-purple-800' 
       : 'bg-blue-100 text-blue-800'
   }
 
-  // Function to get role label
   const getRoleLabel = (role) => {
     return role === 'admin' ? 'Admin' : 'User'
   }
