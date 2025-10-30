@@ -300,4 +300,139 @@ describe('TableMap Component', () => {
       expect(mockOnTableSelect).toHaveBeenCalledWith(6)
     })
   })
+
+  describe('Not Eligible Tables', () => {
+    it('should display not-eligible tables in gray', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} notEligibleTables={[1, 2]} />)
+
+      const table1 = screen.getByText('1').closest('button')
+      const table2 = screen.getByText('2').closest('button')
+
+      expect(table1).toHaveClass('bg-gray-200', 'border-gray-400', 'text-gray-500')
+      expect(table2).toHaveClass('bg-gray-200', 'border-gray-400', 'text-gray-500')
+    })
+
+    it('should disable not-eligible tables', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} notEligibleTables={[5]} />)
+
+      const table5 = screen.getByText('5').closest('button')
+      expect(table5).toBeDisabled()
+    })
+
+    it('should not call onTableSelect for not-eligible tables', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} notEligibleTables={[3]} />)
+
+      const table3 = screen.getByText('3').closest('button')
+      fireEvent.click(table3)
+
+      expect(mockOnTableSelect).not.toHaveBeenCalled()
+    })
+
+    it('should show "Not eligible" in legend when notEligibleTables present', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} notEligibleTables={[1]} />)
+
+      expect(screen.getByText('Not eligible')).toBeInTheDocument()
+    })
+  })
+
+  describe('Previously Booked Tables', () => {
+    it('should display previously booked tables in blue', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} previouslyBookedTables={[10, 11]} />)
+
+      const table10 = screen.getByText('10').closest('button')
+      const table11 = screen.getByText('11').closest('button')
+
+      expect(table10).toHaveClass('bg-blue-100', 'border-blue-400', 'text-blue-800')
+      expect(table11).toHaveClass('bg-blue-100', 'border-blue-400', 'text-blue-800')
+    })
+
+    it('should allow clicking previously booked tables', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} previouslyBookedTables={[7]} />)
+
+      const table7 = screen.getByText('7').closest('button')
+      expect(table7).not.toBeDisabled()
+
+      fireEvent.click(table7)
+      expect(mockOnTableSelect).toHaveBeenCalledWith(7)
+    })
+
+    it('should show "Previously booked" in legend only when present', () => {
+      const { rerender } = render(<TableMap onTableSelect={mockOnTableSelect} previouslyBookedTables={[]} />)
+
+      expect(screen.queryByText('Previously booked')).not.toBeInTheDocument()
+
+      rerender(<TableMap onTableSelect={mockOnTableSelect} previouslyBookedTables={[12]} />)
+      expect(screen.getByText('Previously booked')).toBeInTheDocument()
+    })
+
+    it('should prioritize selected over previously-booked status', () => {
+      render(<TableMap onTableSelect={mockOnTableSelect} selectedTables={[8]} previouslyBookedTables={[8]} />)
+
+      const table8 = screen.getByText('8').closest('button')
+      // Selected style (orange) should take precedence over previously-booked (blue)
+      expect(table8).toHaveClass('bg-orange-500', 'border-orange-600')
+      expect(table8).not.toHaveClass('bg-blue-100')
+    })
+  })
+
+  describe('Capacity Validation', () => {
+    it('should prevent selecting table that exceeds capacity', () => {
+      // Party size 2 with max capacity 3 (2+1)
+      // Selecting table for 2 is OK, but second table for 2 would exceed (4 > 3)
+      render(<TableMap
+        onTableSelect={mockOnTableSelect}
+        selectedTables={[1]}
+        partySize={2}
+      />)
+
+      const table2 = screen.getByText('2').closest('button')
+      fireEvent.click(table2)
+
+      // Should not call onTableSelect because it would exceed capacity
+      expect(mockOnTableSelect).not.toHaveBeenCalled()
+    })
+
+    it('should allow deselecting when over capacity', () => {
+      // Even if somehow over capacity, allow deselection
+      render(<TableMap
+        onTableSelect={mockOnTableSelect}
+        selectedTables={[1, 2, 3]}
+        partySize={2}
+      />)
+
+      const table1 = screen.getByText('1').closest('button')
+      fireEvent.click(table1)
+
+      // Should allow deselecting
+      expect(mockOnTableSelect).toHaveBeenCalledWith(1)
+    })
+
+    it('should mark tables as not-eligible when they would exceed capacity', () => {
+      // Party size 2, already selected table 1 (capacity 2), max = 3
+      // Table 2 (capacity 2) would bring total to 4, so should show as not-eligible
+      render(<TableMap
+        onTableSelect={mockOnTableSelect}
+        selectedTables={[1]}
+        partySize={2}
+      />)
+
+      const table2 = screen.getByText('2').closest('button')
+      // Should have gray styling (not-eligible)
+      expect(table2).toHaveClass('bg-gray-200', 'border-gray-400')
+    })
+
+    it('should allow selecting tables within capacity', () => {
+      // Party size 4, max capacity 5 (4+1)
+      // Table 13 has capacity 4, should be selectable
+      render(<TableMap
+        onTableSelect={mockOnTableSelect}
+        partySize={4}
+      />)
+
+      const table13 = screen.getByText('13').closest('button')
+      fireEvent.click(table13)
+
+      expect(mockOnTableSelect).toHaveBeenCalledWith(13)
+    })
+  })
 })
