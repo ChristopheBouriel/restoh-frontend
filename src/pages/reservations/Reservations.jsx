@@ -22,6 +22,7 @@ const Reservations = () => {
   const [previouslyBookedTables, setPreviouslyBookedTables] = useState([]) // Tables from the reservation being edited
   const [isLoadingTables, setIsLoadingTables] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [filterStatus, setFilterStatus] = useState('upcoming') // 'all', 'upcoming', 'past'
 
   // Pre-fill phone from user profile
   useEffect(() => {
@@ -189,6 +190,10 @@ const Reservations = () => {
     // Show previously booked tables in a different color, don't pre-select them
     setPreviouslyBookedTables(reservation.tableNumber || [])
     setSelectedTables([]) // User must manually re-select all tables
+
+    // Scroll to top to show the form
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
     toast.info('Edit mode: Re-select tables (previously booked tables are highlighted)')
   }
 
@@ -244,6 +249,37 @@ const Reservations = () => {
 
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0]
+
+  // Filter reservations based on selected filter
+  const getFilteredReservations = () => {
+    if (filterStatus === 'all') {
+      return reservations
+    }
+
+    if (filterStatus === 'upcoming') {
+      // Upcoming: future dates OR today, and not cancelled/completed/no-show
+      return reservations.filter(reservation => {
+        const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
+        const isUpcoming = reservationDate >= today
+        const isActive = !['cancelled', 'completed', 'no-show'].includes(reservation.status)
+        return isUpcoming && isActive
+      })
+    }
+
+    if (filterStatus === 'past') {
+      // Past: past dates OR completed/cancelled/no-show status
+      return reservations.filter(reservation => {
+        const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
+        const isPast = reservationDate < today
+        const isInactive = ['cancelled', 'completed', 'no-show'].includes(reservation.status)
+        return isPast || isInactive
+      })
+    }
+
+    return reservations
+  }
+
+  const filteredReservations = getFilteredReservations()
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -434,9 +470,45 @@ const Reservations = () => {
               My reservations
             </h2>
 
+            {/* Filter buttons */}
+            {reservations.length > 0 && (
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setFilterStatus('upcoming')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterStatus === 'upcoming'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Upcoming
+                </button>
+                <button
+                  onClick={() => setFilterStatus('past')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterStatus === 'past'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Past
+                </button>
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterStatus === 'all'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  All
+                </button>
+              </div>
+            )}
+
             <div className="space-y-4">
-              {reservations.length > 0 ? (
-                reservations.map((reservation) => {
+              {filteredReservations.length > 0 ? (
+                filteredReservations.map((reservation) => {
                   const statusInfo = getStatusInfo(reservation.status)
                   const StatusIcon = statusInfo.icon
 
@@ -494,20 +566,21 @@ const Reservations = () => {
                 <div className="text-center py-8">
                   <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No reservations
+                    {reservations.length === 0 ? 'No reservations' : `No ${filterStatus} reservations`}
                   </h3>
                   <p className="text-gray-600">
-                    You don't have any reservations yet.
+                    {reservations.length === 0
+                      ? "You don't have any reservations yet."
+                      : `You don't have any ${filterStatus} reservations.`
+                    }
                   </p>
                 </div>
               )}
             </div>
 
-            {reservations.length > 0 && (
-              <div className="mt-6 text-center">
-                <button className="text-primary-600 hover:text-primary-700 font-medium">
-                  View history
-                </button>
+            {reservations.length > 0 && filteredReservations.length > 0 && (
+              <div className="mt-6 text-center text-sm text-gray-500">
+                Showing {filteredReservations.length} of {reservations.length} reservation{reservations.length > 1 ? 's' : ''}
               </div>
             )}
           </div>
