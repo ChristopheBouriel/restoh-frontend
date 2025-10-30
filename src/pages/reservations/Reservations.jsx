@@ -7,6 +7,7 @@ import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
 import { TIME_SLOTS, getLabelFromSlot } from '../../services/reservationSlots'
 import { getAvailableTables } from '../../api/tablesApi'
+import { calculateTotalCapacity, getTableCapacity } from '../../utils/tablesConfig'
 
 const Reservations = () => {
   const { user } = useAuthStore()
@@ -18,6 +19,7 @@ const Reservations = () => {
   const [selectedTables, setSelectedTables] = useState([])
   const [occupiedTables, setOccupiedTables] = useState([])
   const [notEligibleTables, setNotEligibleTables] = useState([])
+  const [previouslyBookedTables, setPreviouslyBookedTables] = useState([]) // Tables from the reservation being edited
   const [isLoadingTables, setIsLoadingTables] = useState(false)
   const [editingId, setEditingId] = useState(null)
 
@@ -40,12 +42,15 @@ const Reservations = () => {
 
       setIsLoadingTables(true)
       try {
-        const result = await getAvailableTables(selectedDate, selectedSlotId, partySize)
+        // Pass editingId to exclude current reservation from occupied tables
+        const result = await getAvailableTables(selectedDate, selectedSlotId, partySize, editingId)
 
         if (result.success) {
           setOccupiedTables(result.occupiedTables)
           setNotEligibleTables(result.notEligibleTables || [])
           // Clear selected tables if any of them are now occupied or not eligible
+          // BUT: if we're editing, keep the originally selected tables even if they appear occupied
+          // (because the backend should exclude the current reservation from occupied list)
           setSelectedTables(prev =>
             prev.filter(tableId =>
               !result.occupiedTables.includes(tableId) &&
@@ -68,7 +73,7 @@ const Reservations = () => {
     }
 
     fetchAvailableTables()
-  }, [selectedDate, selectedSlotId, partySize])
+  }, [selectedDate, selectedSlotId, partySize, editingId])
 
   // Use reservations hook with persistence
   const {
@@ -149,6 +154,14 @@ const Reservations = () => {
       return
     }
 
+    // Final capacity check before submission
+    const totalCapacity = calculateTotalCapacity(selectedTables)
+    const maxAllowedCapacity = partySize + 1
+    if (totalCapacity > maxAllowedCapacity) {
+      toast.error(`Selected tables capacity (${totalCapacity}) exceeds maximum allowed (${maxAllowedCapacity}) for ${partySize} guests`)
+      return
+    }
+
     try {
       createReservation(reservationData)
 
@@ -173,8 +186,10 @@ const Reservations = () => {
     setPartySize(reservation.guests)
     setContactPhone(reservation.contactPhone || '')
     setSpecialRequests(reservation.specialRequests || '')
-    setSelectedTables(reservation.tableNumber || [])
-    toast.info('Edit mode enabled - use the form above')
+    // Show previously booked tables in a different color, don't pre-select them
+    setPreviouslyBookedTables(reservation.tableNumber || [])
+    setSelectedTables([]) // User must manually re-select all tables
+    toast.info('Edit mode: Re-select tables (previously booked tables are highlighted)')
   }
 
   const handleCancelReservation = async (reservationId) => {
@@ -200,6 +215,14 @@ const Reservations = () => {
       return
     }
 
+    // Final capacity check before submission
+    const totalCapacity = calculateTotalCapacity(selectedTables)
+    const maxAllowedCapacity = partySize + 1
+    if (totalCapacity > maxAllowedCapacity) {
+      toast.error(`Selected tables capacity (${totalCapacity}) exceeds maximum allowed (${maxAllowedCapacity}) for ${partySize} guests`)
+      return
+    }
+
     try {
       updateReservation(editingId, reservationData)
 
@@ -208,6 +231,7 @@ const Reservations = () => {
       setSelectedSlotId(null)
       setPartySize(2)
       setSelectedTables([])
+      setPreviouslyBookedTables([])
       if (!user?.phone) {
         setContactPhone('')
       }
@@ -347,6 +371,7 @@ const Reservations = () => {
                     onTableSelect={handleTableSelect}
                     occupiedTables={occupiedTables}
                     notEligibleTables={notEligibleTables}
+                    previouslyBookedTables={previouslyBookedTables}
                     isLoading={isLoadingTables}
                     partySize={partySize}
                   />
@@ -385,6 +410,7 @@ const Reservations = () => {
                       setSelectedSlotId(null)
                       setPartySize(2)
                       setSelectedTables([])
+                      setPreviouslyBookedTables([])
                       if (!user?.phone) {
                         setContactPhone('')
                       } else {

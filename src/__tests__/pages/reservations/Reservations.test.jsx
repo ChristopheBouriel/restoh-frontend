@@ -229,42 +229,44 @@ describe('Reservations Component', () => {
   test('should enter edit mode when user clicks modify button', async () => {
     const user = userEvent.setup()
     render(<ReservationsWrapper />)
-    
+
     // Click modify button for first reservation
     const modifyButtons = screen.getAllByText('Edit')
     await user.click(modifyButtons[0])
-    
+
     // Should show edit mode notification
     expect(screen.getByText('✏️ Edit mode - Modify details below')).toBeInTheDocument()
-    
+
     // Submit button text should change
     expect(screen.getByRole('button', { name: '✏️ Update' })).toBeInTheDocument()
-    
+
     // Cancel button should appear - use CSS class selector to be specific
     const cancelButton = document.querySelector('.px-4.py-3.bg-gray-200')
     expect(cancelButton).toBeInTheDocument()
     expect(cancelButton).toHaveTextContent('Cancel')
-    
-    expect(toast.info).toHaveBeenCalledWith('Edit mode enabled - use the form above')
+
+    expect(toast.info).toHaveBeenCalledWith('Edit mode: Re-select tables (previously booked tables are highlighted)')
   })
 
   test('should cancel edit mode and reset form when cancel button clicked', async () => {
     const user = userEvent.setup()
     render(<ReservationsWrapper />)
-    
+
     // Enter edit mode
     const modifyButtons = screen.getAllByText('Edit')
     await user.click(modifyButtons[0])
-    
+
     // Click cancel - select the form cancel button specifically by class
     const cancelButton = document.querySelector('.px-4.py-3.bg-gray-200')
     await user.click(cancelButton)
-    
+
     // Should exit edit mode
     expect(screen.queryByText('✏️ Edit mode - Modify details below')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '🗓️ Book' })).toBeInTheDocument()
-    
-    expect(toast.info).toHaveBeenCalledWith('Edit mode enabled - use the form above')
+
+    // Verify both toast calls
+    expect(toast.info).toHaveBeenCalledWith('Edit mode: Re-select tables (previously booked tables are highlighted)')
+    expect(toast.info).toHaveBeenCalledWith('Edit cancelled')
   })
 
   // 5. ANNULATION DE RÉSERVATIONS (1 test)

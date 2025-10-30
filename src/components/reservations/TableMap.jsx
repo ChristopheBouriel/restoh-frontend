@@ -1,60 +1,7 @@
 import { useState } from 'react'
+import { TABLES_CONFIG, DECORATIONS } from '../../utils/tablesConfig'
 
-// Tables configuration
-const TABLES_CONFIG = [
-  // Row 1 - 3 tables for 2 (more spaced)
-  { id: 1, capacity: 2, x: 100, y: 100 },
-  { id: 2, capacity: 2, x: 210, y: 100 },
-  { id: 3, capacity: 2, x: 320, y: 100 },
-
-  // Row 2 - 3 tables for 2
-  { id: 4, capacity: 2, x: 100, y: 180 },
-  { id: 5, capacity: 2, x: 210, y: 180 },
-  { id: 6, capacity: 2, x: 320, y: 180 },
-
-  // Row 3 - 3 tables for 2
-  { id: 7, capacity: 2, x: 100, y: 260 },
-  { id: 8, capacity: 2, x: 210, y: 260 },
-  { id: 9, capacity: 2, x: 320, y: 260 },
-
-  // Row 4 - 3 tables for 2
-  { id: 10, capacity: 2, x: 100, y: 340 },
-  { id: 11, capacity: 2, x: 210, y: 340 },
-  { id: 12, capacity: 2, x: 320, y: 340 },
-
-  // Row 5 - 2 tables for 4
-  { id: 13, capacity: 4, x: 80, y: 430 },
-  { id: 14, capacity: 4, x: 210, y: 430 },
-
-  // Row 6 - 2 tables for 4
-  { id: 15, capacity: 4, x: 80, y: 510 },
-  { id: 16, capacity: 4, x: 210, y: 510 },
-
-  // Row 7 - 2 tables for 4
-  { id: 17, capacity: 4, x: 80, y: 590 },
-  { id: 18, capacity: 4, x: 210, y: 590 },
-
-  // Row 8 - 2 tables for 4
-  { id: 19, capacity: 4, x: 80, y: 670 },
-  { id: 20, capacity: 4, x: 210, y: 670 },
-
-  // Box 1 with table for 6
-  { id: 21, capacity: 6, x: 420, y: 460, isBox: true },
-
-  // Box 2 with table for 6
-  { id: 22, capacity: 6, x: 420, y: 570, isBox: true }
-]
-
-// Decoration elements
-const DECORATIONS = [
-  // Bay Window (left wall - thin vertical rectangle)
-  { id: 'bay-window', type: 'bay-window', x: 5, y: 65, width: 20, height: 660 },
-
-  // Bar/Counter (right wall - 20px from edge)
-  { id: 'bar', type: 'bar', x: 480, y: 80, width: 60, height: 330 }
-]
-
-const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], notEligibleTables = [], isLoading = false, partySize = 1 }) => {
+const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], notEligibleTables = [], previouslyBookedTables = [], isLoading = false, partySize = 1 }) => {
   const [hoveredTable, setHoveredTable] = useState(null)
 
   // Calculate current total capacity of selected tables
@@ -96,6 +43,7 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], not
     const status = occupiedTables.includes(tableId) ? 'occupied'
       : notEligibleTables.includes(tableId) ? 'not-eligible'
       : selectedTables.includes(tableId) ? 'selected'
+      : previouslyBookedTables.includes(tableId) ? 'previously-booked'
       : wouldExceedCapacity(tableId) ? 'not-eligible'
       : 'available'
 
@@ -113,6 +61,9 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], not
     }
     if (status === 'selected') {
       return `${baseStyle} bg-orange-500 border-orange-600 text-white shadow-lg transform scale-105`
+    }
+    if (status === 'previously-booked') {
+      return `${baseStyle} bg-blue-100 border-blue-400 text-blue-800 hover:bg-blue-200 hover:border-blue-500`
     }
     if (isHovered) {
       return `${baseStyle} bg-green-100 border-green-400 text-green-700 shadow-md`
@@ -148,6 +99,12 @@ const TableMap = ({ selectedTables = [], onTableSelect, occupiedTables = [], not
           <div className="w-4 h-4 sm:w-6 sm:h-6 bg-orange-500 border-2 border-orange-600 rounded"></div>
           <span className="text-xs">Selected</span>
         </div>
+        {previouslyBookedTables.length > 0 && (
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-4 h-4 sm:w-6 sm:h-6 bg-blue-100 border-2 border-blue-400 rounded"></div>
+            <span className="text-xs">Previously booked</span>
+          </div>
+        )}
         <div className="flex items-center gap-1 sm:gap-2">
           <div className="w-4 h-4 sm:w-6 sm:h-6 bg-red-100 border-2 border-red-300 rounded opacity-60"></div>
           <span className="text-xs">Occupied</span>

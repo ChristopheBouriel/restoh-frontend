@@ -5,17 +5,23 @@ import apiClient from './apiClient'
  * @param {string} date - Date in YYYY-MM-DD format
  * @param {number} slot - Time slot number (1-9)
  * @param {number} capacity - Minimum table capacity needed
+ * @param {string} [excludeReservationId] - Optional: ID of reservation being edited (to exclude from occupied tables)
  * @returns {Promise<{success: boolean, data?: {availableTables: number[], occupiedTables: number[], notEligibleTables: number[]}, error?: string}>}
  */
-export const getAvailableTables = async (date, slot, capacity) => {
+export const getAvailableTables = async (date, slot, capacity, excludeReservationId = null) => {
   try {
-    const response = await apiClient.get('/tables/available', {
-      params: {
-        date,
-        slot,
-        capacity
-      }
-    })
+    const params = {
+      date,
+      slot,
+      capacity
+    }
+
+    // Only add excludeReservationId if it's provided
+    if (excludeReservationId) {
+      params.excludeReservationId = excludeReservationId
+    }
+
+    const response = await apiClient.get('/tables/available', { params })
 
     const data = response.data.data || response.data
     const availableTables = data.availableTables || data.available || []

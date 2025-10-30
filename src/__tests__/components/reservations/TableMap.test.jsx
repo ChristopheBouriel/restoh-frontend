@@ -268,7 +268,8 @@ describe('TableMap Component', () => {
 
   describe('Callback Behavior', () => {
     it('should call onTableSelect with correct table ID', () => {
-      render(<TableMap onTableSelect={mockOnTableSelect} />)
+      // Table 15 is a table for 4, so we need partySize of at least 3 to allow selection
+      render(<TableMap onTableSelect={mockOnTableSelect} partySize={4} />)
 
       const table15 = screen.getByText('15').closest('button')
       fireEvent.click(table15)
