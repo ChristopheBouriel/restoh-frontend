@@ -25,6 +25,7 @@ import ReservationsManagement from './pages/admin/ReservationsManagement'
 import UsersManagement from './pages/admin/UsersManagement'
 import ContactsManagement from './pages/admin/ContactsManagement'
 import Checkout from './pages/checkout/Checkout'
+import NotificationsDemo from './pages/dev/NotificationsDemo'
 import { ROUTES } from './constants'
 
 function App() {
@@ -147,7 +148,10 @@ function App() {
         {/* Routes without layout (auth) */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
-        
+
+        {/* Dev routes */}
+        <Route path="/dev/notifications" element={<NotificationsDemo />} />
+
         {/* Catch all route */}
         <Route path="*" element={
           <div className="min-h-screen flex items-center justify-center bg-gray-50">
