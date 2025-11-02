@@ -188,24 +188,25 @@ describe('useReservations Hook', () => {
     expect(createResult).toEqual({ success: true })
   })
 
-  test('should throw error when creating reservation without authentication', async () => {
+  test('should return error when creating reservation without authentication', async () => {
     vi.mocked(useAuth).mockReturnValue({ user: null })
-    
+
     const { result } = renderHook(() => useReservations())
 
     const reservationData = {
       date: '2025-03-15',
-      time: '19:00', 
+      time: '19:00',
       guests: 4
     }
 
+    let createResult
     await act(async () => {
-      await expect(result.current.createReservation(reservationData))
-        .rejects.toThrow('User not authenticated')
+      createResult = await result.current.createReservation(reservationData)
     })
 
     expect(toast.error).toHaveBeenCalledWith('You must be logged in to create a reservation')
     expect(mockCreateReservation).not.toHaveBeenCalled()
+    expect(createResult).toEqual({ success: false, error: 'User not authenticated' })
   })
 
   test('should update reservation successfully', async () => {
@@ -287,9 +288,9 @@ describe('useReservations Hook', () => {
     expect(errors).toContain('Cannot book in the past')
   })
 
-  test('should handle store errors gracefully', async () => {
+  test('should handle store errors gracefully with toast', async () => {
     mockCreateReservation.mockResolvedValue({ success: false, error: 'Store error' })
-    
+
     const { result } = renderHook(() => useReservations())
 
     const reservationData = {
@@ -298,12 +299,44 @@ describe('useReservations Hook', () => {
       guests: 4
     }
 
+    let createResult
     await act(async () => {
-      await expect(result.current.createReservation(reservationData))
-        .rejects.toThrow('Store error')
+      createResult = await result.current.createReservation(reservationData)
     })
 
-    expect(toast.error).toHaveBeenCalledWith('Error creating reservation')
+    expect(toast.error).toHaveBeenCalledWith('Store error')
+    expect(createResult).toEqual({ success: false, error: 'Store error' })
+  })
+
+  test('should return error with details when backend provides suggestedTables', async () => {
+    const errorWithDetails = {
+      success: false,
+      error: 'Tables 5 and 6 are unavailable',
+      details: {
+        unavailableTables: [5, 6],
+        suggestedTables: [7, 8, 9],
+        reason: 'Already reserved'
+      }
+    }
+
+    mockCreateReservation.mockResolvedValue(errorWithDetails)
+
+    const { result } = renderHook(() => useReservations())
+
+    const reservationData = {
+      date: '2025-03-15',
+      time: '19:00',
+      guests: 4
+    }
+
+    let createResult
+    await act(async () => {
+      createResult = await result.current.createReservation(reservationData)
+    })
+
+    // Should NOT show toast when details are present (InlineAlert will handle it)
+    expect(toast.error).not.toHaveBeenCalled()
+    expect(createResult).toEqual(errorWithDetails)
   })
 
   // 4. UTILITAIRES ET FORMATAGE (2 tests)
@@ -352,15 +385,60 @@ describe('useReservations Hook', () => {
   // 6. TESTS D'AUTHENTIFICATION POUR TOUTES LES ACTIONS (1 test additionnel)
   test('should require authentication for all reservation actions', async () => {
     vi.mocked(useAuth).mockReturnValue({ user: null })
-    
+
     const { result } = renderHook(() => useReservations())
 
+    let updateResult
     // Test update without auth
     await act(async () => {
-      await expect(result.current.updateReservation('1', {}))
-        .rejects.toThrow('User not authenticated')
+      updateResult = await result.current.updateReservation('1', {})
     })
 
     expect(toast.error).toHaveBeenCalledWith('You must be logged in to update a reservation')
+    expect(updateResult).toEqual({ success: false, error: 'User not authenticated' })
+  })
+
+  // 7. TESTS POUR LES DÉTAILS D'ERREUR (2 tests additionnels)
+  test('should return full error with details for update reservation', async () => {
+    const errorWithDetails = {
+      success: false,
+      error: 'Tables unavailable during update',
+      details: {
+        suggestedTables: [10, 11],
+        reason: 'Tables just booked'
+      }
+    }
+
+    mockUpdateReservation.mockResolvedValue(errorWithDetails)
+
+    const { result } = renderHook(() => useReservations())
+
+    let updateResult
+    await act(async () => {
+      updateResult = await result.current.updateReservation('1', { date: '2025-03-15' })
+    })
+
+    // Should NOT show toast when details are present
+    expect(toast.error).not.toHaveBeenCalled()
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(updateResult).toEqual(errorWithDetails)
+  })
+
+  test('should handle network errors gracefully', async () => {
+    mockCreateReservation.mockRejectedValue(new Error('Network error'))
+
+    const { result } = renderHook(() => useReservations())
+
+    let createResult
+    await act(async () => {
+      createResult = await result.current.createReservation({
+        date: '2025-03-15',
+        time: '19:00',
+        guests: 4
+      })
+    })
+
+    expect(toast.error).toHaveBeenCalledWith('Error creating reservation')
+    expect(createResult).toEqual({ success: false, error: 'Network error' })
   })
 })
