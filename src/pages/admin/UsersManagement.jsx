@@ -197,6 +197,7 @@ const UsersManagement = () => {
               onChange={setRoleFilter}
               options={roleOptions}
               className="w-full"
+              size="md"
             />
           </div>
           <div>
@@ -208,6 +209,7 @@ const UsersManagement = () => {
               onChange={setStatusFilter}
               options={statusOptions}
               className="w-full"
+              size="md"
             />
           </div>
         </div>

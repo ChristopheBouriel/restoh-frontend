@@ -93,7 +93,6 @@ describe('ReservationsManagement Component', () => {
     assignTable: vi.fn(),
     getReservationsStats: vi.fn(() => ({
       total: 4,
-      pending: 1,
       confirmed: 1,
       seated: 1,
       completed: 1,
