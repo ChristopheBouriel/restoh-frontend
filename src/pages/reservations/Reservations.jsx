@@ -5,6 +5,7 @@ import { useReservations } from '../../hooks/useReservations'
 import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
+import InlineAlert from '../../components/common/InlineAlert'
 import { TIME_SLOTS, getLabelFromSlot } from '../../services/reservationSlots'
 import { getAvailableTables } from '../../api/tablesApi'
 import { calculateTotalCapacity, getTableCapacity } from '../../utils/tablesConfig'
@@ -23,6 +24,7 @@ const Reservations = () => {
   const [isLoadingTables, setIsLoadingTables] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [filterStatus, setFilterStatus] = useState('upcoming') // 'all', 'upcoming', 'past'
+  const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
 
   // Pre-fill phone from user profile
   useEffect(() => {
@@ -136,8 +138,11 @@ const Reservations = () => {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Clear any previous inline error
+    setInlineError(null)
 
     const reservationData = {
       date: selectedDate,
@@ -163,9 +168,9 @@ const Reservations = () => {
       return
     }
 
-    try {
-      createReservation(reservationData)
+    const result = await createReservation(reservationData)
 
+    if (result.success) {
       // Reset form (keep phone if it's from profile)
       setSelectedDate('')
       setSelectedSlotId(null)
@@ -175,9 +180,13 @@ const Reservations = () => {
         setContactPhone('')
       }
       setSpecialRequests('')
-    } catch (error) {
-      // L'erreur est déjà gérée dans le hook
+    } else if (result.details && result.details.suggestedTables) {
+      // Show InlineAlert with suggested tables
+      setInlineError(result)
+      // Scroll to top to show the alert
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
+    // Else: error was already shown as toast in the hook
   }
 
   const handleEdit = (reservation) => {
@@ -201,8 +210,11 @@ const Reservations = () => {
     await cancelReservation(reservationId)
   }
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault()
+
+    // Clear any previous inline error
+    setInlineError(null)
 
     const reservationData = {
       date: selectedDate,
@@ -228,9 +240,9 @@ const Reservations = () => {
       return
     }
 
-    try {
-      updateReservation(editingId, reservationData)
+    const result = await updateReservation(editingId, reservationData)
 
+    if (result.success) {
       // Reset form and editing state (keep phone if from profile)
       setSelectedDate('')
       setSelectedSlotId(null)
@@ -242,9 +254,13 @@ const Reservations = () => {
       }
       setSpecialRequests('')
       setEditingId(null)
-    } catch (error) {
-      // Error already handled in hook
+    } else if (result.details && result.details.suggestedTables) {
+      // Show InlineAlert with suggested tables
+      setInlineError(result)
+      // Scroll to top to show the alert
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
+    // Else: error was already shown as toast in the hook
   }
 
   // Get today's date in YYYY-MM-DD format
@@ -306,6 +322,31 @@ const Reservations = () => {
                   </p>
                 </div>
               )}
+
+              {/* InlineAlert for errors with details */}
+              {inlineError && inlineError.details && inlineError.details.suggestedTables && (
+                <InlineAlert
+                  type="warning"
+                  message={inlineError.error}
+                  details={inlineError.details.reason || 'These tables were just booked by another customer.'}
+                  actions={inlineError.details.suggestedTables.map(tableId => ({
+                    label: `Try Table ${tableId}`,
+                    onClick: () => {
+                      setSelectedTables(prev => {
+                        if (!prev.includes(tableId)) {
+                          return [...prev, tableId]
+                        }
+                        return prev
+                      })
+                      setInlineError(null)
+                      toast.success(`Table ${tableId} selected`)
+                    },
+                    variant: inlineError.details.suggestedTables.indexOf(tableId) === 0 ? 'primary' : undefined
+                  }))}
+                  onDismiss={() => setInlineError(null)}
+                />
+              )}
+
               {/* Date, Guests, and Phone - Side by side on tablet/laptop */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Date */}

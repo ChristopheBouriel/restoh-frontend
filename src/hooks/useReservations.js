@@ -18,7 +18,7 @@ export const useReservations = () => {
   const handleCreateReservation = async (reservationData) => {
     if (!user) {
       toast.error('You must be logged in to create a reservation')
-      throw new Error('User not authenticated')
+      return { success: false, error: 'User not authenticated' }
     }
 
     try {
@@ -29,18 +29,28 @@ export const useReservations = () => {
         toast.success('Reservation created successfully!')
         return result
       } else {
-        throw new Error(result.error)
+        // If backend returns details (e.g., suggestedTables), return the full result
+        // The component will decide whether to show toast or InlineAlert
+        if (result.details && Object.keys(result.details).length > 0) {
+          // Return error with details for InlineAlert
+          return result
+        } else {
+          // Simple error, show toast
+          toast.error(result.error || 'Error creating reservation')
+          return result
+        }
       }
     } catch (error) {
+      // Network or unexpected error
       toast.error('Error creating reservation')
-      throw error
+      return { success: false, error: error.message || 'Error creating reservation' }
     }
   }
 
   const handleUpdateReservation = async (reservationId, reservationData) => {
     if (!user) {
       toast.error('You must be logged in to update a reservation')
-      throw new Error('User not authenticated')
+      return { success: false, error: 'User not authenticated' }
     }
 
     try {
@@ -53,11 +63,17 @@ export const useReservations = () => {
         toast.success('Reservation updated successfully!')
         return result
       } else {
-        throw new Error(result.error)
+        // If backend returns details (e.g., suggestedTables), return the full result
+        if (result.details && Object.keys(result.details).length > 0) {
+          return result
+        } else {
+          toast.error(result.error || 'Error updating reservation')
+          return result
+        }
       }
     } catch (error) {
       toast.error(error.message || 'Error updating reservation')
-      throw error
+      return { success: false, error: error.message || 'Error updating reservation' }
     }
   }
 
