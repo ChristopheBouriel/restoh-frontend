@@ -95,13 +95,13 @@ describe('useAuth Hook', () => {
         loginResult = await result.current.login({ email: 'test@example.com', password: 'password' })
       })
 
-      expect(mockAuthStore.login).toHaveBeenCalledWith({ 
-        email: 'test@example.com', 
-        password: 'password' 
+      expect(mockAuthStore.login).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password'
       })
       expect(toast.success).toHaveBeenCalledWith('Successfully logged in!')
       expect(mockNavigate).toHaveBeenCalledWith('/')
-      expect(loginResult).toBe(true)
+      expect(loginResult).toEqual({ success: true })
     })
 
     it('should handle failed login with error toast', async () => {
@@ -110,7 +110,7 @@ describe('useAuth Hook', () => {
         error: 'Invalid credentials'
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
-      mockAuthStore.login.mockResolvedValue({ success: false })
+      mockAuthStore.login.mockResolvedValue({ success: false, error: 'Invalid credentials' })
 
       const { result } = renderHook(() => useAuth())
 
@@ -119,13 +119,13 @@ describe('useAuth Hook', () => {
         loginResult = await result.current.login({ email: 'wrong@example.com', password: 'wrong' })
       })
 
-      expect(mockAuthStore.login).toHaveBeenCalledWith({ 
-        email: 'wrong@example.com', 
-        password: 'wrong' 
+      expect(mockAuthStore.login).toHaveBeenCalledWith({
+        email: 'wrong@example.com',
+        password: 'wrong'
       })
       expect(toast.error).toHaveBeenCalledWith('Invalid credentials')
       expect(mockNavigate).not.toHaveBeenCalled()
-      expect(loginResult).toBe(false)
+      expect(loginResult).toEqual({ success: false, error: 'Invalid credentials' })
     })
 
     it('should handle successful registration with toast and navigation', async () => {
@@ -149,7 +149,7 @@ describe('useAuth Hook', () => {
       })
       expect(toast.success).toHaveBeenCalledWith('Registration successful! Welcome!')
       expect(mockNavigate).toHaveBeenCalledWith('/')
-      expect(registerResult).toBe(true)
+      expect(registerResult).toEqual({ success: true })
     })
 
     it('should handle failed registration with error toast', async () => {
@@ -158,7 +158,7 @@ describe('useAuth Hook', () => {
         error: 'Email already in use'
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
-      mockAuthStore.register.mockResolvedValue({ success: false })
+      mockAuthStore.register.mockResolvedValue({ success: false, error: 'Email already in use' })
 
       const { result } = renderHook(() => useAuth())
 
@@ -173,7 +173,7 @@ describe('useAuth Hook', () => {
 
       expect(toast.error).toHaveBeenCalledWith('Email already in use')
       expect(mockNavigate).not.toHaveBeenCalled()
-      expect(registerResult).toBe(false)
+      expect(registerResult).toEqual({ success: false, error: 'Email already in use' })
     })
   })
 
@@ -209,7 +209,7 @@ describe('useAuth Hook', () => {
         email: 'updated@example.com'
       })
       expect(toast.success).toHaveBeenCalledWith('Profile updated successfully!')
-      expect(updateResult).toBe(true)
+      expect(updateResult).toEqual({ success: true })
     })
 
     it('should handle successful account deletion with toast and navigation', async () => {
@@ -225,7 +225,7 @@ describe('useAuth Hook', () => {
       expect(mockAuthStore.deleteAccount).toHaveBeenCalledWith('password123')
       expect(toast.success).toHaveBeenCalledWith('Account deleted successfully')
       expect(mockNavigate).toHaveBeenCalledWith('/')
-      expect(deleteResult).toBe(true)
+      expect(deleteResult).toEqual({ success: true })
     })
 
     it('should handle successful password change', async () => {
@@ -253,7 +253,7 @@ describe('useAuth Hook', () => {
         error: 'Validation error'
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
-      mockAuthStore.updateProfile.mockResolvedValue({ success: false })
+      mockAuthStore.updateProfile.mockResolvedValue({ success: false, error: 'Validation error' })
 
       const { result } = renderHook(() => useAuth())
 
@@ -265,7 +265,7 @@ describe('useAuth Hook', () => {
       })
 
       expect(toast.error).toHaveBeenCalledWith('Validation error')
-      expect(updateResult).toBe(false)
+      expect(updateResult).toEqual({ success: false, error: 'Validation error' })
     })
 
     it('should return error details for failed password change', async () => {
@@ -295,7 +295,7 @@ describe('useAuth Hook', () => {
         error: null
       }
       vi.mocked(useAuthStore).mockReturnValue(mockErrorState)
-      mockAuthStore.login.mockResolvedValue({ success: false })
+      mockAuthStore.login.mockResolvedValue({ success: false, error: null })
 
       const { result } = renderHook(() => useAuth())
 
@@ -305,7 +305,7 @@ describe('useAuth Hook', () => {
       })
 
       expect(toast.error).toHaveBeenCalledWith('Login error')
-      expect(loginResult).toBe(false)
+      expect(loginResult).toEqual({ success: false, error: null })
     })
 
     it('should pass through clearError function from store', () => {

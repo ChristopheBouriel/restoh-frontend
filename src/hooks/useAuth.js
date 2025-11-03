@@ -29,10 +29,17 @@ export const useAuth = () => {
       await fetchCurrentUser()
       toast.success('Successfully logged in!')
       navigate(ROUTES.HOME)
-      return true
+      return { success: true }
     } else {
-      toast.error(error || 'Login error')
-      return false
+      // If backend returns details (e.g., ACCOUNT_DELETED, ACCOUNT_INACTIVE)
+      if (result.details && Object.keys(result.details).length > 0) {
+        // Return error with details for InlineAlert
+        return result
+      } else {
+        // Simple error, show toast
+        toast.error(result.error || error || 'Login error')
+        return result
+      }
     }
   }
 
@@ -44,10 +51,17 @@ export const useAuth = () => {
       await fetchCurrentUser()
       toast.success('Registration successful! Welcome!')
       navigate(ROUTES.HOME)
-      return true
+      return { success: true }
     } else {
-      toast.error(error || 'Registration error')
-      return false
+      // If backend returns details (e.g., EMAIL_ALREADY_EXISTS with actions)
+      if (result.details && Object.keys(result.details).length > 0) {
+        // Return error with details for InlineAlert
+        return result
+      } else {
+        // Simple error, show toast
+        toast.error(result.error || error || 'Registration error')
+        return result
+      }
     }
   }
 
@@ -59,26 +73,40 @@ export const useAuth = () => {
 
   const handleUpdateProfile = async (profileData) => {
     const result = await updateProfile(profileData)
-    
+
     if (result.success) {
       toast.success('Profile updated successfully!')
-      return true
+      return { success: true }
     } else {
-      toast.error(error || 'Update error')
-      return false
+      // If backend returns details (e.g., validation errors)
+      if (result.details && Object.keys(result.details).length > 0) {
+        // Return error with details for InlineAlert
+        return result
+      } else {
+        // Simple error, show toast
+        toast.error(result.error || error || 'Update error')
+        return result
+      }
     }
   }
 
   const handleDeleteAccount = async (password) => {
     const result = await deleteAccount(password)
-    
+
     if (result.success) {
       toast.success('Account deleted successfully')
       navigate(ROUTES.HOME)
-      return true
+      return { success: true }
     } else {
-      toast.error(error || 'Error deleting account')
-      return false
+      // If backend returns details (e.g., validation errors)
+      if (result.details && Object.keys(result.details).length > 0) {
+        // Return error with details for InlineAlert
+        return result
+      } else {
+        // Simple error, show toast
+        toast.error(result.error || error || 'Error deleting account')
+        return result
+      }
     }
   }
 

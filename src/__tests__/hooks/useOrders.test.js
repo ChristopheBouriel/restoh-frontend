@@ -149,20 +149,19 @@ describe('useOrders Hook', () => {
     vi.mocked(useAuth).mockReturnValue({
       user: null
     })
-    
+
     mockConfirm.mockReturnValue(true) // User confirms, but should still fail
-    
+
     const { result } = renderHook(() => useOrders())
-    
-    // The cancelOrder function should show confirmation but then fail due to no user
-    const cancelResult = result.current.cancelOrder('1')
-    expect(cancelResult).toBe(true) // Confirmation happened
-    
-    // Wait a bit for the async operation to complete
-    await new Promise(resolve => setTimeout(resolve, 10))
-    
+
+    let cancelResult
+    await act(async () => {
+      cancelResult = await result.current.cancelOrder('1')
+    })
+
     expect(toast.error).toHaveBeenCalledWith('You must be logged in to cancel an order')
     expect(mockUpdateOrderStatus).not.toHaveBeenCalled()
+    expect(cancelResult).toBe(false) // Should return false when not authenticated
   })
 
   test('should cancel order successfully with confirmation', async () => {
@@ -184,25 +183,28 @@ describe('useOrders Hook', () => {
   test('should handle cancellation errors gracefully', async () => {
     mockConfirm.mockReturnValue(true)
     mockUpdateOrderStatus.mockResolvedValue({ success: false, error: 'Update failed' })
-    
+
     const { result } = renderHook(() => useOrders())
-    
-    // The function handles errors internally, we test the toast notification
-    result.current.cancelOrder('2')
-    
-    // Wait for the async operation to complete
-    await new Promise(resolve => setTimeout(resolve, 10))
-    
-    expect(toast.error).toHaveBeenCalledWith('Error cancelling order')
+
+    let cancelResult
+    await act(async () => {
+      cancelResult = await result.current.cancelOrder('2')
+    })
+
+    expect(toast.error).toHaveBeenCalledWith('Update failed')
+    expect(cancelResult).toBe(false) // Should return false on error
   })
 
-  test('should not cancel order when user rejects confirmation', () => {
+  test('should not cancel order when user rejects confirmation', async () => {
     mockConfirm.mockReturnValue(false) // User cancels confirmation
-    
+
     const { result } = renderHook(() => useOrders())
-    
-    const cancelResult = result.current.cancelOrder('2')
-    
+
+    let cancelResult
+    await act(async () => {
+      cancelResult = await result.current.cancelOrder('2')
+    })
+
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this order?')
     expect(mockUpdateOrderStatus).not.toHaveBeenCalled()
     expect(cancelResult).toBe(false)
@@ -304,15 +306,15 @@ describe('useOrders Hook', () => {
   test('should handle network error during order cancellation', async () => {
     mockConfirm.mockReturnValue(true)
     mockUpdateOrderStatus.mockRejectedValue(new Error('Network error'))
-    
+
     const { result } = renderHook(() => useOrders())
-    
-    // Handle the error internally
-    result.current.cancelOrder('2')
-    
-    // Wait for the async operation to complete
-    await new Promise(resolve => setTimeout(resolve, 10))
-    
+
+    let cancelResult
+    await act(async () => {
+      cancelResult = await result.current.cancelOrder('2')
+    })
+
     expect(toast.error).toHaveBeenCalledWith('Error cancelling order')
+    expect(cancelResult).toBe(false) // Should return false on network error
   })
 })

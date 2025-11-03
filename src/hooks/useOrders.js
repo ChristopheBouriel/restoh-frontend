@@ -17,29 +17,35 @@ export const useOrders = () => {
   const handleCancelOrder = async (orderId) => {
     if (!user) {
       toast.error('You must be logged in to cancel an order')
-      throw new Error('User not authenticated')
+      return { success: false, error: 'User not authenticated' }
     }
 
     try {
       const result = await updateOrderStatus(orderId, 'cancelled')
       if (result.success) {
         toast.success('Order cancelled')
+        return result
       } else {
-        throw new Error(result.error)
+        // If backend returns details (e.g., ORDER_INVALID_STATUS with timing info)
+        if (result.details && Object.keys(result.details).length > 0) {
+          // Return error with details for InlineAlert
+          return result
+        } else {
+          // Simple error, show toast
+          toast.error(result.error || 'Error cancelling order')
+          return result
+        }
       }
     } catch (error) {
       toast.error('Error cancelling order')
-      throw error
+      return { success: false, error: error.message || 'Error cancelling order' }
     }
   }
 
-  const handleConfirmCancellation = (orderId) => {
+  const handleConfirmCancellation = async (orderId) => {
     if (window.confirm('Are you sure you want to cancel this order?')) {
-      handleCancelOrder(orderId).catch(error => {
-        // Error already handled in handleCancelOrder with toast
-        console.error('Order cancellation failed:', error)
-      })
-      return true
+      const result = await handleCancelOrder(orderId)
+      return result.success
     }
     return false
   }
