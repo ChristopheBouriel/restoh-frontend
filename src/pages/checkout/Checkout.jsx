@@ -5,6 +5,7 @@ import { useCart } from '../../hooks/useCart'
 import { useAuth } from '../../hooks/useAuth'
 import useOrdersStore from '../../store/ordersStore'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import InlineAlert from '../../components/common/InlineAlert'
 import { toast } from 'react-hot-toast'
 import { ROUTES } from '../../constants'
 
@@ -24,7 +25,8 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderCompleted, setOrderCompleted] = useState(false)
   const [completedOrderId, setCompletedOrderId] = useState('')
-  
+  const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
+
   const [formData, setFormData] = useState({
     deliveryAddress: '',
     phone: '',
@@ -70,6 +72,9 @@ const Checkout = () => {
     e.preventDefault()
     setIsProcessing(true)
 
+    // Clear any previous inline error
+    setInlineError(null)
+
     try {
       // Order processing simulation
       await new Promise(resolve => setTimeout(resolve, 1500))
@@ -90,7 +95,7 @@ const Checkout = () => {
       }
 
       const result = await createOrder(orderData)
-      
+
       if (result.success) {
         // Clear cart
         clearCart()
@@ -100,7 +105,15 @@ const Checkout = () => {
         setOrderCompleted(true)
         toast.success('🎉 Order placed successfully!')
       } else {
-        throw new Error(result.error || 'Error creating order')
+        // Check for payment errors with details
+        if (result.details && (result.code === 'INVALID_AMOUNT' || result.code === 'PAYMENT_INTENT_CREATION_FAILED')) {
+          setInlineError(result)
+          // Scroll to top to show the alert
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        } else {
+          // Simple error - show toast
+          toast.error(result.error || 'Error processing order')
+        }
       }
     } catch (error) {
       toast.error('Error processing order')
@@ -170,6 +183,37 @@ const Checkout = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* InlineAlert for payment errors */}
+              {/* Case 1: Invalid amount error */}
+              {inlineError && inlineError.code === 'INVALID_AMOUNT' && inlineError.details && (
+                <InlineAlert
+                  type="error"
+                  message={inlineError.error}
+                  details={inlineError.details.message || 'The order amount is invalid. Please verify your cart and try again.'}
+                  onDismiss={() => setInlineError(null)}
+                />
+              )}
+
+              {/* Case 2: Payment intent creation failed (Stripe error - retryable) */}
+              {inlineError && inlineError.code === 'PAYMENT_INTENT_CREATION_FAILED' && inlineError.details && (
+                <InlineAlert
+                  type="error"
+                  message={inlineError.error}
+                  details={inlineError.details.message || 'There was a temporary issue processing your payment. Please try again.'}
+                  actions={[
+                    {
+                      label: 'Try again',
+                      onClick: () => {
+                        setInlineError(null)
+                        toast.info('Please resubmit your order')
+                      },
+                      variant: 'primary'
+                    }
+                  ]}
+                  onDismiss={() => setInlineError(null)}
+                />
+              )}
+
               {/* Customer information */}
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

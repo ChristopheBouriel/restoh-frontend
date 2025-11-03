@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import Reservations from '../../../pages/reservations/Reservations'
 import { useReservations } from '../../../hooks/useReservations'
+import useAuthStore from '../../../store/authStore'
+import { getAvailableTables } from '../../../api/tablesApi'
 import { toast } from 'react-hot-toast'
 
 // Mock data
@@ -12,23 +14,35 @@ const mockReservations = [
   {
     id: '1',
     date: '2025-01-15',
+    slot: 4, // 19:00
     time: '19:00',
     guests: 4,
     status: 'confirmed',
-    specialRequests: 'Table by the window'
+    specialRequests: 'Table by the window',
+    tableNumber: [1, 2],
+    contactPhone: '0123456789'
   },
   {
     id: '2',
     date: '2025-01-20',
+    slot: 6, // 20:30
     time: '20:30',
     guests: 2,
     status: 'confirmed',
-    specialRequests: ''
+    specialRequests: '',
+    tableNumber: [3],
+    contactPhone: '0987654321'
   }
 ]
 
-// Mock hooks
+// Mock hooks and APIs
 vi.mock('../../../hooks/useReservations')
+vi.mock('../../../store/authStore', () => ({
+  default: vi.fn()
+}))
+vi.mock('../../../api/tablesApi', () => ({
+  getAvailableTables: vi.fn()
+}))
 vi.mock('react-hot-toast', () => ({
   toast: {
     error: vi.fn(),
@@ -52,10 +66,10 @@ const ReservationsWrapper = () => (
 describe('Reservations Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Mock current date to 2025-01-01
     vi.setSystemTime(new Date('2025-01-01'))
-    
+
     // Default mock setup
     vi.mocked(useReservations).mockReturnValue({
       reservations: mockReservations,
@@ -66,6 +80,19 @@ describe('Reservations Component', () => {
     })
 
     mockValidateReservationData.mockReturnValue([])
+    mockCancelReservation.mockResolvedValue({ success: true })
+
+    // Mock auth store
+    vi.mocked(useAuthStore).mockReturnValue({
+      user: { id: '1', name: 'Test User', email: 'test@example.com', phone: '0123456789' }
+    })
+
+    // Mock getAvailableTables API call
+    vi.mocked(getAvailableTables).mockResolvedValue({
+      success: true,
+      occupiedTables: [],
+      notEligibleTables: []
+    })
   })
 
   // 1. RENDU DE BASE (3 tests)

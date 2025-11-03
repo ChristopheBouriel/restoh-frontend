@@ -263,7 +263,7 @@ describe('Checkout Component', () => {
     }, { timeout: 3000 })
     
     await vi.waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Error processing order')
+      expect(toast.error).toHaveBeenCalledWith('Payment failed')
     }, { timeout: 3000 })
     
     // Should not clear cart on error
