@@ -180,8 +180,8 @@ const Reservations = () => {
         setContactPhone('')
       }
       setSpecialRequests('')
-    } else if (result.details && result.details.suggestedTables) {
-      // Show InlineAlert with suggested tables
+    } else if (result.details && (result.details.suggestedTables || result.details.suggestedCombinations)) {
+      // Show InlineAlert with suggested tables or table combinations
       setInlineError(result)
       // Scroll to top to show the alert
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -254,8 +254,8 @@ const Reservations = () => {
       }
       setSpecialRequests('')
       setEditingId(null)
-    } else if (result.details && result.details.suggestedTables) {
-      // Show InlineAlert with suggested tables
+    } else if (result.details && (result.details.suggestedTables || result.details.suggestedCombinations)) {
+      // Show InlineAlert with suggested tables or table combinations
       setInlineError(result)
       // Scroll to top to show the alert
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -324,6 +324,7 @@ const Reservations = () => {
               )}
 
               {/* InlineAlert for errors with details */}
+              {/* Case 1: Tables unavailable (suggestedTables) */}
               {inlineError && inlineError.details && inlineError.details.suggestedTables && (
                 <InlineAlert
                   type="warning"
@@ -342,6 +343,27 @@ const Reservations = () => {
                       toast.success(`Table ${tableId} selected`)
                     },
                     variant: inlineError.details.suggestedTables.indexOf(tableId) === 0 ? 'primary' : undefined
+                  }))}
+                  onDismiss={() => setInlineError(null)}
+                />
+              )}
+
+              {/* Case 2: Capacity issues (suggestedCombinations) */}
+              {inlineError && inlineError.details && inlineError.details.suggestedCombinations && (
+                <InlineAlert
+                  type="warning"
+                  message={inlineError.error}
+                  details={inlineError.details.rule || `The selected tables don't match your party size (${partySize} guests).`}
+                  actions={inlineError.details.suggestedCombinations.map((combo, index) => ({
+                    label: combo.tables.length === 1
+                      ? `Table ${combo.tables[0]} (${combo.capacity} seats)`
+                      : `Tables ${combo.tables.join(' + ')} (${combo.capacity} seats)`,
+                    onClick: () => {
+                      setSelectedTables(combo.tables)
+                      setInlineError(null)
+                      toast.success(`Tables ${combo.tables.join(', ')} selected`)
+                    },
+                    variant: index === 0 ? 'primary' : undefined
                   }))}
                   onDismiss={() => setInlineError(null)}
                 />
