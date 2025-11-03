@@ -7,7 +7,8 @@ import { useAuth } from '../../../hooks/useAuth'
 // Mocks
 vi.mock('../../../hooks/useAuth')
 vi.mock('react-router-dom', () => ({
-  Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>
+  Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
+  useNavigate: () => vi.fn()
 }))
 
 describe('Register Component', () => {

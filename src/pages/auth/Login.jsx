@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../constants'
+import InlineAlert from '../../components/common/InlineAlert'
 
 const Login = () => {
   const { login, isLoading, error } = useAuth()
@@ -11,6 +12,7 @@ const Login = () => {
     email: '',
     password: ''
   })
+  const [inlineError, setInlineError] = useState(null)
 
   const handleChange = (e) => {
     setFormData({
@@ -21,7 +23,20 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await login(formData)
+
+    // Clear previous inline error
+    setInlineError(null)
+
+    const result = await login(formData)
+
+    if (result && !result.success) {
+      // If backend returns details (e.g., ACCOUNT_DELETED, ACCOUNT_INACTIVE)
+      if (result.details && Object.keys(result.details).length > 0) {
+        setInlineError(result)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      // Simple errors are already handled by toast in the hook
+    }
   }
 
   return (
@@ -47,8 +62,18 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Global Error */}
-            {error && (
+            {/* InlineAlert for account status errors */}
+            {inlineError && (inlineError.code === 'AUTH_ACCOUNT_DELETED' || inlineError.code === 'AUTH_ACCOUNT_INACTIVE') && inlineError.details && (
+              <InlineAlert
+                type="error"
+                message={inlineError.error}
+                details={inlineError.details.message}
+                dismissible={false}
+              />
+            )}
+
+            {/* Fallback: Global Error for simple errors */}
+            {error && !inlineError && (
               <div className="rounded-md bg-red-50 p-4">
                 <div className="text-sm text-red-700">{error}</div>
               </div>

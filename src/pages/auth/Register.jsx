@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../constants'
+import InlineAlert from '../../components/common/InlineAlert'
 
 const Register = () => {
+  const navigate = useNavigate()
   const { register, isLoading, error } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -15,6 +17,7 @@ const Register = () => {
     confirmPassword: ''
   })
   const [formErrors, setFormErrors] = useState({})
+  const [inlineError, setInlineError] = useState(null)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -63,17 +66,25 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
-    
-    const success = await register({
+
+    // Clear previous inline error
+    setInlineError(null)
+
+    const result = await register({
       name: formData.name,
       email: formData.email,
       password: formData.password
     })
-    
-    if (!success) {
-      // Error is handled in the hook with toast
+
+    if (result && !result.success) {
+      // If backend returns details (e.g., EMAIL_ALREADY_EXISTS with actions)
+      if (result.details && Object.keys(result.details).length > 0) {
+        setInlineError(result)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      // Simple errors are already handled by toast in the hook
     }
   }
 
@@ -100,8 +111,29 @@ const Register = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Global Error */}
-            {error && (
+            {/* InlineAlert for errors with details (e.g., EMAIL_ALREADY_EXISTS) */}
+            {inlineError && inlineError.code === 'EMAIL_ALREADY_EXISTS' && inlineError.details && (
+              <InlineAlert
+                type="error"
+                message={inlineError.error}
+                details={inlineError.details.suggestion}
+                actions={[
+                  {
+                    label: 'Login instead',
+                    onClick: () => navigate(ROUTES.LOGIN),
+                    variant: 'primary'
+                  },
+                  {
+                    label: 'Reset password',
+                    onClick: () => navigate('/reset-password')
+                  }
+                ]}
+                onDismiss={() => setInlineError(null)}
+              />
+            )}
+
+            {/* Fallback: Global Error for simple errors */}
+            {error && !inlineError && (
               <div className="rounded-md bg-red-50 p-4">
                 <div className="text-sm text-red-700">{error}</div>
               </div>
