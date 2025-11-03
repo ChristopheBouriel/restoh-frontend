@@ -35,3 +35,9 @@ export const RESERVATION_STATUS = {
   CANCELLED: 'cancelled',
   NO_SHOW: 'no-show'
 }
+
+export const RESTAURANT_INFO = {
+  PHONE: '01 23 45 67 89',
+  EMAIL: 'contact@restoh.com',
+  NAME: 'RestOh!'
+}

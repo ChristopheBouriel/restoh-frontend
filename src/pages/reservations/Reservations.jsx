@@ -9,6 +9,7 @@ import InlineAlert from '../../components/common/InlineAlert'
 import { TIME_SLOTS, getLabelFromSlot } from '../../services/reservationSlots'
 import { getAvailableTables } from '../../api/tablesApi'
 import { calculateTotalCapacity, getTableCapacity } from '../../utils/tablesConfig'
+import { RESTAURANT_INFO } from '../../constants'
 
 const Reservations = () => {
   const { user } = useAuthStore()
@@ -207,7 +208,20 @@ const Reservations = () => {
   }
 
   const handleCancelReservation = async (reservationId) => {
-    await cancelReservation(reservationId)
+    // Clear any previous inline error
+    setInlineError(null)
+
+    const result = await cancelReservation(reservationId)
+
+    if (result && !result.success) {
+      // Check for timing errors (CANCELLATION_TOO_LATE)
+      if (result.code === 'CANCELLATION_TOO_LATE' && result.details) {
+        setInlineError(result)
+        // Scroll to top to show the alert
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      // Else: error was already shown as toast in the hook
+    }
   }
 
   const handleUpdate = async (e) => {
@@ -254,8 +268,8 @@ const Reservations = () => {
       }
       setSpecialRequests('')
       setEditingId(null)
-    } else if (result.details && (result.details.suggestedTables || result.details.suggestedCombinations)) {
-      // Show InlineAlert with suggested tables or table combinations
+    } else if (result.details && (result.details.suggestedTables || result.details.suggestedCombinations || result.code === 'MODIFICATION_TOO_LATE')) {
+      // Show InlineAlert with suggested tables, table combinations, or timing error
       setInlineError(result)
       // Scroll to top to show the alert
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -366,6 +380,16 @@ const Reservations = () => {
                     variant: index === 0 ? 'primary' : undefined
                   }))}
                   onDismiss={() => setInlineError(null)}
+                />
+              )}
+
+              {/* Case 3: Timing errors (MODIFICATION_TOO_LATE, CANCELLATION_TOO_LATE) */}
+              {inlineError && (inlineError.code === 'MODIFICATION_TOO_LATE' || inlineError.code === 'CANCELLATION_TOO_LATE') && inlineError.details && (
+                <InlineAlert
+                  type="error"
+                  message={inlineError.error}
+                  details={`${inlineError.details.message || 'This action cannot be completed online at this time.'} Please contact us directly at ${RESTAURANT_INFO.PHONE} for assistance.`}
+                  dismissible={false}
                 />
               )}
 
