@@ -130,26 +130,6 @@ const UsersManagement = () => {
 
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
-            <Shield className="h-8 w-8 text-purple-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Admins</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.admins}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <Mail className="h-8 w-8 text-orange-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Verified</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.verified}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
             <TrendingUp className="h-8 w-8 text-emerald-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">This month</p>
@@ -434,7 +414,20 @@ const UsersManagement = () => {
                     <p><strong>Name:</strong> {selectedUser.name}</p>
                     <p><strong>Email:</strong> {selectedUser.email}</p>
                     <p><strong>Phone:</strong> {selectedUser.phone || 'N/A'}</p>
-                    <p><strong>Address:</strong> {selectedUser.address || 'N/A'}</p>
+                    <div>
+                      <strong>Address:</strong>
+                      {selectedUser.address && typeof selectedUser.address === 'object' ? (
+                        <div className="ml-4 mt-1">
+                          {selectedUser.address.street && <div>{selectedUser.address.street}</div>}
+                          {selectedUser.address.city && <div>{selectedUser.address.city}</div>}
+                          {selectedUser.address.state && <div>{selectedUser.address.state}</div>}
+                          {selectedUser.address.zipCode && <div>{selectedUser.address.zipCode}</div>}
+                          {!selectedUser.address.street && !selectedUser.address.city && !selectedUser.address.state && !selectedUser.address.zipCode && <div>N/A</div>}
+                        </div>
+                      ) : (
+                        <span className="ml-2">{selectedUser.address || 'N/A'}</span>
+                      )}
+                    </div>
                     <p>
                       <strong>Role:</strong>{' '}
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(selectedUser.role)}`}>
