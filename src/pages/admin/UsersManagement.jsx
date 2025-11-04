@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, UserCheck, UserX } from 'lucide-react'
+import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, UserCheck, UserX, ShoppingCart, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp } from 'lucide-react'
 import useUsersStore from '../../store/usersStore'
+import useOrdersStore from '../../store/ordersStore'
+import useReservationsStore from '../../store/reservationsStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
+import ImageWithFallback from '../../components/common/ImageWithFallback'
 
 const UsersManagement = () => {
-  const { 
-    users, 
-    initializeUsers, 
+  const {
+    users,
+    initializeUsers,
     toggleUserStatus,
     updateUserRole,
     getUsersStats,
@@ -16,11 +19,20 @@ const UsersManagement = () => {
     getUsersByRole
   } = useUsersStore()
 
+  const { orders } = useOrdersStore()
+  const { reservations } = useReservationsStore()
+
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // User activity states
+  const [showOrders, setShowOrders] = useState(false)
+  const [showReservations, setShowReservations] = useState(false)
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState(null)
+  const [selectedReservationDetail, setSelectedReservationDetail] = useState(null)
 
   useEffect(() => {
     initializeUsers()
@@ -75,6 +87,10 @@ const UsersManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedUser(null)
+    setShowOrders(false)
+    setShowReservations(false)
+    setSelectedOrderDetail(null)
+    setSelectedReservationDetail(null)
   }
 
   const formatDate = (dateStr) => {
@@ -86,6 +102,35 @@ const UsersManagement = () => {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(price || 0)
+  }
+
+  // Get user's orders
+  const getUserOrders = (userId) => {
+    if (!userId || !orders) return []
+    return orders.filter(order => order.userId === userId)
+  }
+
+  // Get user's reservations
+  const getUserReservations = (userId) => {
+    if (!userId || !reservations) return []
+    return reservations.filter(reservation => reservation.userId === userId)
+  }
+
+  const toggleOrders = () => {
+    setShowOrders(!showOrders)
+    setShowReservations(false)
+  }
+
+  const toggleReservations = () => {
+    setShowReservations(!showReservations)
+    setShowOrders(false)
   }
 
   const getRoleColor = (role) => {
@@ -481,6 +526,115 @@ const UsersManagement = () => {
                 </div>
               </div>
 
+              {/* View Activity Buttons */}
+              <div className="mt-6 flex gap-4">
+                <button
+                  onClick={toggleOrders}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  <span className="font-medium">View Orders ({getUserOrders(selectedUser.id || selectedUser._id).length})</span>
+                  {showOrders ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={toggleReservations}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors border border-purple-200"
+                >
+                  <CalendarIcon className="w-5 h-5" />
+                  <span className="font-medium">View Reservations ({getUserReservations(selectedUser.id || selectedUser._id).length})</span>
+                  {showReservations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Orders List */}
+              {showOrders && (
+                <div className="mt-4 border border-blue-200 rounded-lg p-4 bg-blue-50/30">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    User Orders
+                  </h4>
+                  {getUserOrders(selectedUser.id || selectedUser._id).length > 0 ? (
+                    <div className="space-y-2">
+                      {getUserOrders(selectedUser.id || selectedUser._id).map((order) => (
+                        <div
+                          key={order.id || order._id}
+                          onClick={() => setSelectedOrderDetail(order)}
+                          className="bg-white p-3 rounded-lg border border-gray-200 hover:border-blue-400 cursor-pointer transition-colors"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-900">#{order.orderNumber}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                  order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                  'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {order.status}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                {formatDate(order.createdAt)}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-blue-600">{formatPrice(order.totalPrice)}</div>
+                              <div className="text-xs text-gray-500">{order.items?.length || 0} items</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm text-center py-4">No orders found</p>
+                  )}
+                </div>
+              )}
+
+              {/* Reservations List */}
+              {showReservations && (
+                <div className="mt-4 border border-purple-200 rounded-lg p-4 bg-purple-50/30">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <CalendarIcon className="w-4 h-4" />
+                    User Reservations
+                  </h4>
+                  {getUserReservations(selectedUser.id || selectedUser._id).length > 0 ? (
+                    <div className="space-y-2">
+                      {getUserReservations(selectedUser.id || selectedUser._id).map((reservation) => (
+                        <div
+                          key={reservation.id || reservation._id}
+                          onClick={() => setSelectedReservationDetail(reservation)}
+                          className="bg-white p-3 rounded-lg border border-gray-200 hover:border-purple-400 cursor-pointer transition-colors"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-900">{formatDate(reservation.date)}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  reservation.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                  reservation.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                  'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {reservation.status}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                {reservation.slot} • {reservation.guests} guests
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-gray-700">Table {reservation.tableNumber}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm text-center py-4">No reservations found</p>
+                  )}
+                </div>
+              )}
+
               {/* Actions */}
               <div className="mt-6 flex justify-end space-x-4">
                 <button
@@ -489,6 +643,187 @@ const UsersManagement = () => {
                 >
                   Close
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Detail Modal */}
+      {selectedOrderDetail && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Order details #{selectedOrderDetail.orderNumber}
+                </h2>
+                <button
+                  onClick={() => setSelectedOrderDetail(null)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Customer Info */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Customer information</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p><strong>Name:</strong> {selectedOrderDetail.userName || selectedUser?.name}</p>
+                    <p><strong>Email:</strong> {selectedOrderDetail.userEmail || selectedUser?.email}</p>
+                    <p><strong>Date:</strong> {formatDate(selectedOrderDetail.createdAt)}</p>
+                  </div>
+                </div>
+
+                {/* Items */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Ordered items</h3>
+                  <div className="space-y-3">
+                    {selectedOrderDetail.items?.map((item, index) => (
+                      <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
+                        <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden flex-shrink-0">
+                          <ImageWithFallback
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{item.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {formatPrice(item.price)} × {item.quantity}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Payment */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Payment</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Payment method:</span>
+                      <span className="text-sm font-medium">
+                        {selectedOrderDetail.paymentMethod === 'card' ? '💳 Credit card' : '💰 Cash'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Payment status:</span>
+                      <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                        selectedOrderDetail.isPaid
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {selectedOrderDetail.isPaid
+                          ? '✅ Paid'
+                          : selectedOrderDetail.paymentMethod === 'cash'
+                            ? '💰 To pay on delivery'
+                            : '⏳ Pending'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="text-orange-600">{formatPrice(selectedOrderDetail.totalPrice)}</span>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedOrderDetail.notes && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Notes</h3>
+                    <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedOrderDetail.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reservation Detail Modal */}
+      {selectedReservationDetail && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Reservation details
+                </h2>
+                <button
+                  onClick={() => setSelectedReservationDetail(null)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Customer Info */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Customer information</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p><strong>Name:</strong> {selectedReservationDetail.userName || selectedUser?.name}</p>
+                    <p><strong>Email:</strong> {selectedReservationDetail.userEmail || selectedUser?.email}</p>
+                    <p><strong>Phone:</strong> {selectedReservationDetail.contactPhone || selectedUser?.phone || 'N/A'}</p>
+                  </div>
+                </div>
+
+                {/* Reservation Details */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Reservation details</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Date:</span>
+                      <span className="text-sm font-medium">{formatDate(selectedReservationDetail.date)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Time slot:</span>
+                      <span className="text-sm font-medium">{selectedReservationDetail.slot}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Guests:</span>
+                      <span className="text-sm font-medium">{selectedReservationDetail.guests} persons</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Table number:</span>
+                      <span className="text-sm font-medium">Table {selectedReservationDetail.tableNumber}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                        selectedReservationDetail.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                        selectedReservationDetail.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                        selectedReservationDetail.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {selectedReservationDetail.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Special Requests */}
+                {selectedReservationDetail.specialRequests && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Special requests</h3>
+                    <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedReservationDetail.specialRequests}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
