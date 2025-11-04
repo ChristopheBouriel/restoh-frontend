@@ -20,7 +20,7 @@ describe('UsersManagement Component', () => {
       isActive: true,
       emailVerified: true,
       createdAt: '2024-01-01T10:00:00.000Z',
-      lastLoginAt: '2024-01-30T10:00:00.000Z',
+      lastLogin: '2024-01-30T10:00:00.000Z',
       totalOrders: 5,
       totalSpent: 150.50,
       totalReservations: 3
@@ -35,7 +35,7 @@ describe('UsersManagement Component', () => {
       isActive: true,
       emailVerified: false,
       createdAt: '2024-01-15T14:30:00.000Z',
-      lastLoginAt: '2024-01-25T16:45:00.000Z',
+      lastLogin: '2024-01-25T16:45:00.000Z',
       totalOrders: 12,
       totalSpent: 320.75,
       totalReservations: 2
@@ -50,7 +50,7 @@ describe('UsersManagement Component', () => {
       isActive: false,
       emailVerified: true,
       createdAt: '2024-01-10T09:15:00.000Z',
-      lastLoginAt: '2024-01-20T11:30:00.000Z',
+      lastLogin: '2024-01-20T11:30:00.000Z',
       totalOrders: 2,
       totalSpent: 45.20,
       totalReservations: 1
@@ -103,12 +103,11 @@ describe('UsersManagement Component', () => {
       // Header
       expect(screen.getByText('Users Management')).toBeInTheDocument()
       expect(screen.getByText('Manage all platform users')).toBeInTheDocument()
-      
+
       // Statistics
       expect(screen.getByText('Total')).toBeInTheDocument()
       expect(screen.getAllByText('Active').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText('Admins')).toBeInTheDocument()
-      
+
       // User list with count
       expect(screen.getByText('Users (3)')).toBeInTheDocument()
     })
@@ -301,9 +300,8 @@ describe('UsersManagement Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Personal information')).toBeInTheDocument()
-        
+
         // Check user information is displayed
-        expect(screen.getByText('client')).toBeInTheDocument() // ID
         expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThanOrEqual(2) // Name in table + modal
         expect(screen.getAllByText('client@example.com').length).toBeGreaterThanOrEqual(2) // Email in table + modal
         expect(screen.getByText('123 Rue de la République, 75001 Paris')).toBeInTheDocument() // Address

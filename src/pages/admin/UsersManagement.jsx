@@ -410,7 +410,6 @@ const UsersManagement = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Personal information</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><strong>ID:</strong> {selectedUser.id}</p>
                     <p><strong>Name:</strong> {selectedUser.name}</p>
                     <p><strong>Email:</strong> {selectedUser.email}</p>
                     <p><strong>Phone:</strong> {selectedUser.phone || 'N/A'}</p>
@@ -458,7 +457,7 @@ const UsersManagement = () => {
                       )}
                     </p>
                     <p><strong>Registration:</strong> {formatDate(selectedUser.createdAt)}</p>
-                    <p><strong>Last login:</strong> {formatDate(selectedUser.lastLoginAt)}</p>
+                    <p><strong>Last login:</strong> {formatDate(selectedUser.lastLogin)}</p>
                   </div>
                 </div>
               </div>
