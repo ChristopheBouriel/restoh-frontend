@@ -4,6 +4,7 @@ import useOrdersStore from '../../store/ordersStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import InlineAlert from '../../components/common/InlineAlert'
 import { toast } from 'react-hot-toast'
 
 const OrdersManagement = () => {
@@ -17,6 +18,7 @@ const OrdersManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
 
   const handleStartDateChange = (newStartDate) => {
     setStartDate(newStartDate)
@@ -85,7 +87,20 @@ const OrdersManagement = () => {
 
   // Handle status change
   const handleStatusChange = async (orderId, newStatus) => {
-    await updateOrderStatus(orderId, newStatus)
+    // Clear any previous inline error
+    setInlineError(null)
+
+    const result = await updateOrderStatus(orderId, newStatus)
+
+    if (result && !result.success) {
+      // Check for ORDER_INVALID_STATUS with details
+      if (result.code === 'ORDER_INVALID_STATUS' && result.details) {
+        setInlineError(result)
+        // Scroll to top to show the alert
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      // Else: error was already shown as toast in the store
+    }
   }
 
   // Handle order deletion
@@ -152,6 +167,16 @@ const OrdersManagement = () => {
           <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid order in progress
         </div>
       </div>
+
+      {/* InlineAlert for ORDER_INVALID_STATUS */}
+      {inlineError && inlineError.code === 'ORDER_INVALID_STATUS' && inlineError.details && (
+        <InlineAlert
+          type="error"
+          message={inlineError.error}
+          details={inlineError.details.message || 'This status change is not allowed for this order.'}
+          dismissible={false}
+        />
+      )}
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

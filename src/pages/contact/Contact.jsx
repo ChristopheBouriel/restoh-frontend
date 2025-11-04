@@ -6,7 +6,7 @@ import SimpleSelect from '../../components/common/SimpleSelect'
 
 const Contact = () => {
   const { createMessage, isLoading } = useContactsStore()
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',

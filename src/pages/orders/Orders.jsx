@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { Clock, Package, CheckCircle, XCircle, Eye } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import useOrdersStore from '../../store/ordersStore'
+import InlineAlert from '../../components/common/InlineAlert'
 
 const Orders = () => {
   const [filter, setFilter] = useState('all')
   const [showDetails, setShowDetails] = useState(null)
+  const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
 
   const { fetchOrders } = useOrdersStore()
   const { orders, cancelOrder, canCancelOrder, formatPrice, formatDate } = useOrders()
@@ -18,6 +20,23 @@ const Orders = () => {
   const filteredOrders = orders.filter(order => 
     filter === 'all' || order.status === filter
   )
+
+  const handleCancelOrder = async (orderId) => {
+    // Clear any previous inline error
+    setInlineError(null)
+
+    const result = await cancelOrder(orderId)
+
+    if (result && !result.success) {
+      // Check for ORDER_INVALID_STATUS with details
+      if (result.code === 'ORDER_INVALID_STATUS' && result.details) {
+        setInlineError(result)
+        // Scroll to top to show the alert
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      // Else: error was already shown as toast in the hook
+    }
+  }
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -102,6 +121,16 @@ const Orders = () => {
           </div>
         </div>
 
+        {/* InlineAlert for ORDER_INVALID_STATUS */}
+        {inlineError && inlineError.code === 'ORDER_INVALID_STATUS' && inlineError.details && (
+          <InlineAlert
+            type="error"
+            message={inlineError.error}
+            details={inlineError.details.message || 'This order cannot be cancelled at this time due to its current status.'}
+            dismissible={false}
+          />
+        )}
+
         {/* Orders List */}
         <div className="space-y-4">
           {filteredOrders.length > 0 ? (
@@ -152,7 +181,7 @@ const Orders = () => {
                       </button>
 
                       <button
-                        onClick={() => cancelOrder(order.id)}
+                        onClick={() => handleCancelOrder(order.id)}
                         disabled={!canCancelOrder(order)}
                         className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                           canCancelOrder(order)
