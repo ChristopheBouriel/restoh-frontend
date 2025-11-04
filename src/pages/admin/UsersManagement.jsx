@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, UserCheck, UserX, ShoppingCart, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp } from 'lucide-react'
+import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, UserCheck, UserX, ShoppingCart, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import useUsersStore from '../../store/usersStore'
-import useOrdersStore from '../../store/ordersStore'
-import useReservationsStore from '../../store/reservationsStore'
+import { ordersApi, reservationsApi } from '../../api'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
 
@@ -19,16 +18,17 @@ const UsersManagement = () => {
     getUsersByRole
   } = useUsersStore()
 
-  const { orders } = useOrdersStore()
-  const { reservations } = useReservationsStore()
-
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // User activity states
+  // User activity states - fetch on demand for security
+  const [userOrders, setUserOrders] = useState([])
+  const [userReservations, setUserReservations] = useState([])
+  const [loadingOrders, setLoadingOrders] = useState(false)
+  const [loadingReservations, setLoadingReservations] = useState(false)
   const [showOrders, setShowOrders] = useState(false)
   const [showReservations, setShowReservations] = useState(false)
   const [selectedOrderDetail, setSelectedOrderDetail] = useState(null)
@@ -89,6 +89,8 @@ const UsersManagement = () => {
     setSelectedUser(null)
     setShowOrders(false)
     setShowReservations(false)
+    setUserOrders([])
+    setUserReservations([])
     setSelectedOrderDetail(null)
     setSelectedReservationDetail(null)
   }
@@ -111,26 +113,58 @@ const UsersManagement = () => {
     }).format(price || 0)
   }
 
-  // Get user's orders
-  const getUserOrders = (userId) => {
-    if (!userId || !orders) return []
-    return orders.filter(order => order.userId === userId)
+  // Fetch user's orders on demand (SECURE: only loads specific user's data)
+  const fetchUserOrders = async (userId) => {
+    if (!userId) return
+
+    setLoadingOrders(true)
+    const result = await ordersApi.getOrdersByUserId(userId)
+
+    if (result.success) {
+      setUserOrders(result.orders)
+    } else {
+      setUserOrders([])
+      console.error('Error fetching user orders:', result.error)
+    }
+    setLoadingOrders(false)
   }
 
-  // Get user's reservations
-  const getUserReservations = (userId) => {
-    if (!userId || !reservations) return []
-    return reservations.filter(reservation => reservation.userId === userId)
+  // Fetch user's reservations on demand (SECURE: only loads specific user's data)
+  const fetchUserReservations = async (userId) => {
+    if (!userId) return
+
+    setLoadingReservations(true)
+    const result = await reservationsApi.getReservationsByUserId(userId)
+
+    if (result.success) {
+      setUserReservations(result.reservations)
+    } else {
+      setUserReservations([])
+      console.error('Error fetching user reservations:', result.error)
+    }
+    setLoadingReservations(false)
   }
 
-  const toggleOrders = () => {
-    setShowOrders(!showOrders)
+  const toggleOrders = async () => {
+    const newShowOrders = !showOrders
+    setShowOrders(newShowOrders)
     setShowReservations(false)
+
+    // Fetch orders only when opening and if not already loaded
+    if (newShowOrders && selectedUser && userOrders.length === 0) {
+      await fetchUserOrders(selectedUser.id || selectedUser._id)
+    }
   }
 
-  const toggleReservations = () => {
-    setShowReservations(!showReservations)
+  const toggleReservations = async () => {
+    const newShowReservations = !showReservations
+    setShowReservations(newShowReservations)
     setShowOrders(false)
+
+    // Fetch reservations only when opening and if not already loaded
+    if (newShowReservations && selectedUser && userReservations.length === 0) {
+      await fetchUserReservations(selectedUser.id || selectedUser._id)
+    }
   }
 
   const getRoleColor = (role) => {
@@ -530,18 +564,28 @@ const UsersManagement = () => {
               <div className="mt-6 flex gap-4">
                 <button
                   onClick={toggleOrders}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+                  disabled={loadingOrders}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ShoppingCart className="w-5 h-5" />
-                  <span className="font-medium">View Orders ({getUserOrders(selectedUser.id || selectedUser._id).length})</span>
+                  {loadingOrders ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <ShoppingCart className="w-5 h-5" />
+                  )}
+                  <span className="font-medium">View Orders {userOrders.length > 0 && `(${userOrders.length})`}</span>
                   {showOrders ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={toggleReservations}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors border border-purple-200"
+                  disabled={loadingReservations}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CalendarIcon className="w-5 h-5" />
-                  <span className="font-medium">View Reservations ({getUserReservations(selectedUser.id || selectedUser._id).length})</span>
+                  {loadingReservations ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CalendarIcon className="w-5 h-5" />
+                  )}
+                  <span className="font-medium">View Reservations {userReservations.length > 0 && `(${userReservations.length})`}</span>
                   {showReservations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
               </div>
@@ -553,9 +597,13 @@ const UsersManagement = () => {
                     <Package className="w-4 h-4" />
                     User Orders
                   </h4>
-                  {getUserOrders(selectedUser.id || selectedUser._id).length > 0 ? (
+                  {loadingOrders ? (
+                    <div className="flex justify-center items-center py-8">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    </div>
+                  ) : userOrders.length > 0 ? (
                     <div className="space-y-2">
-                      {getUserOrders(selectedUser.id || selectedUser._id).map((order) => (
+                      {userOrders.map((order) => (
                         <div
                           key={order.id || order._id}
                           onClick={() => setSelectedOrderDetail(order)}
@@ -598,9 +646,13 @@ const UsersManagement = () => {
                     <CalendarIcon className="w-4 h-4" />
                     User Reservations
                   </h4>
-                  {getUserReservations(selectedUser.id || selectedUser._id).length > 0 ? (
+                  {loadingReservations ? (
+                    <div className="flex justify-center items-center py-8">
+                      <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                    </div>
+                  ) : userReservations.length > 0 ? (
                     <div className="space-y-2">
-                      {getUserReservations(selectedUser.id || selectedUser._id).map((reservation) => (
+                      {userReservations.map((reservation) => (
                         <div
                           key={reservation.id || reservation._id}
                           onClick={() => setSelectedReservationDetail(reservation)}

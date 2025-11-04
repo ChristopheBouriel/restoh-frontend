@@ -68,3 +68,13 @@ export const deleteOrder = async (orderId) => {
     return { success: false, error: error.error || 'Error deleting order' }
   }
 }
+
+// Get orders for a specific user (ADMIN)
+export const getOrdersByUserId = async (userId) => {
+  try {
+    const response = await apiClient.get(`/admin/users/${userId}/orders`)
+    return { success: true, orders: response.orders || [] }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching user orders', orders: [] }
+  }
+}
