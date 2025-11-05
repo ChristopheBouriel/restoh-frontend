@@ -231,7 +231,7 @@ const UsersManagement = () => {
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-indigo-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Active this month</p>
+              <p className="text-sm font-medium text-gray-600">Active (30d)</p>
               <p className="text-2xl font-bold text-gray-900">{stats.activeThisMonth}</p>
             </div>
           </div>

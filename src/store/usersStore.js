@@ -160,8 +160,8 @@ const useUsersStore = create(
         })
 
         const activeThisMonth = users.filter(u => {
-          if (!u.lastLoginAt) return false
-          const lastLogin = new Date(u.lastLoginAt)
+          if (!u.lastLogin) return false
+          const lastLogin = new Date(u.lastLogin)
           return lastLogin >= thirtyDaysAgo
         })
         
