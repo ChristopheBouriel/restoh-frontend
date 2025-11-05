@@ -289,6 +289,65 @@ Les tables sélectionnées ne peuvent pas accueillir le nombre de personnes.
 
 ---
 
+## 🔐 Cas 8 : Compte désactivé (Authentification)
+
+### Endpoint
+`POST /api/auth/login`
+
+### Scénario
+Un utilisateur dont le compte a été désactivé par un administrateur essaie de se connecter.
+
+### Réponse Backend
+```json
+{
+  "success": false,
+  "error": "Your account has been deactivated",
+  "code": "AUTH_ACCOUNT_INACTIVE",
+  "details": {
+    "message": "Your account has been deactivated by an administrator. Please use the contact form to speak with an administrator and resolve this issue.",
+    "contactUrl": "/contact",
+    "reason": "Policy violation" // Optionnel - raison de la désactivation
+  }
+}
+```
+
+### Usage Frontend
+```jsx
+// Le frontend affichera un bandeau orange avec lien vers la page contact
+<div className="rounded-md bg-orange-50 border border-orange-200 p-4">
+  <div className="flex">
+    <div className="flex-shrink-0">
+      <AlertTriangle className="h-5 w-5 text-orange-400" />
+    </div>
+    <div className="ml-3">
+      <h3 className="text-sm font-medium text-orange-800">
+        Account deactivated
+      </h3>
+      <p className="text-sm text-orange-700 mt-2">
+        Your account has been deactivated. Please{' '}
+        <Link to="/contact" className="underline">contact us</Link>
+        {' '}to speak with an administrator.
+      </p>
+    </div>
+  </div>
+</div>
+```
+
+### Cas similaire : Compte supprimé
+```json
+{
+  "success": false,
+  "error": "This account no longer exists",
+  "code": "AUTH_ACCOUNT_DELETED",
+  "details": {
+    "message": "This account has been permanently deleted and cannot be recovered. You can create a new account if needed.",
+    "registerUrl": "/register"
+  }
+}
+```
+
+---
+
 ## ✅ Règles d'Implémentation Backend
 
 ### Quand remplir `details` ?
@@ -410,6 +469,8 @@ app.post('/api/reservations', async (req, res) => {
 
 ## 📋 Checklist pour le Backend
 
+- [ ] Endpoint `/api/auth/login` : Gérer `AUTH_ACCOUNT_INACTIVE` avec message et lien contact
+- [ ] Endpoint `/api/auth/login` : Gérer `AUTH_ACCOUNT_DELETED` avec suggestion de création de compte
 - [ ] Endpoint `/api/reservations` : Ajouter `suggestedTables` quand tables indisponibles
 - [ ] Endpoint `/api/reservations` : Ajouter détails quand capacité dépassée
 - [ ] Endpoint `/api/reservations` : Ajouter infos contact quand annulation impossible
@@ -423,15 +484,16 @@ app.post('/api/reservations', async (req, res) => {
 ## 🎯 Priorités d'Implémentation
 
 ### 🔴 Priorité HAUTE (UX critique)
-1. Tables indisponibles → Suggestions d'alternatives
-2. Capacité dépassée → Suggestions de tables
-3. Erreur serveur → Bouton retry avec countdown
+1. **Compte désactivé** → Message clair + lien contact (Cas 8)
+2. Tables indisponibles → Suggestions d'alternatives
+3. Capacité dépassée → Suggestions de tables
+4. Erreur serveur → Bouton retry avec countdown
 
 ### 🟠 Priorité MOYENNE (Nice to have)
-4. Erreur permissions → Explication claire du rôle requis
-5. Email déjà utilisé → Actions (login/reset password)
-6. Annulation tardive → Infos de contact
+5. Erreur permissions → Explication claire du rôle requis
+6. Email déjà utilisé → Actions (login/reset password)
+7. Annulation tardive → Infos de contact
 
 ### 🟡 Priorité BASSE (Amélioration progressive)
-7. Validation complexe avec suggestions détaillées
-8. Messages personnalisés selon le contexte
+8. Validation complexe avec suggestions détaillées
+9. Messages personnalisés selon le contexte
