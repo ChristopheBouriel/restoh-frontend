@@ -100,16 +100,8 @@ describe('UsersManagement Component', () => {
     vi.clearAllMocks()
     useUsersStore.mockReturnValue(mockStoreState)
 
-    // Mock API calls to return empty data
-    vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
-      success: true,
-      orders: []
-    })
-
-    vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
-      success: true,
-      reservations: []
-    })
+    // Don't set default mocks here - let each test define its own
+    // This avoids conflicts between beforeEach mocks and test-specific mocks
   })
 
   // 1. Core Rendering Tests
@@ -253,8 +245,12 @@ describe('UsersManagement Component', () => {
     })
 
     it('should open user details modal when eye icon is clicked', async () => {
+      // Mock API calls for modal
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({ success: true, orders: [] })
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({ success: true, reservations: [] })
+
       renderComponent()
-      
+
       // Click on first "View details" button
       const viewButtons = screen.getAllByTitle('View details')
       await user.click(viewButtons[0])
@@ -266,8 +262,12 @@ describe('UsersManagement Component', () => {
     })
 
     it('should close modal with close button', async () => {
+      // Mock API calls for modal
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({ success: true, orders: [] })
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({ success: true, reservations: [] })
+
       renderComponent()
-      
+
       // Open modal first
       const viewButton = screen.getAllByTitle('View details')[0]
       await user.click(viewButton)
@@ -286,8 +286,12 @@ describe('UsersManagement Component', () => {
     })
 
     it('should close modal with X button', async () => {
+      // Mock API calls for modal
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({ success: true, orders: [] })
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({ success: true, reservations: [] })
+
       renderComponent()
-      
+
       // Open modal first
       const viewButton = screen.getAllByTitle('View details')[0]
       await user.click(viewButton)
@@ -357,8 +361,12 @@ describe('UsersManagement Component', () => {
     })
 
     it('should show email verification status in modal', async () => {
+      // Mock API calls for modal
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({ success: true, orders: [] })
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({ success: true, reservations: [] })
+
       renderComponent()
-      
+
       // Open modal for Jean Dupont (emailVerified: false)
       const viewButtons = screen.getAllByTitle('View details')
       await user.click(viewButtons[1])
@@ -426,14 +434,395 @@ describe('UsersManagement Component', () => {
 
     it('should display correct user counts and statistics', () => {
       renderComponent()
-      
+
       // Check statistics display
       expect(screen.getByText('3')).toBeInTheDocument() // Total
-      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1) // Active count 
+      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1) // Active count
       expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1) // Admins count
-      
+
       // Check user count in header
       expect(screen.getByText(`Users (${mockUsers.length})`)).toBeInTheDocument()
+    })
+  })
+
+  // 6. Orders and Reservations in Modal Tests
+  describe('Orders and Reservations in Modal', () => {
+    const mockOrdersData = [
+      {
+        id: 'order-1',
+        orderNumber: 'ORD-001',
+        totalPrice: 45.50,
+        status: 'delivered',
+        paymentMethod: 'card',
+        isPaid: true,
+        createdAt: '2024-01-20T12:00:00.000Z',
+        items: [
+          { id: 'item-1', name: 'Burger', quantity: 2, price: 12.50 },
+          { id: 'item-2', name: 'Fries', quantity: 2, price: 5.00 },
+          { id: 'item-3', name: 'Soda', quantity: 2, price: 3.00 }
+        ]
+      },
+      {
+        id: 'order-2',
+        orderNumber: 'ORD-002',
+        totalPrice: 32.00,
+        status: 'confirmed',
+        paymentMethod: 'cash',
+        isPaid: false,
+        createdAt: '2024-01-21T14:30:00.000Z',
+        items: [
+          { id: 'item-4', name: 'Pizza', quantity: 1, price: 15.00 },
+          { id: 'item-5', name: 'Salad', quantity: 1, price: 8.00 },
+          { id: 'item-6', name: 'Water', quantity: 2, price: 2.00 }
+        ]
+      }
+    ]
+
+    const mockReservationsData = [
+      {
+        id: 'res-1',
+        reservationNumber: 'RES-001',
+        date: '2024-02-15',
+        slot: '19:00',
+        guests: 4,
+        status: 'confirmed',
+        tableNumber: 5,
+        specialRequests: 'Window seat please'
+      },
+      {
+        id: 'res-2',
+        reservationNumber: 'RES-002',
+        date: '2024-02-20',
+        slot: '20:30',
+        guests: 2,
+        status: 'pending',
+        tableNumber: null,
+        specialRequests: ''
+      }
+    ]
+
+    it('should display orders list in modal', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: mockOrdersData
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: []
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      // Expand orders section
+      const ordersButton = screen.getByText(/View Orders \(2\)/i)
+      await user.click(ordersButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('#ORD-001')).toBeInTheDocument()
+        expect(screen.getByText('#ORD-002')).toBeInTheDocument()
+        expect(screen.getByText('45,50 €')).toBeInTheDocument()
+        expect(screen.getByText('32,00 €')).toBeInTheDocument()
+      })
+    })
+
+    it('should display reservations list in modal', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: []
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: mockReservationsData
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      // Wait for reservations to load (button text changes from "View Reservations" to "View Reservations (2)")
+      await waitFor(() => {
+        expect(screen.getByText(/View Reservations \(2\)/i)).toBeInTheDocument()
+      })
+
+      // Expand reservations section
+      const reservationsButton = screen.getByText(/View Reservations \(2\)/i)
+      await user.click(reservationsButton)
+
+      await waitFor(() => {
+        // Check for reservation content (slots and guests)
+        expect(screen.getByText(/4 guests/)).toBeInTheDocument()
+        expect(screen.getByText(/2 guests/)).toBeInTheDocument()
+        expect(screen.getByText('19:00')).toBeInTheDocument()
+        expect(screen.getByText('20:30')).toBeInTheDocument()
+      })
+    })
+
+    it('should show order details when clicking on an order', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: mockOrdersData
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: []
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      // Wait for orders to load
+      await waitFor(() => {
+        expect(screen.getByText(/View Orders \(2\)/i)).toBeInTheDocument()
+      })
+
+      // Expand orders section
+      const ordersButton = screen.getByText(/View Orders \(2\)/i)
+      await user.click(ordersButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('#ORD-001')).toBeInTheDocument()
+      })
+
+      // Click on first order to view details
+      const orderCard = screen.getByText('#ORD-001').closest('div[class*="cursor-pointer"]')
+      await user.click(orderCard)
+
+      await waitFor(() => {
+        // Check that order items are displayed
+        expect(screen.getByText('Burger')).toBeInTheDocument()
+        expect(screen.getByText('Fries')).toBeInTheDocument()
+        expect(screen.getByText('Soda')).toBeInTheDocument()
+        expect(screen.getByText(/Quantity: 2/)).toBeInTheDocument()
+      })
+    })
+
+    it('should show reservation details when clicking on a reservation', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: []
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: mockReservationsData
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      // Wait for reservations to load
+      await waitFor(() => {
+        expect(screen.getByText(/View Reservations \(2\)/i)).toBeInTheDocument()
+      })
+
+      // Expand reservations section
+      const reservationsButton = screen.getByText(/View Reservations \(2\)/i)
+      await user.click(reservationsButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('19:00')).toBeInTheDocument()
+      })
+
+      // Click on first reservation to view details
+      const reservationCard = screen.getByText('19:00').closest('div[class*="cursor-pointer"]')
+      await user.click(reservationCard)
+
+      await waitFor(() => {
+        // Check that reservation details are displayed
+        expect(screen.getByText('Window seat please')).toBeInTheDocument()
+        expect(screen.getByText(/Table: 5/)).toBeInTheDocument()
+      })
+    })
+
+    it('should close order details when clicking close button', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: mockOrdersData
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: []
+      })
+
+      renderComponent()
+
+      // Open modal and orders section
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      const ordersButton = screen.getByText(/View Orders \(2\)/i)
+      await user.click(ordersButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('#ORD-001')).toBeInTheDocument()
+      })
+
+      // Click on order to view details
+      const orderCard = screen.getByText('#ORD-001').closest('div[class*="cursor-pointer"]')
+      await user.click(orderCard)
+
+      await waitFor(() => {
+        expect(screen.getByText('Burger')).toBeInTheDocument()
+      })
+
+      // Close order details
+      const closeButtons = screen.getAllByText('×')
+      await user.click(closeButtons[closeButtons.length - 1]) // Last × button is for order detail
+
+      await waitFor(() => {
+        expect(screen.queryByText('Burger')).not.toBeInTheDocument()
+      })
+    })
+
+    it('should show empty state when user has no orders', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: []
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: []
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      // Expand orders section
+      const ordersButton = screen.getByText(/View Orders/i)
+      await user.click(ordersButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('No orders found')).toBeInTheDocument()
+      })
+    })
+
+    it('should show empty state when user has no reservations', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: []
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: []
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+      })
+
+      // Expand reservations section
+      const reservationsButton = screen.getByText(/View Reservations/i)
+      await user.click(reservationsButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('No reservations found')).toBeInTheDocument()
+      })
+    })
+
+    it('should show loading state while fetching orders and reservations', async () => {
+      // Mock delayed API responses
+      vi.mocked(ordersApi.getOrdersByUserId).mockImplementation(() =>
+        new Promise(resolve => setTimeout(() => resolve({ success: true, orders: [] }), 100))
+      )
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockImplementation(() =>
+        new Promise(resolve => setTimeout(() => resolve({ success: true, reservations: [] }), 100))
+      )
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      // Should show loading spinners in statistics
+      await waitFor(() => {
+        const spinners = screen.getAllByRole('img', { hidden: true })
+        expect(spinners.length).toBeGreaterThan(0)
+      })
+
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.getByText(/View Orders/i)).toBeInTheDocument()
+      }, { timeout: 3000 })
+    })
+
+    it('should handle API errors gracefully', async () => {
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: false,
+        error: 'Network error',
+        orders: []
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: false,
+        error: 'Network error',
+        reservations: []
+      })
+
+      renderComponent()
+
+      // Open modal
+      const viewButtons = screen.getAllByTitle('View details')
+      await user.click(viewButtons[0])
+
+      await waitFor(() => {
+        expect(screen.getByText('Personal information')).toBeInTheDocument()
+        // Should show buttons without counts when API fails
+        expect(screen.getByText(/View Orders/i)).toBeInTheDocument()
+        expect(screen.getByText(/View Reservations/i)).toBeInTheDocument()
+      })
     })
   })
 })
