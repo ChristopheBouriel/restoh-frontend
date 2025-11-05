@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, UserCheck, UserX, ShoppingCart, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, ShoppingCart, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import useUsersStore from '../../store/usersStore'
 import { ordersApi, reservationsApi } from '../../api'
 import SimpleSelect from '../../components/common/SimpleSelect'
@@ -209,7 +209,7 @@ const UsersManagement = () => {
 
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
-            <UserCheck className="h-8 w-8 text-green-500 mr-3" />
+            <User className="h-8 w-8 text-green-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Active</p>
               <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
@@ -367,6 +367,7 @@ const UsersManagement = () => {
                             }`}
                             role="switch"
                             aria-checked={user.isActive}
+                            title={user.isActive ? 'Deactivate' : 'Activate'}
                           >
                             <span
                               aria-hidden="true"
@@ -388,26 +389,13 @@ const UsersManagement = () => {
                         <div>Reservations: {user.totalReservations}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={() => openUserModal(user)}
-                            className="text-gray-400 hover:text-blue-600 transition-colors"
-                            title="View details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleStatusToggle(user)}
-                            className={`transition-colors ${
-                              user.isActive
-                                ? 'text-red-400 hover:text-red-600'
-                                : 'text-green-400 hover:text-green-600'
-                            }`}
-                            title={user.isActive ? 'Deactivate' : 'Activate'}
-                          >
-                            {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => openUserModal(user)}
+                          className="text-gray-400 hover:text-blue-600 transition-colors"
+                          title="View details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -437,15 +425,22 @@ const UsersManagement = () => {
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
+                    {/* Toggle isActive - Mobile */}
                     <button
                       onClick={() => handleStatusToggle(user)}
-                      className={`transition-colors ${
-                        user.isActive
-                          ? 'text-red-400 hover:text-red-600'
-                          : 'text-green-400 hover:text-green-600'
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                        user.isActive ? 'bg-green-600' : 'bg-gray-200'
                       }`}
+                      role="switch"
+                      aria-checked={user.isActive}
+                      title={user.isActive ? 'Deactivate' : 'Activate'}
                     >
-                      {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          user.isActive ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
                     </button>
                   </div>
 
