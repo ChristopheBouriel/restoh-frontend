@@ -92,7 +92,11 @@ export const cancelReservation = async (reservationId) => {
 export const getReservationsByUserId = async (userId) => {
   try {
     const response = await apiClient.get(`/admin/users/${userId}/reservations`)
-    return { success: true, reservations: response.reservations || [] }
+
+    // Handle different possible response structures
+    const reservations = response.reservations || response.data?.reservations || response.data || []
+
+    return { success: true, reservations: Array.isArray(reservations) ? reservations : [] }
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching user reservations', reservations: [] }
   }

@@ -79,9 +79,16 @@ const UsersManagement = () => {
     await updateUserRole(user._id || user.id, newRole)
   }
 
-  const openUserModal = (user) => {
+  const openUserModal = async (user) => {
     setSelectedUser(user)
     setIsModalOpen(true)
+
+    // Fetch orders and reservations immediately for accurate statistics
+    const userId = user.id || user._id
+    await Promise.all([
+      fetchUserOrders(userId),
+      fetchUserReservations(userId)
+    ])
   }
 
   const closeModal = () => {
@@ -113,6 +120,22 @@ const UsersManagement = () => {
     }).format(price || 0)
   }
 
+  // Calculate real total spent from actual orders
+  const calculateTotalSpent = () => {
+    if (!userOrders || userOrders.length === 0) return 0
+    return userOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0)
+  }
+
+  // Get actual orders count
+  const getActualOrdersCount = () => {
+    return userOrders.length
+  }
+
+  // Get actual reservations count
+  const getActualReservationsCount = () => {
+    return userReservations.length
+  }
+
   // Fetch user's orders on demand (SECURE: only loads specific user's data)
   const fetchUserOrders = async (userId) => {
     if (!userId) return
@@ -124,7 +147,6 @@ const UsersManagement = () => {
       setUserOrders(result.orders)
     } else {
       setUserOrders([])
-      console.error('Error fetching user orders:', result.error)
     }
     setLoadingOrders(false)
   }
@@ -145,26 +167,14 @@ const UsersManagement = () => {
     setLoadingReservations(false)
   }
 
-  const toggleOrders = async () => {
-    const newShowOrders = !showOrders
-    setShowOrders(newShowOrders)
+  const toggleOrders = () => {
+    setShowOrders(!showOrders)
     setShowReservations(false)
-
-    // Fetch orders only when opening and if not already loaded
-    if (newShowOrders && selectedUser && userOrders.length === 0) {
-      await fetchUserOrders(selectedUser.id || selectedUser._id)
-    }
   }
 
-  const toggleReservations = async () => {
-    const newShowReservations = !showReservations
-    setShowReservations(newShowReservations)
+  const toggleReservations = () => {
+    setShowReservations(!showReservations)
     setShowOrders(false)
-
-    // Fetch reservations only when opening and if not already loaded
-    if (newShowReservations && selectedUser && userReservations.length === 0) {
-      await fetchUserReservations(selectedUser.id || selectedUser._id)
-    }
   }
 
   const getRoleColor = (role) => {
@@ -546,16 +556,34 @@ const UsersManagement = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Activity statistics</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{selectedUser.totalOrders}</div>
-                    <div className="text-sm text-blue-600">Orders</div>
+                    {loadingOrders ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-500 mx-auto" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold text-blue-600">{getActualOrdersCount()}</div>
+                        <div className="text-sm text-blue-600">Orders</div>
+                      </>
+                    )}
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">{selectedUser.totalSpent.toFixed(2)}€</div>
-                    <div className="text-sm text-green-600">Total spent</div>
+                    {loadingOrders ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-green-500 mx-auto" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold text-green-600">{formatPrice(calculateTotalSpent())}</div>
+                        <div className="text-sm text-green-600">Total spent</div>
+                      </>
+                    )}
                   </div>
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{selectedUser.totalReservations}</div>
-                    <div className="text-sm text-purple-600">Reservations</div>
+                    {loadingReservations ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-purple-500 mx-auto" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold text-purple-600">{getActualReservationsCount()}</div>
+                        <div className="text-sm text-purple-600">Reservations</div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

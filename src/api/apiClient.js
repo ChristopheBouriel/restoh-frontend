@@ -31,11 +31,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     // Return data directly to simplify usage
-    console.log('✅ Response interceptor SUCCESS:', response.data)
     return response.data
   },
   (error) => {
-    console.log('❌ Response interceptor ERROR:', error)
     // Handle different HTTP error codes
     if (error.response) {
       const { status, data } = error.response

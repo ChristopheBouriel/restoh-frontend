@@ -73,7 +73,11 @@ export const deleteOrder = async (orderId) => {
 export const getOrdersByUserId = async (userId) => {
   try {
     const response = await apiClient.get(`/admin/users/${userId}/orders`)
-    return { success: true, orders: response.orders || [] }
+
+    // Handle different possible response structures
+    const orders = response.orders || response.data?.orders || response.data || []
+
+    return { success: true, orders: Array.isArray(orders) ? orders : [] }
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching user orders', orders: [] }
   }

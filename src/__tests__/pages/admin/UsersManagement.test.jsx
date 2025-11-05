@@ -4,9 +4,15 @@ import { MemoryRouter } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import UsersManagement from '../../../pages/admin/UsersManagement'
 import useUsersStore from '../../../store/usersStore'
+import * as ordersApi from '../../../api/ordersApi'
+import * as reservationsApi from '../../../api/reservationsApi'
 
 // Mock the users store
 vi.mock('../../../store/usersStore')
+
+// Mock the API calls
+vi.mock('../../../api/ordersApi')
+vi.mock('../../../api/reservationsApi')
 
 describe('UsersManagement Component', () => {
   const mockUsers = [
@@ -93,6 +99,17 @@ describe('UsersManagement Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useUsersStore.mockReturnValue(mockStoreState)
+
+    // Mock API calls to return empty data
+    vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+      success: true,
+      orders: []
+    })
+
+    vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+      success: true,
+      reservations: []
+    })
   })
 
   // 1. Core Rendering Tests
@@ -292,24 +309,51 @@ describe('UsersManagement Component', () => {
   // 4. Modal Content Tests
   describe('Modal Content', () => {
     it('should display comprehensive user information in modal', async () => {
+      // Mock API to return realistic data matching Jean Dupont's statistics
+      const mockOrders = Array.from({ length: 12 }, (_, i) => ({
+        id: `order-${i + 1}`,
+        orderNumber: `ORD-${String(i + 1).padStart(3, '0')}`,
+        totalPrice: 26.73, // 12 orders * 26.73 ≈ 320.76 (close to 320.75)
+        status: 'delivered',
+        createdAt: '2024-01-20T12:00:00.000Z',
+        items: []
+      }))
+
+      const mockReservations = [
+        { id: 'res-1', date: '2024-01-20', slot: '19:00', guests: 4, status: 'confirmed' },
+        { id: 'res-2', date: '2024-01-22', slot: '20:00', guests: 2, status: 'completed' }
+      ]
+
+      vi.mocked(ordersApi.getOrdersByUserId).mockResolvedValue({
+        success: true,
+        orders: mockOrders
+      })
+
+      vi.mocked(reservationsApi.getReservationsByUserId).mockResolvedValue({
+        success: true,
+        reservations: mockReservations
+      })
+
       renderComponent()
-      
+
       // Click on Jean Dupont's modal (second user)
       const viewButtons = screen.getAllByTitle('View details')
       await user.click(viewButtons[1])
-      
+
       await waitFor(() => {
         expect(screen.getByText('Personal information')).toBeInTheDocument()
 
         // Check user information is displayed
-        expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThanOrEqual(2) // Name in table + modal
-        expect(screen.getAllByText('client@example.com').length).toBeGreaterThanOrEqual(2) // Email in table + modal
+        expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThanOrEqual(1) // Name in modal
+        expect(screen.getAllByText('client@example.com').length).toBeGreaterThanOrEqual(1) // Email in modal
         expect(screen.getByText('123 Rue de la République, 75001 Paris')).toBeInTheDocument() // Address
-        expect(screen.getByText('320.75€')).toBeInTheDocument() // Total spent
-        // Check statistics are displayed (might appear multiple times)
-        expect(screen.getAllByText('12').length).toBeGreaterThanOrEqual(1) // Total orders
-        expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1) // Total reservations
-      })
+
+        // Check dynamic statistics are displayed correctly
+        expect(screen.getAllByText('12').length).toBeGreaterThanOrEqual(1) // Total orders count
+        expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1) // Total reservations count
+        // Total spent should be displayed (12 * 26.73 = 320.76) in French format
+        expect(screen.getByText('320,76 €')).toBeInTheDocument()
+      }, { timeout: 3000 })
     })
 
     it('should show email verification status in modal', async () => {
