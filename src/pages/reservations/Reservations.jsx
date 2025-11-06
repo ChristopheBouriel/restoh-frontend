@@ -289,9 +289,43 @@ const Reservations = () => {
 
   const today = new Date().toISOString().split('T')[0]
 
+  // Check if a reservation's time has passed
+  const isReservationPassed = (reservation) => {
+    const now = new Date()
+    const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
+
+    // If it's a past date, it's passed
+    if (reservationDate < today) return true
+
+    // If it's a future date, it's not passed
+    if (reservationDate > today) return false
+
+    // It's today - check the time
+    const timeLabel = getLabelFromSlot(reservation.slot)
+    if (timeLabel === 'N/A') return false
+
+    const [hours, minutes] = timeLabel.split(':').map(Number)
+    const reservationDateTime = new Date(reservation.date)
+    reservationDateTime.setHours(hours, minutes, 0, 0)
+
+    return reservationDateTime <= now
+  }
+
   const getFilteredReservations = () => {
     if (filterStatus === 'all') {
-      return reservations
+      // Sort by date descending (most recent first), then by time slot descending
+      return [...reservations].sort((a, b) => {
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+
+        // If same date, sort by time slot (higher slot = later time)
+        if (dateA.getTime() === dateB.getTime()) {
+          return b.slot - a.slot
+        }
+
+        // Otherwise sort by date (most recent first)
+        return dateB - dateA
+      })
     }
 
     if (filterStatus === 'upcoming') {
@@ -650,11 +684,19 @@ const Reservations = () => {
                 filteredReservations.map((reservation) => {
                   const statusInfo = getStatusInfo(reservation.status)
                   const StatusIcon = statusInfo.icon
+                  const isPassed = isReservationPassed(reservation)
 
                   const displayTime = getLabelFromSlot(reservation.slot)
 
                   return (
-                    <div key={reservation.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={reservation.id}
+                      className={`border rounded-lg p-4 ${
+                        isPassed && reservation.status === 'confirmed'
+                          ? 'bg-red-50 border-red-200'
+                          : 'border-gray-200'
+                      }`}
+                    >
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <div className="flex items-center space-x-2 mb-1">
@@ -672,15 +714,15 @@ const Reservations = () => {
                             </p>
                           )}
                         </div>
-                        
+
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {statusInfo.label}
                         </span>
                       </div>
 
-                      {/* Only show action buttons for confirmed reservations */}
-                      {reservation.status === 'confirmed' && (
+                      {/* Only show action buttons for confirmed reservations that haven't passed */}
+                      {reservation.status === 'confirmed' && !isPassed && (
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleEdit(reservation)}
