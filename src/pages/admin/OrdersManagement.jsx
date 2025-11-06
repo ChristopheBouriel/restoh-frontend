@@ -18,6 +18,7 @@ const OrdersManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [searchOrderNumber, setSearchOrderNumber] = useState('')
   const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
 
   const handleStartDateChange = (newStartDate) => {
@@ -79,7 +80,11 @@ const OrdersManagement = () => {
       }
     }
 
-    return statusMatch && dateMatch
+    // Search by order number
+    const searchMatch = searchOrderNumber === '' ||
+      (order.orderNumber && order.orderNumber.toString().includes(searchOrderNumber))
+
+    return statusMatch && dateMatch && searchMatch
   })
 
   // Recalculate stats whenever orders change
@@ -224,6 +229,21 @@ const OrdersManagement = () => {
       {/* Filtres */}
       <div className="bg-white rounded-lg border p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+
+        {/* Search by order number */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Search by order number
+          </label>
+          <input
+            type="text"
+            value={searchOrderNumber}
+            onChange={(e) => setSearchOrderNumber(e.target.value)}
+            placeholder="Enter order number..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -271,12 +291,13 @@ const OrdersManagement = () => {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
           <div className="flex items-center space-x-4">
-            {(startDate || endDate || filterStatus !== 'all') && (
+            {(startDate || endDate || filterStatus !== 'all' || searchOrderNumber) && (
               <button
                 onClick={() => {
                   setStartDate('')
                   setEndDate('')
                   setFilterStatus('all')
+                  setSearchOrderNumber('')
                 }}
                 className="text-sm text-orange-600 hover:text-orange-800 underline"
               >

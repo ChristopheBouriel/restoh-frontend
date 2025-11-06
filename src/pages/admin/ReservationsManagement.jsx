@@ -17,6 +17,7 @@ const ReservationsManagement = () => {
   const [dateFilter, setDateFilter] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [searchReservationNumber, setSearchReservationNumber] = useState('')
   const [selectedReservation, setSelectedReservation] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -102,7 +103,11 @@ const ReservationsManagement = () => {
         }
       }
 
-      return statusMatch && dateMatch
+      // Search by reservation number
+      const searchMatch = searchReservationNumber === '' ||
+        (reservation.reservationNumber && reservation.reservationNumber.toString().includes(searchReservationNumber))
+
+      return statusMatch && dateMatch && searchMatch
     })
     .sort((a, b) => {
       // Sort by date first
@@ -322,6 +327,31 @@ const ReservationsManagement = () => {
       {/* Filtres */}
       <div className="bg-white rounded-lg border p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Filtres</h2>
+
+        {/* Search by reservation number */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Search by reservation number
+            </label>
+            {searchReservationNumber && (
+              <button
+                onClick={() => setSearchReservationNumber('')}
+                className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+          <input
+            type="text"
+            value={searchReservationNumber}
+            onChange={(e) => setSearchReservationNumber(e.target.value)}
+            placeholder="Enter reservation number..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
