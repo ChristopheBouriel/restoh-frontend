@@ -79,8 +79,8 @@ const Register = () => {
     })
 
     if (result && !result.success) {
-      // If backend returns details (e.g., EMAIL_ALREADY_EXISTS with actions)
-      if (result.details && Object.keys(result.details).length > 0) {
+      // If backend returns details, show InlineAlert
+      if (result.details) {
         setInlineError(result)
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
@@ -112,22 +112,11 @@ const Register = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* InlineAlert for errors with details (e.g., EMAIL_ALREADY_EXISTS) */}
-            {inlineError && inlineError.code === 'EMAIL_ALREADY_EXISTS' && inlineError.details && (
+            {inlineError && inlineError.details && inlineError.details.field === 'email' && (
               <InlineAlert
                 type="error"
                 message={inlineError.error}
-                details={inlineError.details.suggestion}
-                actions={[
-                  {
-                    label: 'Login instead',
-                    onClick: () => navigate(ROUTES.LOGIN),
-                    variant: 'primary'
-                  },
-                  {
-                    label: 'Reset password',
-                    onClick: () => navigate('/reset-password')
-                  }
-                ]}
+                details={`${inlineError.details.message || ''} ${inlineError.details.suggestion || ''}`}
                 onDismiss={() => setInlineError(null)}
               />
             )}

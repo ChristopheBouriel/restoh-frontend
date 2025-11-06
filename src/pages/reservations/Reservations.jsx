@@ -695,6 +695,8 @@ const Reservations = () => {
               <br />
               New reservation time must be at least 1 hour from the moment of your modification.
               <br />
+              For last-minute reservations or modifications, please call us directly
+              <br />
               For groups of 6+ people, please call.
             </div>
           </div>

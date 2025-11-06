@@ -29,9 +29,12 @@ const Login = () => {
 
     const result = await login(formData)
 
+    console.log('Login result (full):', JSON.stringify(result, null, 2))
+
     if (result && !result.success) {
-      // If backend returns details (e.g., ACCOUNT_DELETED, ACCOUNT_INACTIVE)
-      if (result.details && Object.keys(result.details).length > 0) {
+      // If backend returns details, show InlineAlert
+      if (result.details) {
+        console.log('Setting inlineError:', result)
         setInlineError(result)
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
@@ -62,6 +65,16 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* InlineAlert for invalid credentials - error type (red) */}
+            {inlineError && inlineError.details && (
+              <InlineAlert
+                type="error"
+                message={inlineError.error}
+                details={inlineError.details.message}
+                onDismiss={() => setInlineError(null)}
+              />
+            )}
+
             {/* InlineAlert for inactive account - warning type (amber/orange) */}
             {inlineError && inlineError.code === 'AUTH_ACCOUNT_INACTIVE' && inlineError.details && (
               <InlineAlert
