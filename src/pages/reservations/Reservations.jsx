@@ -394,8 +394,17 @@ const Reservations = () => {
           {/* New Reservation */}
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 max-w-full overflow-hidden">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <Plus className="w-5 h-5 mr-2" />
-              New reservation
+              {editingId ? (
+                <>
+                  <Edit className="w-5 h-5 mr-2" />
+                  Update reservation
+                </>
+              ) : (
+                <>
+                  <Plus className="w-5 h-5 mr-2" />
+                  New reservation
+                </>
+              )}
             </h2>
 
             <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-6">
