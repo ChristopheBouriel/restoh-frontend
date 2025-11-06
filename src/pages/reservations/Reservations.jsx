@@ -270,7 +270,6 @@ const Reservations = () => {
     console.log('Update reservation result:', JSON.stringify(result, null, 2))
 
     if (result.success) {
-      // Reset form and editing state (keep phone if from profile)
       setSelectedDate('')
       setSelectedSlotId(null)
       setPartySize(2)
@@ -282,40 +281,64 @@ const Reservations = () => {
       setSpecialRequests('')
       setEditingId(null)
     } else if (result.details) {
-      // Show InlineAlert for errors with details
       setInlineError(result)
-      // Scroll to top to show the alert
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
     // Else: error was already shown as toast in the hook
   }
 
-  // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0]
 
-  // Filter reservations based on selected filter
   const getFilteredReservations = () => {
     if (filterStatus === 'all') {
       return reservations
     }
 
     if (filterStatus === 'upcoming') {
-      // Upcoming: future dates OR today, and not cancelled/completed/no-show
+      const now = new Date()
+
       return reservations.filter(reservation => {
-        const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
-        const isUpcoming = reservationDate >= today
         const isActive = !['cancelled', 'completed', 'no-show'].includes(reservation.status)
-        return isUpcoming && isActive
+        if (!isActive) return false
+
+        const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
+
+        if (reservationDate > today) return true
+
+        if (reservationDate < today) return false
+
+        const timeLabel = getLabelFromSlot(reservation.slot)
+        if (timeLabel === 'N/A') return false
+
+        const [hours, minutes] = timeLabel.split(':').map(Number)
+        const reservationDateTime = new Date(reservation.date)
+        reservationDateTime.setHours(hours, minutes, 0, 0)
+
+        return reservationDateTime > now
       })
     }
 
     if (filterStatus === 'past') {
-      // Past: past dates OR completed/cancelled/no-show status
+      const now = new Date()
+
       return reservations.filter(reservation => {
-        const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
-        const isPast = reservationDate < today
         const isInactive = ['cancelled', 'completed', 'no-show'].includes(reservation.status)
-        return isPast || isInactive
+        if (isInactive) return true
+
+        const reservationDate = new Date(reservation.date).toISOString().split('T')[0]
+
+        if (reservationDate < today) return true
+
+        if (reservationDate > today) return false
+
+        const timeLabel = getLabelFromSlot(reservation.slot)
+        if (timeLabel === 'N/A') return false
+
+        const [hours, minutes] = timeLabel.split(':').map(Number)
+        const reservationDateTime = new Date(reservation.date)
+        reservationDateTime.setHours(hours, minutes, 0, 0)
+
+        return reservationDateTime <= now
       })
     }
 
