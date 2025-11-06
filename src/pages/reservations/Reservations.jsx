@@ -171,6 +171,10 @@ const Reservations = () => {
 
     const result = await createReservation(reservationData)
 
+    console.log('Create reservation result:', JSON.stringify(result, null, 2))
+    console.log('result.code:', result?.code)
+    console.log('result.details:', result?.details)
+
     if (result.success) {
       // Reset form (keep phone if it's from profile)
       setSelectedDate('')
@@ -181,8 +185,8 @@ const Reservations = () => {
         setContactPhone('')
       }
       setSpecialRequests('')
-    } else if (result.details && (result.details.suggestedTables || result.details.suggestedCombinations)) {
-      // Show InlineAlert with suggested tables or table combinations
+    } else if (result.details) {
+      // Show InlineAlert for errors with details
       setInlineError(result)
       // Scroll to top to show the alert
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -213,9 +217,11 @@ const Reservations = () => {
 
     const result = await cancelReservation(reservationId)
 
+    console.log('Cancel reservation result:', JSON.stringify(result, null, 2))
+
     if (result && !result.success) {
-      // Check for timing errors (CANCELLATION_TOO_LATE)
-      if (result.code === 'CANCELLATION_TOO_LATE' && result.details) {
+      // Show InlineAlert if backend returns details
+      if (result.details) {
         setInlineError(result)
         // Scroll to top to show the alert
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -226,6 +232,8 @@ const Reservations = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault()
+    console.log('=== handleUpdate called ===')
+    console.log('editingId:', editingId)
 
     // Clear any previous inline error
     setInlineError(null)
@@ -238,6 +246,9 @@ const Reservations = () => {
       specialRequest: specialRequests.trim() || null,
       tableNumber: selectedTables // Send selected tables array
     }
+
+    console.log('Update reservation data being sent:', reservationData)
+    console.log('contactPhone value:', contactPhone)
 
     // Validation
     const errors = validateReservationData(reservationData)
@@ -256,6 +267,8 @@ const Reservations = () => {
 
     const result = await updateReservation(editingId, reservationData)
 
+    console.log('Update reservation result:', JSON.stringify(result, null, 2))
+
     if (result.success) {
       // Reset form and editing state (keep phone if from profile)
       setSelectedDate('')
@@ -268,8 +281,8 @@ const Reservations = () => {
       }
       setSpecialRequests('')
       setEditingId(null)
-    } else if (result.details && (result.details.suggestedTables || result.details.suggestedCombinations || result.code === 'MODIFICATION_TOO_LATE')) {
-      // Show InlineAlert with suggested tables, table combinations, or timing error
+    } else if (result.details) {
+      // Show InlineAlert for errors with details
       setInlineError(result)
       // Scroll to top to show the alert
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -338,13 +351,14 @@ const Reservations = () => {
               )}
 
               {/* InlineAlert for errors with details */}
-              {/* Case 1: Tables unavailable (suggestedTables) */}
-              {inlineError && inlineError.details && inlineError.details.suggestedTables && (
+
+              {/* Case 1a: TABLES_UNAVAILABLE - Tables already booked */}
+              {inlineError && inlineError.code === 'TABLES_UNAVAILABLE' && inlineError.details && (
                 <InlineAlert
                   type="warning"
                   message={inlineError.error}
-                  details={inlineError.details.reason || 'These tables were just booked by another customer.'}
-                  actions={inlineError.details.suggestedTables.map(tableId => ({
+                  details={inlineError.details.message || 'These tables were just booked by another customer.'}
+                  actions={inlineError.details.suggestedTables && inlineError.details.suggestedTables.length > 0 ? inlineError.details.suggestedTables.map(tableId => ({
                     label: `Try Table ${tableId}`,
                     onClick: () => {
                       setSelectedTables(prev => {
@@ -357,40 +371,55 @@ const Reservations = () => {
                       toast.success(`Table ${tableId} selected`)
                     },
                     variant: inlineError.details.suggestedTables.indexOf(tableId) === 0 ? 'primary' : undefined
-                  }))}
+                  })) : []}
                   onDismiss={() => setInlineError(null)}
                 />
               )}
 
-              {/* Case 2: Capacity issues (suggestedCombinations) */}
-              {inlineError && inlineError.details && inlineError.details.suggestedCombinations && (
+              {/* Case 1b: CAPACITY_INSUFFICIENT - Selected tables don't match party size */}
+              {inlineError && inlineError.code === 'CAPACITY_INSUFFICIENT' && inlineError.details && (
                 <InlineAlert
                   type="warning"
                   message={inlineError.error}
-                  details={inlineError.details.rule || `The selected tables don't match your party size (${partySize} guests).`}
-                  actions={inlineError.details.suggestedCombinations.map((combo, index) => ({
-                    label: combo.tables.length === 1
-                      ? `Table ${combo.tables[0]} (${combo.capacity} seats)`
-                      : `Tables ${combo.tables.join(' + ')} (${combo.capacity} seats)`,
+                  details={inlineError.details.message || `The selected tables don't match your party size.`}
+                  actions={inlineError.details.suggestedTables && inlineError.details.suggestedTables.length > 0 ? inlineError.details.suggestedTables.map((tableId, index) => ({
+                    label: `Try Table ${tableId}`,
                     onClick: () => {
-                      setSelectedTables(combo.tables)
+                      setSelectedTables(prev => {
+                        if (!prev.includes(tableId)) {
+                          return [...prev, tableId]
+                        }
+                        return prev
+                      })
                       setInlineError(null)
-                      toast.success(`Tables ${combo.tables.join(', ')} selected`)
+                      toast.success(`Table ${tableId} added`)
                     },
                     variant: index === 0 ? 'primary' : undefined
-                  }))}
+                  })) : []}
                   onDismiss={() => setInlineError(null)}
                 />
               )}
 
               {/* Case 3: Timing errors (MODIFICATION_TOO_LATE, CANCELLATION_TOO_LATE) */}
-              {inlineError && (inlineError.code === 'MODIFICATION_TOO_LATE' || inlineError.code === 'CANCELLATION_TOO_LATE') && inlineError.details && (
+              {inlineError && (
+                inlineError.code === 'MODIFICATION_TOO_LATE' ||
+                inlineError.code === 'CANCELLATION_TOO_LATE'
+              ) && inlineError.details && (
                 <InlineAlert
                   type="error"
-                  message={inlineError.error}
-                  details={`${inlineError.details.message || 'This action cannot be completed online at this time.'} Please contact us directly at ${RESTAURANT_INFO.PHONE} for assistance.`}
                   dismissible={false}
-                />
+                >
+                  <div>
+                    <p className="font-semibold">{inlineError.error}</p>
+                    <p className="mt-2">{inlineError.details.message || 'This action cannot be completed online at this time.'}</p>
+                    {inlineError.details.action && (
+                      <p className="mt-2 font-semibold">{inlineError.details.action}</p>
+                    )}
+                    {inlineError.details.policy && (
+                      <p className="mt-1 text-sm opacity-90">{inlineError.details.policy}</p>
+                    )}
+                  </div>
+                </InlineAlert>
               )}
 
               {/* Date, Guests, and Phone - Side by side on tablet/laptop */}

@@ -172,45 +172,7 @@ L'email est déjà enregistré.
 
 ---
 
-## ⏰ Cas 5 : Réservation trop proche de l'heure actuelle
-
-### Endpoint
-`POST /api/reservations`
-
-### Scénario
-L'utilisateur essaie de réserver dans moins de 2 heures.
-
-### Réponse Backend
-```json
-{
-  "success": false,
-  "error": "Reservations must be made at least 2 hours in advance",
-  "code": "RESERVATION_TOO_LATE",
-  "details": {
-    "requestedTime": "2024-01-25T19:30:00Z",
-    "minimumAdvance": 7200,
-    "earliestAvailable": "2024-01-25T21:30:00Z",
-    "message": "For last-minute reservations, please call us directly at +33 1 23 45 67 89"
-  }
-}
-```
-
-### Usage Frontend
-```jsx
-<InlineAlert type="warning">
-  <p>Reservations require at least 2 hours notice</p>
-  <p className="text-sm mt-1">
-    For urgent bookings, call us:
-    <a href="tel:+33123456789" className="font-semibold ml-1">
-      +33 1 23 45 67 89
-    </a>
-  </p>
-</InlineAlert>
-```
-
----
-
-## 🚫 Cas 6 : Annulation impossible (réservation < 2h)
+## 🚫 Cas 5 : Annulation impossible (réservation < 2h)
 
 ### Endpoint
 `PATCH /api/reservations/:id/status`
@@ -251,7 +213,7 @@ L'utilisateur essaie d'annuler une réservation qui commence dans moins de 2h.
 
 ---
 
-## 📦 Cas 7 : Validation complexe (capacité dépassée)
+## 📦 Cas 6 : Validation complexe (capacité dépassée)
 
 ### Endpoint
 `POST /api/reservations`

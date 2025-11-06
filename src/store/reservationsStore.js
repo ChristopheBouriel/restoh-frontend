@@ -107,7 +107,13 @@ const useReservationsStore = create(
               error: result.error,
               isLoading: false
             })
-            return { success: false, error: result.error }
+            // Return complete error structure including code and details
+            return {
+              success: false,
+              error: result.error,
+              code: result.code,
+              details: result.details
+            }
           }
         } catch (error) {
           const errorMessage = error.error || 'Error creating reservation'
@@ -201,7 +207,13 @@ const useReservationsStore = create(
               error: result.error,
               isLoading: false
             })
-            return { success: false, error: result.error }
+            // Return complete error structure including code and details
+            return {
+              success: false,
+              error: result.error,
+              code: result.code,
+              details: result.details
+            }
           }
         } catch (error) {
           const errorMessage = error.error || 'Error updating reservation'
@@ -235,7 +247,13 @@ const useReservationsStore = create(
               error: result.error,
               isLoading: false
             })
-            return { success: false, error: result.error }
+            // Return complete error structure including code and details
+            return {
+              success: false,
+              error: result.error,
+              code: result.code,
+              details: result.details
+            }
           }
         } catch (error) {
           const errorMessage = error.error || 'Error canceling reservation'

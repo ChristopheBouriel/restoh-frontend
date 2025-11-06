@@ -25,14 +25,14 @@ export const useReservations = () => {
       // User info is attached by authentication middleware on backend
       // Only send reservation-specific data
       const result = await createReservation(reservationData)
+      console.log('Hook createReservation result:', result)
       if (result.success) {
         toast.success('Reservation created successfully!')
         return result
       } else {
-        // If backend returns details (e.g., suggestedTables), return the full result
-        // The component will decide whether to show toast or InlineAlert
-        if (result.details && Object.keys(result.details).length > 0) {
-          // Return error with details for InlineAlert
+        // If backend returns details, return the full result for InlineAlert
+        if (result.details) {
+          console.log('Returning result with details:', result)
           return result
         } else {
           // Simple error, show toast
@@ -59,12 +59,14 @@ export const useReservations = () => {
       // - Must be at least 1h before original time
       // - New time must be at least 1h from now
       const result = await updateReservation(reservationId, reservationData)
+      console.log('Hook updateReservation result:', result)
       if (result.success) {
         toast.success('Reservation updated successfully!')
         return result
       } else {
-        // If backend returns details (e.g., suggestedTables), return the full result
-        if (result.details && Object.keys(result.details).length > 0) {
+        // If backend returns details, return the full result for InlineAlert
+        if (result.details) {
+          console.log('Returning result with details:', result)
           return result
         } else {
           toast.error(result.error || 'Error updating reservation')
@@ -80,7 +82,7 @@ export const useReservations = () => {
   const handleCancelReservation = async (reservationId) => {
     if (!user) {
       toast.error('You must be logged in to cancel a reservation')
-      throw new Error('User not authenticated')
+      return { success: false, error: 'User not authenticated' }
     }
 
     try {
@@ -88,25 +90,33 @@ export const useReservations = () => {
       // - Only 'confirmed' reservations can be cancelled
       // - Must be at least 2h before reservation time
       const result = await cancelReservation(reservationId)
+      console.log('Hook cancelReservation result:', result)
 
       if (result.success) {
         toast.success('Reservation cancelled successfully')
         return result
       } else {
-        throw new Error(result.error)
+        // If backend returns details (e.g., CANCELLATION_TOO_LATE), return the full result for InlineAlert
+        if (result.details) {
+          console.log('Returning result with details:', result)
+          return result
+        } else {
+          toast.error(result.error || 'Error cancelling reservation')
+          return result
+        }
       }
     } catch (error) {
       toast.error(error.message || 'Error cancelling reservation')
-      throw error
+      return { success: false, error: error.message || 'Error cancelling reservation' }
     }
   }
 
   const handleConfirmCancellation = async (reservationId) => {
     if (window.confirm('Are you sure you want to cancel this reservation?')) {
-      await handleCancelReservation(reservationId)
-      return true
+      const result = await handleCancelReservation(reservationId)
+      return result
     }
-    return false
+    return { success: false, error: 'Cancellation aborted by user' }
   }
 
   // Date formatting

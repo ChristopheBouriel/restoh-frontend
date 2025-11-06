@@ -44,7 +44,12 @@ export const createReservation = async (reservationData) => {
     const response = await apiClient.post('/reservations', reservationData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error creating reservation' }
+    return {
+      success: false,
+      error: error.error || 'Error creating reservation',
+      code: error.code,
+      details: error.details
+    }
   }
 }
 
@@ -74,7 +79,12 @@ export const updateReservation = async (reservationId, reservationData) => {
     const response = await apiClient.put(`/reservations/${reservationId}`, reservationData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error updating reservation' }
+    return {
+      success: false,
+      error: error.error || 'Error updating reservation',
+      code: error.code,
+      details: error.details
+    }
   }
 }
 
@@ -84,7 +94,12 @@ export const cancelReservation = async (reservationId) => {
     const response = await apiClient.delete(`/reservations/${reservationId}`)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error canceling reservation' }
+    return {
+      success: false,
+      error: error.error || 'Error canceling reservation',
+      code: error.code,
+      details: error.details
+    }
   }
 }
 
