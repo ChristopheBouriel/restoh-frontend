@@ -10,7 +10,13 @@ export const register = async (userData) => {
     const response = await apiClient.post('/auth/register', userData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Registration error' }
+    // Return full error structure including code and details from backend
+    return {
+      success: false,
+      error: error.error || 'Registration error',
+      code: error.code,
+      details: error.details
+    }
   }
 }
 
@@ -20,7 +26,13 @@ export const login = async (credentials) => {
     const response = await apiClient.post('/auth/login', credentials)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Login error' }
+    // Return full error structure including code and details from backend
+    return {
+      success: false,
+      error: error.error || 'Login error',
+      code: error.code,
+      details: error.details
+    }
   }
 }
 

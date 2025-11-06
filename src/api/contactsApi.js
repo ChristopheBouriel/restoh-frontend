@@ -7,7 +7,7 @@ import apiClient from './apiClient'
 // Send a contact message
 export const sendContactMessage = async (messageData) => {
   try {
-    const response = await apiClient.post('/contacts', messageData)
+    const response = await apiClient.post('/contact', messageData)
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error sending message' }
@@ -28,7 +28,7 @@ export const getAllContacts = async (status = null) => {
 // Update message status (ADMIN)
 export const updateContactStatus = async (contactId, status) => {
   try {
-    const response = await apiClient.patch(`/contacts/${contactId}/status`, { status })
+    const response = await apiClient.patch(`/contact/${contactId}/status`, { status })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error updating status' }
@@ -38,7 +38,7 @@ export const updateContactStatus = async (contactId, status) => {
 // Reply to a message (ADMIN)
 export const replyToContact = async (contactId, reply) => {
   try {
-    const response = await apiClient.post(`/contacts/${contactId}/reply`, { reply })
+    const response = await apiClient.post(`/contact/${contactId}/reply`, { reply })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error sending reply' }

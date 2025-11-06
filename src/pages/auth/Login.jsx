@@ -62,8 +62,18 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* InlineAlert for account status errors */}
-            {inlineError && (inlineError.code === 'AUTH_ACCOUNT_DELETED' || inlineError.code === 'AUTH_ACCOUNT_INACTIVE') && inlineError.details && (
+            {/* InlineAlert for inactive account - warning type (amber/orange) */}
+            {inlineError && inlineError.code === 'AUTH_ACCOUNT_INACTIVE' && inlineError.details && (
+              <InlineAlert
+                type="warning"
+                message={inlineError.error}
+                details={inlineError.details.message}
+                dismissible={false}
+              />
+            )}
+
+            {/* InlineAlert for deleted account - error type (red) */}
+            {inlineError && inlineError.code === 'AUTH_ACCOUNT_DELETED' && inlineError.details && (
               <InlineAlert
                 type="error"
                 message={inlineError.error}
@@ -74,23 +84,23 @@ const Login = () => {
 
             {/* Fallback: Custom banner for inactive account if backend doesn't send details */}
             {inlineError && inlineError.code === 'AUTH_ACCOUNT_INACTIVE' && !inlineError.details && (
-              <div className="rounded-md bg-orange-50 border border-orange-200 p-4">
+              <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-orange-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3 flex-1">
-                    <h3 className="text-sm font-medium text-orange-800">
+                    <h3 className="text-sm font-medium text-amber-800">
                       Account deactivated
                     </h3>
-                    <div className="mt-2 text-sm text-orange-700">
+                    <div className="mt-2 text-sm text-amber-700">
                       <p>
                         Your account has been deactivated. Please{' '}
                         <Link
                           to={ROUTES.CONTACT}
-                          className="font-medium underline hover:text-orange-600"
+                          className="font-medium underline hover:text-amber-600"
                         >
                           contact us
                         </Link>

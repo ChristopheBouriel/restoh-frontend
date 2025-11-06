@@ -52,7 +52,13 @@ const useAuthStore = create(
               error: result.error,
               isLoading: false
             })
-            return { success: false, error: result.error }
+            // Return complete error structure including code and details
+            return {
+              success: false,
+              error: result.error,
+              code: result.code,
+              details: result.details
+            }
           }
         } catch (error) {
           const errorMessage = error.error || 'Connection error'
@@ -84,7 +90,13 @@ const useAuthStore = create(
               error: result.error,
               isLoading: false
             })
-            return { success: false, error: result.error }
+            // Return complete error structure including code and details
+            return {
+              success: false,
+              error: result.error,
+              code: result.code,
+              details: result.details
+            }
           }
         } catch (error) {
           const errorMessage = error.error || 'Registration error'
