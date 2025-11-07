@@ -59,13 +59,13 @@ const UsersManagement = () => {
   ]
 
   const filteredUsers = users.filter(user => {
-    const searchMatch = searchQuery === '' || 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const searchMatch = searchQuery === '' ||
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.phone?.includes(searchQuery)
 
     const roleMatch = roleFilter === 'all' || user.role === roleFilter
-    const statusMatch = statusFilter === 'all' || 
+    const statusMatch = statusFilter === 'all' ||
       (statusFilter === 'active' && user.isActive) ||
       (statusFilter === 'inactive' && !user.isActive)
 
