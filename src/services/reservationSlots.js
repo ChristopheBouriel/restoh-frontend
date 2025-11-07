@@ -4,17 +4,31 @@
  * The slot number is sent to the backend
  */
 
-export const TIME_SLOTS = [
-  { slot: 1, label: '18:00' },
-  { slot: 2, label: '18:30' },
-  { slot: 3, label: '19:00' },
-  { slot: 4, label: '19:30' },
-  { slot: 5, label: '20:00' },
-  { slot: 6, label: '20:30' },
-  { slot: 7, label: '21:00' },
-  { slot: 8, label: '21:30' },
-  { slot: 9, label: '22:00' }
+// Lunch slots (11:00 - 13:30)
+export const LUNCH_SLOTS = [
+  { slot: 1, label: '11:00' },
+  { slot: 2, label: '11:30' },
+  { slot: 3, label: '12:00' },
+  { slot: 4, label: '12:30' },
+  { slot: 5, label: '13:00' },
+  { slot: 6, label: '13:30' }
 ]
+
+// Dinner slots (18:00 - 22:00)
+export const DINNER_SLOTS = [
+  { slot: 7, label: '18:00' },
+  { slot: 8, label: '18:30' },
+  { slot: 9, label: '19:00' },
+  { slot: 10, label: '19:30' },
+  { slot: 11, label: '20:00' },
+  { slot: 12, label: '20:30' },
+  { slot: 13, label: '21:00' },
+  { slot: 14, label: '21:30' },
+  { slot: 15, label: '22:00' }
+]
+
+// All slots combined (lunch first, then dinner)
+export const TIME_SLOTS = [...LUNCH_SLOTS, ...DINNER_SLOTS]
 
 /**
  * Get label from slot number

@@ -17,7 +17,10 @@ export const getUserReservations = async () => {
 // Get all reservations (ADMIN)
 export const getAllReservations = async (filters = {}) => {
   try {
-    const params = {}
+    const params = {
+      limit: 1000, // Get all reservations (no pagination)
+      page: 1
+    }
     if (filters.status) params.status = filters.status
     if (filters.date) params.date = filters.date
 

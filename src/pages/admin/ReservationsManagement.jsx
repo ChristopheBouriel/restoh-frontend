@@ -110,16 +110,16 @@ const ReservationsManagement = () => {
       return statusMatch && dateMatch && searchMatch
     })
     .sort((a, b) => {
-      // Sort by date first
+      // Sort by date first (newest first)
       const dateA = new Date(a.date)
       const dateB = new Date(b.date)
 
       if (dateA.getTime() !== dateB.getTime()) {
-        return dateA - dateB
+        return dateB - dateA  // Descending order (newest first)
       }
 
-      // If same date, sort by slot (time)
-      return (a.slot || 0) - (b.slot || 0)
+      // If same date, sort by slot (latest time first)
+      return (b.slot || 0) - (a.slot || 0)  // Descending order
     })
 
   const clearDateRange = () => {

@@ -6,7 +6,7 @@ import useAuthStore from '../../store/authStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
 import InlineAlert from '../../components/common/InlineAlert'
-import { TIME_SLOTS, getLabelFromSlot } from '../../services/reservationSlots'
+import { LUNCH_SLOTS, DINNER_SLOTS, getLabelFromSlot } from '../../services/reservationSlots'
 import { getAvailableTables } from '../../api/tablesApi'
 import { calculateTotalCapacity, getTableCapacity } from '../../utils/tablesConfig'
 import { RESTAURANT_INFO } from '../../constants'
@@ -554,21 +554,47 @@ const Reservations = () => {
                   <Clock className="w-4 h-4 inline mr-2" />
                   Time
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {TIME_SLOTS.map((slotObj) => (
-                    <button
-                      key={slotObj.slot}
-                      type="button"
-                      onClick={() => setSelectedSlotId(slotObj.slot)}
-                      className={`p-2 text-sm rounded-md border transition-colors ${
-                        selectedSlotId === slotObj.slot
-                          ? 'bg-primary-600 text-white border-primary-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {slotObj.label}
-                    </button>
-                  ))}
+
+                {/* Lunch slots */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-gray-500 mb-2">Lunch</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {LUNCH_SLOTS.map((slotObj) => (
+                      <button
+                        key={slotObj.slot}
+                        type="button"
+                        onClick={() => setSelectedSlotId(slotObj.slot)}
+                        className={`p-2 text-sm rounded-md border transition-colors ${
+                          selectedSlotId === slotObj.slot
+                            ? 'bg-primary-600 text-white border-primary-600'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {slotObj.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dinner slots */}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-2">Dinner</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {DINNER_SLOTS.map((slotObj) => (
+                      <button
+                        key={slotObj.slot}
+                        type="button"
+                        onClick={() => setSelectedSlotId(slotObj.slot)}
+                        className={`p-2 text-sm rounded-md border transition-colors ${
+                          selectedSlotId === slotObj.slot
+                            ? 'bg-primary-600 text-white border-primary-600'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {slotObj.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

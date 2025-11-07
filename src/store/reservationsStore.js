@@ -28,13 +28,54 @@ const useReservationsStore = create(
       clearError: () => set({ error: null }),
 
       // Fetch reservations based on role
-      fetchReservations: async (isAdmin = false) => {
+      fetchReservations: async (isAdmin = false, forceRefresh = false) => {
+        // If admin mode and not forcing refresh, always fetch from API (don't use cache)
+        if (isAdmin || forceRefresh) {
+          set({ isLoading: true, error: null })
+
+          try {
+            const result = isAdmin
+              ? await reservationsApi.getAllReservations()
+              : await reservationsApi.getUserReservations()
+
+            if (result.success) {
+              // Handle multiple possible response structures
+              const reservationsData = result.data || result.reservations || []
+
+              set({
+                reservations: reservationsData.map(normalizeReservation),
+                isLoading: false,
+                error: null
+              })
+              return { success: true }
+            } else {
+              set({
+                error: result.error,
+                isLoading: false
+              })
+              return { success: false, error: result.error }
+            }
+          } catch (error) {
+            const errorMessage = error.error || 'Error loading reservations'
+            set({
+              error: errorMessage,
+              isLoading: false
+            })
+            return { success: false, error: errorMessage }
+          }
+        }
+
+        // For non-admin, use cached data if available
+        const cachedReservations = get().reservations
+        if (cachedReservations.length > 0) {
+          return { success: true }
+        }
+
+        // If no cache, fetch from API
         set({ isLoading: true, error: null })
 
         try {
-          const result = isAdmin
-            ? await reservationsApi.getAllReservations()
-            : await reservationsApi.getUserReservations()
+          const result = await reservationsApi.getUserReservations()
 
           if (result.success) {
             set({
@@ -330,8 +371,10 @@ const useReservationsStore = create(
     }),
     {
       name: 'reservations-storage',
-      partialize: (state) => ({
-        reservations: state.reservations
+      partialize: () => ({
+        // Don't persist reservations to avoid stale data
+        // Always fetch from API for fresh data
+        reservations: []
       }),
     }
   )
