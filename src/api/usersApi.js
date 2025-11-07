@@ -33,3 +33,13 @@ export const deleteUser = async (userId) => {
     return { success: false, error: error.error || 'Error deleting user' }
   }
 }
+
+// Get users statistics (ADMIN)
+export const getUsersStats = async () => {
+  try {
+    const response = await apiClient.get('/users/stats')
+    return { success: true, data: response.data }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching users statistics' }
+  }
+}

@@ -8,10 +8,12 @@ import ImageWithFallback from '../../components/common/ImageWithFallback'
 const UsersManagement = () => {
   const {
     users,
+    stats,
+    isLoadingStats,
     initializeUsers,
+    fetchUsersStats,
     toggleUserStatus,
     updateUserRole,
-    getUsersStats,
     searchUsers,
     getActiveUsers,
     getInactiveUsers,
@@ -36,9 +38,8 @@ const UsersManagement = () => {
 
   useEffect(() => {
     initializeUsers()
-  }, [initializeUsers])
-
-  const stats = getUsersStats()
+    fetchUsersStats()
+  }, [initializeUsers, fetchUsersStats])
 
   const roleOptions = [
     { value: 'all', label: 'All roles' },
@@ -197,45 +198,68 @@ const UsersManagement = () => {
 
       {/* Statistics */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <User className="h-8 w-8 text-blue-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+        {isLoadingStats ? (
+          // Loading skeleton
+          <>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-lg border p-4 animate-pulse">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 bg-gray-200 rounded mr-3"></div>
+                  <div className="flex-1">
+                    <div className="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+                    <div className="h-6 bg-gray-200 rounded w-12"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : stats ? (
+          <>
+            <div className="bg-white rounded-lg border p-4">
+              <div className="flex items-center">
+                <User className="h-8 w-8 text-blue-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <User className="h-8 w-8 text-green-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+            <div className="bg-white rounded-lg border p-4">
+              <div className="flex items-center">
+                <User className="h-8 w-8 text-green-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeUsers}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <TrendingUp className="h-8 w-8 text-emerald-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">This month</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.newThisMonth}</p>
+            <div className="bg-white rounded-lg border p-4">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-emerald-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">New (30d)</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.newUsers}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-indigo-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active (30d)</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.activeThisMonth}</p>
+            <div className="bg-white rounded-lg border p-4">
+              <div className="flex items-center">
+                <Calendar className="h-8 w-8 text-indigo-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Customers (30d)</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeCustomersLastMonth}</p>
+                </div>
+              </div>
             </div>
+          </>
+        ) : (
+          <div className="col-span-full text-center text-gray-500 py-4">
+            Unable to load statistics
           </div>
-        </div>
+        )}
       </div>
 
       {/* Filters and search */}

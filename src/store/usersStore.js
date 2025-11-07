@@ -7,7 +7,9 @@ const useUsersStore = create(
     (set, get) => ({
       // État
       users: [],
+      stats: null,
       isLoading: false,
+      isLoadingStats: false,
 
       // Actions
       setLoading: (loading) => set({ isLoading: loading }),
@@ -111,9 +113,30 @@ const useUsersStore = create(
         set({ users: updatedUsers })
       },
 
+      // Charger les statistiques depuis l'API
+      fetchUsersStats: async () => {
+        set({ isLoadingStats: true })
+
+        try {
+          const result = await usersApi.getUsersStats()
+
+          if (result.success) {
+            set({
+              stats: result.data,
+              isLoadingStats: false
+            })
+          } else {
+            set({ isLoadingStats: false })
+          }
+        } catch (error) {
+          console.error('Error loading users stats:', error)
+          set({ isLoadingStats: false })
+        }
+      },
+
       // Rafraîchir les statistiques dynamiquement
       refreshUserStats: () => {
-        get().initializeUsers()
+        get().fetchUsersStats()
       },
 
       // Getters
@@ -139,46 +162,11 @@ const useUsersStore = create(
 
       searchUsers: (query) => {
         const lowercaseQuery = query.toLowerCase()
-        return get().users.filter(user => 
+        return get().users.filter(user =>
           user.name.toLowerCase().includes(lowercaseQuery) ||
           user.email.toLowerCase().includes(lowercaseQuery) ||
           user.phone?.includes(query)
         )
-      },
-
-      // Statistiques
-      getUsersStats: () => {
-        const users = get().users
-        const activeUsers = users.filter(u => u.isActive)
-        const today = new Date()
-        const thirtyDaysAgo = new Date(today)
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-        
-        const newUsersThisMonth = users.filter(u => {
-          const createdDate = new Date(u.createdAt)
-          return createdDate >= thirtyDaysAgo
-        })
-
-        const activeThisMonth = users.filter(u => {
-          if (!u.lastLogin) return false
-          const lastLogin = new Date(u.lastLogin)
-          return lastLogin >= thirtyDaysAgo
-        })
-        
-        return {
-          total: users.length,
-          active: activeUsers.length,
-          inactive: users.length - activeUsers.length,
-          admins: users.filter(u => u.role === 'admin').length,
-          regularUsers: users.filter(u => u.role === 'user').length,
-          verified: users.filter(u => u.emailVerified).length,
-          unverified: users.filter(u => !u.emailVerified).length,
-          newThisMonth: newUsersThisMonth.length,
-          activeThisMonth: activeThisMonth.length,
-          totalRevenue: users.reduce((sum, user) => sum + (user.totalSpent || 0), 0),
-          totalOrders: users.reduce((sum, user) => sum + (user.totalOrders || 0), 0),
-          totalReservations: users.reduce((sum, user) => sum + (user.totalReservations || 0), 0)
-        }
       }
     }),
     {
