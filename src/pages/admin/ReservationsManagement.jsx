@@ -441,6 +441,9 @@ const ReservationsManagement = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Client
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -463,6 +466,11 @@ const ReservationsManagement = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredReservations.map((reservation) => (
                     <tr key={reservation.id} className={getDeletedUserRowClass(reservation)}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          #{reservation.reservationNumber}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {isDeletedUser(reservation) ? (
                           <div className="text-sm text-gray-500 italic">
@@ -556,15 +564,21 @@ const ReservationsManagement = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-500">
+                        #{reservation.reservationNumber}
+                      </span>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Users className="h-4 w-4 mr-1" />
+                        {reservation.guests} guests
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
                       {isDeletedUser(reservation) ? (
                         <span className="text-sm text-gray-500 italic">Deleted user</span>
                       ) : (
                         <span className="text-sm font-medium text-gray-900">{reservation.userName}</span>
                       )}
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Users className="h-4 w-4 mr-1" />
-                        {reservation.guests} guests
-                      </div>
                     </div>
 
                     {!isDeletedUser(reservation) && (
