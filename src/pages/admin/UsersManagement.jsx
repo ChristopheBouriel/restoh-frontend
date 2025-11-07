@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, ShoppingCart, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, ShoppingCart, ShoppingBag, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import useUsersStore from '../../store/usersStore'
 import { ordersApi, reservationsApi } from '../../api'
 import SimpleSelect from '../../components/common/SimpleSelect'
@@ -201,13 +201,13 @@ const UsersManagement = () => {
         {isLoadingStats ? (
           // Loading skeleton
           <>
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="bg-white rounded-lg border p-4 animate-pulse">
                 <div className="flex items-center">
                   <div className="h-8 w-8 bg-gray-200 rounded mr-3"></div>
                   <div className="flex-1">
-                    <div className="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-                    <div className="h-6 bg-gray-200 rounded w-12"></div>
+                    <div className="h-10 bg-gray-200 rounded w-full mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-16"></div>
                   </div>
                 </div>
               </div>
@@ -217,40 +217,50 @@ const UsersManagement = () => {
           <>
             <div className="bg-white rounded-lg border p-4">
               <div className="flex items-center">
-                <User className="h-8 w-8 text-blue-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                <User className="h-8 w-8 text-blue-500 mr-3 flex-shrink-0" />
+                <div className="flex-1 flex flex-col justify-between">
+                  <p className="text-sm font-medium text-gray-600 h-10 flex items-start">Total</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalUsers}</p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border p-4">
               <div className="flex items-center">
-                <User className="h-8 w-8 text-green-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeUsers}</p>
+                <User className="h-8 w-8 text-green-500 mr-3 flex-shrink-0" />
+                <div className="flex-1 flex flex-col justify-between">
+                  <p className="text-sm font-medium text-gray-600 h-10 flex items-start">Active</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.activeUsers}</p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border p-4">
               <div className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-emerald-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">New (30d)</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.newUsers}</p>
+                <TrendingUp className="h-8 w-8 text-emerald-500 mr-3 flex-shrink-0" />
+                <div className="flex-1 flex flex-col justify-between">
+                  <p className="text-sm font-medium text-gray-600 h-10 flex items-start">New this month</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.newUsers}</p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border p-4">
               <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-indigo-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Customers (30d)</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeCustomersLastMonth}</p>
+                <Calendar className="h-8 w-8 text-purple-500 mr-3 flex-shrink-0" />
+                <div className="flex-1 flex flex-col justify-between">
+                  <p className="text-sm font-medium text-gray-600 h-10 flex items-start">Logged last month</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.recentlyLoggedUsers}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border p-4">
+              <div className="flex items-center">
+                <ShoppingBag className="h-8 w-8 text-indigo-500 mr-3 flex-shrink-0" />
+                <div className="flex-1 flex flex-col justify-between">
+                  <p className="text-sm font-medium text-gray-600 h-10 flex items-start">Customers this month</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.activeCustomersLastMonth}</p>
                 </div>
               </div>
             </div>
