@@ -828,11 +828,11 @@ const UsersManagement = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Payment status:</span>
                       <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                        selectedOrderDetail.isPaid
+                        selectedOrderDetail.paymentStatus === 'paid'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-orange-100 text-orange-700'
                       }`}>
-                        {selectedOrderDetail.isPaid
+                        {selectedOrderDetail.paymentStatus === 'paid'
                           ? '✅ Paid'
                           : selectedOrderDetail.paymentMethod === 'cash'
                             ? '💰 To pay on delivery'
