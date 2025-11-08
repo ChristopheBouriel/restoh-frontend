@@ -33,6 +33,7 @@ const ReservationsManagement = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [searchReservationNumber, setSearchReservationNumber] = useState('')
+  const [showTodayOnly, setShowTodayOnly] = useState(false)
 
   // Modal state
   const [selectedReservation, setSelectedReservation] = useState(null)
@@ -222,9 +223,18 @@ const ReservationsManagement = () => {
         if (!matches) return false
       }
 
+      // Today filter (only for recent tab)
+      if (activeTab === 'recent' && showTodayOnly) {
+        const reservationDateStr = normalizeDateString(reservation.date)
+        const todayStr = getTodayLocalDate()
+        if (reservationDateStr !== todayStr) {
+          return false
+        }
+      }
+
       return true
     })
-  }, [recentReservations, historicalReservations, activeTab, statusFilter, searchReservationNumber])
+  }, [recentReservations, historicalReservations, activeTab, statusFilter, searchReservationNumber, showTodayOnly])
 
   // ========================================
   // HELPERS
@@ -495,12 +505,23 @@ const ReservationsManagement = () => {
         <div className="bg-white rounded-lg border p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {lastRefresh && (
                 <span className="text-xs text-gray-500">
                   Updated {getTimeSinceRefresh()}
                 </span>
               )}
+              <button
+                onClick={() => setShowTodayOnly(!showTodayOnly)}
+                className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  showTodayOnly
+                    ? 'bg-primary-600 text-white hover:bg-primary-700'
+                    : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                }`}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Today</span>
+              </button>
               <button
                 onClick={handleManualRefresh}
                 disabled={recentLoading}

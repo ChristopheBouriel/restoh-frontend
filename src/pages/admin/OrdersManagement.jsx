@@ -31,6 +31,7 @@ const OrdersManagement = () => {
   // Filters
   const [filterStatus, setFilterStatus] = useState('all')
   const [searchOrderNumber, setSearchOrderNumber] = useState('')
+  const [showTodayOnly, setShowTodayOnly] = useState(false)
 
   // Historical date range
   const [startDate, setStartDate] = useState('')
@@ -200,11 +201,27 @@ const OrdersManagement = () => {
   const currentOrders = activeTab === 'recent' ? recentOrders : historicalOrders
   const isLoading = activeTab === 'recent' ? isLoadingRecent : isLoadingHistorical
 
-  // Filter orders (for search)
+  // Filter orders (for search and today filter)
   const filteredOrders = currentOrders.filter(order => {
+    // Search filter
     if (searchOrderNumber) {
-      return order.orderNumber && order.orderNumber.toString().includes(searchOrderNumber)
+      const matches = order.orderNumber && order.orderNumber.toString().includes(searchOrderNumber)
+      if (!matches) return false
     }
+
+    // Today filter (only for recent tab)
+    if (activeTab === 'recent' && showTodayOnly) {
+      const orderDate = new Date(order.createdAt)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+
+      if (orderDate < today || orderDate >= tomorrow) {
+        return false
+      }
+    }
+
     return true
   })
 
@@ -371,12 +388,23 @@ const OrdersManagement = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           {activeTab === 'recent' && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {lastRefresh && (
                 <span className="text-xs text-gray-500">
                   Updated {getTimeSinceRefresh()}
                 </span>
               )}
+              <button
+                onClick={() => setShowTodayOnly(!showTodayOnly)}
+                className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  showTodayOnly
+                    ? 'bg-primary-600 text-white hover:bg-primary-700'
+                    : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                }`}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Today</span>
+              </button>
               <button
                 onClick={fetchRecentOrdersData}
                 disabled={isLoadingRecent}
