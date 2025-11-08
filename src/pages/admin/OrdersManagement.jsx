@@ -110,12 +110,12 @@ const OrdersManagement = () => {
     }
   }, [activeTab, fetchRecentOrdersData])
 
-  // Auto-refresh for recent orders (every 60 seconds)
+  // Auto-refresh for recent orders (every 2 minutes)
   useEffect(() => {
     if (activeTab === 'recent') {
       const interval = setInterval(() => {
         fetchRecentOrdersData()
-      }, 60000) // 60 seconds
+      }, 120000) // 2 minutes
 
       return () => clearInterval(interval)
     }
@@ -253,12 +253,14 @@ const OrdersManagement = () => {
     })
   }
 
-  const formatLastRefresh = () => {
-    if (!lastRefresh) return ''
+  const getTimeSinceRefresh = () => {
+    if (!lastRefresh) return 'Never'
+
     const seconds = Math.floor((new Date() - lastRefresh) / 1000)
-    if (seconds < 60) return `Updated ${seconds}s ago`
-    const minutes = Math.floor(seconds / 60)
-    return `Updated ${minutes}m ago`
+
+    if (seconds < 60) return `${seconds}s ago`
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+    return `${Math.floor(seconds / 3600)}h ago`
   }
 
   return (
@@ -301,9 +303,6 @@ const OrdersManagement = () => {
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4" />
               <span>Recent (15 days)</span>
-              {activeTab === 'recent' && lastRefresh && (
-                <span className="text-xs text-gray-400">{formatLastRefresh()}</span>
-              )}
             </div>
           </button>
           <button
@@ -372,14 +371,21 @@ const OrdersManagement = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           {activeTab === 'recent' && (
-            <button
-              onClick={fetchRecentOrdersData}
-              disabled={isLoadingRecent}
-              className="flex items-center space-x-2 px-3 py-1.5 text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoadingRecent ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              {lastRefresh && (
+                <span className="text-xs text-gray-500">
+                  Updated {getTimeSinceRefresh()}
+                </span>
+              )}
+              <button
+                onClick={fetchRecentOrdersData}
+                disabled={isLoadingRecent}
+                className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoadingRecent ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
           )}
         </div>
 

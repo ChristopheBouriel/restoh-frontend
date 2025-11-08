@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Eye, Users, Calendar, Clock, MapPin, RefreshCw } from 'lucide-react'
+import { Eye, Users, Calendar, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import { isReservationTimePassed, getLabelFromSlot } from '../../services/reservationSlots'
@@ -100,10 +100,10 @@ const ReservationsManagement = () => {
     if (activeTab === 'recent') {
       fetchRecentReservationsData()
 
-      // Auto-refresh every 60 seconds
+      // Auto-refresh every 5 minutes
       const interval = setInterval(() => {
         fetchRecentReservationsData(recentPage)
-      }, 60000)
+      }, 300000)
 
       return () => clearInterval(interval)
     }
@@ -119,6 +119,14 @@ const ReservationsManagement = () => {
       return () => clearInterval(interval)
     }
   }, [activeTab, lastRefresh])
+
+  // Load historical when dates change
+  useEffect(() => {
+    if (activeTab === 'history' && startDate && endDate) {
+      setHistoricalPage(1) // Reset to page 1
+      fetchHistoricalReservationsData(1)
+    }
+  }, [activeTab, startDate, endDate, statusFilter, searchReservationNumber]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ========================================
   // HANDLERS
@@ -147,9 +155,18 @@ const ReservationsManagement = () => {
     setSearchReservationNumber('')
   }
 
-  const handleHistoricalSearch = () => {
-    setHistoricalPage(1)
-    fetchHistoricalReservationsData(1)
+  const handleStartDateChange = (newStartDate) => {
+    setStartDate(newStartDate)
+    if (endDate && newStartDate && new Date(endDate) < new Date(newStartDate)) {
+      setEndDate('')
+    }
+  }
+
+  const handleEndDateChange = (newEndDate) => {
+    if (startDate && newEndDate && new Date(newEndDate) < new Date(startDate)) {
+      return
+    }
+    setEndDate(newEndDate)
   }
 
   const clearDateRange = () => {
@@ -590,14 +607,14 @@ const ReservationsManagement = () => {
                 </button>
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Start date
                 </label>
                 <CustomDatePicker
                   value={startDate}
-                  onChange={setStartDate}
+                  onChange={handleStartDateChange}
                   className="w-full"
                   placeholder="Select start date"
                 />
@@ -608,21 +625,18 @@ const ReservationsManagement = () => {
                 </label>
                 <CustomDatePicker
                   value={endDate}
-                  onChange={setEndDate}
+                  onChange={handleEndDateChange}
                   className="w-full"
                   minDate={startDate}
                   placeholder="Select end date"
                 />
               </div>
             </div>
-
-            <button
-              onClick={handleHistoricalSearch}
-              disabled={!startDate || !endDate || historicalLoading}
-              className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {historicalLoading ? 'Loading...' : 'Search History'}
-            </button>
+            {!startDate || !endDate ? (
+              <p className="mt-3 text-xs text-gray-500 italic">
+                Select both start and end dates to load historical reservations
+              </p>
+            ) : null}
           </div>
         </div>
       )}
@@ -823,53 +837,70 @@ const ReservationsManagement = () => {
               ))}
             </div>
 
-            {/* Pagination */}
-            {activeTab === 'recent' && recentPagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <button
-                  onClick={() => fetchRecentReservationsData(recentPage - 1)}
-                  disabled={recentPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-700">
-                  Page {recentPage} of {recentPagination.totalPages}
-                </span>
-                <button
-                  onClick={() => fetchRecentReservationsData(recentPage + 1)}
-                  disabled={!recentPagination.hasMore}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'history' && historicalPagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <button
-                  onClick={() => fetchHistoricalReservationsData(historicalPage - 1)}
-                  disabled={historicalPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-700">
-                  Page {historicalPage} of {historicalPagination.totalPages}
-                </span>
-                <button
-                  onClick={() => fetchHistoricalReservationsData(historicalPage + 1)}
-                  disabled={!historicalPagination.hasMore}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      {/* Pagination */}
+      {!recentLoading && !historicalLoading && displayedReservations.length > 0 && (
+        <div className="bg-white border-t px-6 py-4">
+          {activeTab === 'recent' && recentPagination && recentPagination.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing page <span className="font-medium">{recentPage}</span> of{' '}
+                <span className="font-medium">{recentPagination.totalPages}</span>
+                {' '}({recentPagination.total} total reservations)
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => fetchRecentReservationsData(recentPage - 1)}
+                  disabled={recentPage === 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Previous</span>
+                </button>
+                <button
+                  onClick={() => fetchRecentReservationsData(recentPage + 1)}
+                  disabled={!recentPagination.hasMore}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'history' && historicalPagination && historicalPagination.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing page <span className="font-medium">{historicalPage}</span> of{' '}
+                <span className="font-medium">{historicalPagination.totalPages}</span>
+                {' '}({historicalPagination.total} total reservations)
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => fetchHistoricalReservationsData(historicalPage - 1)}
+                  disabled={historicalPage === 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Previous</span>
+                </button>
+                <button
+                  onClick={() => fetchHistoricalReservationsData(historicalPage + 1)}
+                  disabled={!historicalPagination.hasMore}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Reservation Detail Modal */}
       {isModalOpen && selectedReservation && (

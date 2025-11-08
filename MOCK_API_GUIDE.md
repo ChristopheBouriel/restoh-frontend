@@ -51,7 +51,7 @@ npm run dev  # Start again
 9. Click "Refresh" button to manually refresh
 
 **Auto-Refresh:**
-- Recent orders auto-refresh every **60 seconds** (watch browser console)
+- Recent orders auto-refresh every **2 minutes** (watch browser console)
 - Stops when switching to History tab
 - Resumes when switching back to Recent
 
@@ -77,7 +77,7 @@ npm run dev  # Start again
 9. Click "Refresh" button to manually refresh
 
 **Auto-Refresh:**
-- Recent reservations auto-refresh every **60 seconds** (watch browser console)
+- Recent reservations auto-refresh every **5 minutes** (watch browser console)
 - Stops when switching to History tab
 - Resumes when switching back to Recent
 
