@@ -1,8 +1,17 @@
 import apiClient from './apiClient'
+import {
+  getRecentOrdersMock,
+  getHistoricalOrdersMock,
+  updateOrderStatusMock
+} from './mocks/ordersMock'
 
 /**
  * Orders API
+ *
+ * Set VITE_MOCK_API=true in .env to use mock data for development
  */
+
+const MOCK_MODE = import.meta.env.VITE_MOCK_API === 'true'
 
 // Get current user's orders
 export const getUserOrders = async () => {
@@ -81,4 +90,70 @@ export const getOrdersByUserId = async (userId) => {
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching user orders', orders: [] }
   }
+}
+
+// ========================================
+// NEW API ENDPOINTS (Recent/Historical Split)
+// ========================================
+
+/**
+ * Get recent orders (last 15 days) - ADMIN
+ * Auto-refreshed in the UI
+ */
+export const getRecentOrders = async (params = {}) => {
+  if (MOCK_MODE) {
+    return await getRecentOrdersMock(params)
+  }
+
+  try {
+    const queryParams = {
+      limit: params.limit || 50,
+      page: params.page || 1
+    }
+    if (params.status) queryParams.status = params.status
+
+    const response = await apiClient.get('/orders/admin/recent', { params: queryParams })
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching recent orders' }
+  }
+}
+
+/**
+ * Get historical orders (> 15 days) - ADMIN
+ * Fetch on demand with date range
+ */
+export const getHistoricalOrders = async (params = {}) => {
+  if (MOCK_MODE) {
+    return await getHistoricalOrdersMock(params)
+  }
+
+  try {
+    const { startDate, endDate, limit = 20, page = 1, status, search } = params
+
+    if (!startDate || !endDate) {
+      return { success: false, error: 'Start date and end date are required' }
+    }
+
+    const queryParams = { startDate, endDate, limit, page }
+    if (status) queryParams.status = status
+    if (search) queryParams.search = search
+
+    const response = await apiClient.get('/orders/admin/history', { params: queryParams })
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching historical orders' }
+  }
+}
+
+/**
+ * Update order status - ADMIN (enhanced for mock support)
+ */
+export const updateOrderStatusEnhanced = async (orderId, status) => {
+  if (MOCK_MODE) {
+    return await updateOrderStatusMock(orderId, status)
+  }
+
+  // Use existing updateOrderStatus
+  return await updateOrderStatus(orderId, status)
 }

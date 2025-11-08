@@ -77,10 +77,10 @@ export const useOrders = () => {
     return isAllowedStatus && isNotPaid
   }
 
-  // Function to get recent orders (last 30 days)
+  // Function to get recent orders (last 15 days)
   const getRecentOrders = () => {
     const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 15)
     
     return userOrders.filter(order => {
       const orderDate = new Date(order.createdAt)

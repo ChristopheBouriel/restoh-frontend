@@ -1,26 +1,146 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Filter, Trash2 } from 'lucide-react'
-import useOrdersStore from '../../store/ordersStore'
+import { useState, useEffect, useCallback } from 'react'
+import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Trash2, RefreshCw, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
 import InlineAlert from '../../components/common/InlineAlert'
 import { toast } from 'react-hot-toast'
+import {
+  getRecentOrders,
+  getHistoricalOrders,
+  updateOrderStatusEnhanced
+} from '../../api/ordersApi'
 
 const OrdersManagement = () => {
-  const orders = useOrdersStore((state) => state.orders || [])
-  const isLoading = useOrdersStore((state) => state.isLoading)
-  const fetchOrders = useOrdersStore((state) => state.fetchOrders)
-  const updateOrderStatus = useOrdersStore((state) => state.updateOrderStatus)
-  const deleteOrder = useOrdersStore((state) => state.deleteOrder)
-  const getOrdersStats = useOrdersStore((state) => state.getOrdersStats)
+  // Tab state: 'recent' or 'history'
+  const [activeTab, setActiveTab] = useState('recent')
 
+  // Recent orders state
+  const [recentOrders, setRecentOrders] = useState([])
+  const [recentPagination, setRecentPagination] = useState(null)
+  const [recentPage, setRecentPage] = useState(1)
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false)
+  const [lastRefresh, setLastRefresh] = useState(null)
+
+  // Historical orders state
+  const [historicalOrders, setHistoricalOrders] = useState([])
+  const [historicalPagination, setHistoricalPagination] = useState(null)
+  const [historicalPage, setHistoricalPage] = useState(1)
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false)
+
+  // Filters
   const [filterStatus, setFilterStatus] = useState('all')
+  const [searchOrderNumber, setSearchOrderNumber] = useState('')
+
+  // Historical date range
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [searchOrderNumber, setSearchOrderNumber] = useState('')
-  const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
 
+  // UI state
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [inlineError, setInlineError] = useState(null)
+  const [, setRefreshTick] = useState(0) // Force re-render for "Updated Xs ago"
+
+  // Fetch recent orders
+  const fetchRecentOrdersData = useCallback(async (page = 1) => {
+    setIsLoadingRecent(true)
+
+    const params = {
+      limit: 50,
+      page
+    }
+    if (filterStatus !== 'all') {
+      params.status = filterStatus
+    }
+
+    const result = await getRecentOrders(params)
+
+    if (result.success) {
+      setRecentOrders(result.data || [])
+      setRecentPagination(result.pagination)
+      setRecentPage(page)
+      setLastRefresh(new Date())
+    } else {
+      toast.error(result.error || 'Failed to load recent orders')
+    }
+
+    setIsLoadingRecent(false)
+  }, [filterStatus])
+
+  // Fetch historical orders
+  const fetchHistoricalOrdersData = useCallback(async (page = 1) => {
+    if (!startDate || !endDate) {
+      setHistoricalOrders([])
+      setHistoricalPagination(null)
+      return
+    }
+
+    setIsLoadingHistorical(true)
+
+    const params = {
+      startDate,
+      endDate,
+      limit: 20,
+      page
+    }
+    if (filterStatus !== 'all') {
+      params.status = filterStatus
+    }
+    if (searchOrderNumber) {
+      params.search = searchOrderNumber
+    }
+
+    const result = await getHistoricalOrders(params)
+
+    if (result.success) {
+      setHistoricalOrders(result.data || [])
+      setHistoricalPagination(result.pagination)
+      setHistoricalPage(page)
+    } else {
+      toast.error(result.error || 'Failed to load historical orders')
+    }
+
+    setIsLoadingHistorical(false)
+  }, [startDate, endDate, filterStatus, searchOrderNumber])
+
+  // Initial load for recent orders
+  useEffect(() => {
+    if (activeTab === 'recent') {
+      fetchRecentOrdersData()
+    }
+  }, [activeTab, fetchRecentOrdersData])
+
+  // Auto-refresh for recent orders (every 60 seconds)
+  useEffect(() => {
+    if (activeTab === 'recent') {
+      const interval = setInterval(() => {
+        fetchRecentOrdersData()
+      }, 60000) // 60 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [activeTab, fetchRecentOrdersData])
+
+  // Update "Updated Xs ago" display every 5 seconds
+  useEffect(() => {
+    if (activeTab === 'recent' && lastRefresh) {
+      const interval = setInterval(() => {
+        setRefreshTick(tick => tick + 1) // Force re-render
+      }, 5000) // 5 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [activeTab, lastRefresh])
+
+  // Load historical when dates change
+  useEffect(() => {
+    if (activeTab === 'history' && startDate && endDate) {
+      setHistoricalPage(1) // Reset to page 1
+      fetchHistoricalOrdersData(1)
+    }
+  }, [activeTab, startDate, endDate, filterStatus, searchOrderNumber]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle date changes
   const handleStartDateChange = (newStartDate) => {
     setStartDate(newStartDate)
     if (endDate && newStartDate && new Date(endDate) < new Date(newStartDate)) {
@@ -34,8 +154,61 @@ const OrdersManagement = () => {
     }
     setEndDate(newEndDate)
   }
-  const [selectedOrder, setSelectedOrder] = useState(null)
 
+  // Handle status change
+  const handleStatusChange = async (orderId, newStatus) => {
+    setInlineError(null)
+
+    const result = await updateOrderStatusEnhanced(orderId, newStatus)
+
+    if (result && !result.success) {
+      if (result.code === 'ORDER_INVALID_STATUS' && result.details) {
+        setInlineError(result)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        toast.error(result.error || 'Failed to update status')
+      }
+    } else {
+      toast.success('Order status updated')
+      // Refresh current view
+      if (activeTab === 'recent') {
+        fetchRecentOrdersData()
+      } else {
+        fetchHistoricalOrdersData()
+      }
+    }
+  }
+
+  // Calculate stats from current orders
+  const calculateStats = () => {
+    const orders = activeTab === 'recent' ? recentOrders : historicalOrders
+
+    return {
+      total: orders.length,
+      pending: orders.filter(o => o.status === 'pending').length,
+      confirmed: orders.filter(o => o.status === 'confirmed').length,
+      preparing: orders.filter(o => o.status === 'preparing').length,
+      ready: orders.filter(o => o.status === 'ready').length,
+      delivered: orders.filter(o => o.status === 'delivered').length,
+      cancelled: orders.filter(o => o.status === 'cancelled').length
+    }
+  }
+
+  const stats = calculateStats()
+
+  // Get current orders
+  const currentOrders = activeTab === 'recent' ? recentOrders : historicalOrders
+  const isLoading = activeTab === 'recent' ? isLoadingRecent : isLoadingHistorical
+
+  // Filter orders (for search)
+  const filteredOrders = currentOrders.filter(order => {
+    if (searchOrderNumber) {
+      return order.orderNumber && order.orderNumber.toString().includes(searchOrderNumber)
+    }
+    return true
+  })
+
+  // Deleted user row class
   const getDeletedUserRowClass = (order) => {
     const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
     const isDeletedUser = deletedEmailPattern.test(order.userEmail) || order.userId === 'deleted-user'
@@ -45,82 +218,11 @@ const OrdersManagement = () => {
     }
 
     if (order.status === 'delivered' || order.status === 'cancelled') {
-      console.log('→ Applying GRAY (delivered/cancelled)')
       return 'bg-gray-100 hover:bg-gray-200'
     } else if (order.paymentStatus === 'paid') {
-      console.log('→ Applying ORANGE (paid, in progress)')
       return 'bg-orange-50 hover:bg-orange-100'
     } else {
-      console.log('→ Applying RED (unpaid, in progress)')
       return 'bg-red-50 hover:bg-red-100'
-    }
-  }
-
-  useEffect(() => {
-    fetchOrders(true)
-  }, [fetchOrders])
-
-  const filteredOrders = orders.filter(order => {
-    const statusMatch = filterStatus === 'all' || order.status === filterStatus
-
-    let dateMatch = true
-    if (startDate || endDate) {
-      const orderDate = new Date(order.createdAt)
-
-      if (startDate) {
-        const start = new Date(startDate)
-        start.setHours(0, 0, 0, 0)
-        dateMatch = dateMatch && orderDate >= start
-      }
-
-      if (endDate) {
-        const end = new Date(endDate)
-        end.setHours(23, 59, 59, 999)
-        dateMatch = dateMatch && orderDate <= end
-      }
-    }
-
-    // Search by order number
-    const searchMatch = searchOrderNumber === '' ||
-      (order.orderNumber && order.orderNumber.toString().includes(searchOrderNumber))
-
-    return statusMatch && dateMatch && searchMatch
-  })
-
-  // Recalculate stats whenever orders change
-  const stats = useMemo(() => getOrdersStats(), [orders, getOrdersStats])
-
-  // Handle status change
-  const handleStatusChange = async (orderId, newStatus) => {
-    // Clear any previous inline error
-    setInlineError(null)
-
-    const result = await updateOrderStatus(orderId, newStatus)
-
-    if (result && !result.success) {
-      // Check for ORDER_INVALID_STATUS with details
-      if (result.code === 'ORDER_INVALID_STATUS' && result.details) {
-        setInlineError(result)
-        // Scroll to top to show the alert
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-      // Else: error was already shown as toast in the store
-    }
-  }
-
-  // Handle order deletion
-  const handleDeleteOrder = async (orderId) => {
-    if (window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
-      const result = await deleteOrder(orderId)
-      if (result.success) {
-        toast.success('Order deleted successfully')
-        // Close modal if it's open for this order
-        if (selectedOrder?.id === orderId) {
-          setSelectedOrder(null)
-        }
-      } else {
-        toast.error(result.error || 'Failed to delete order')
-      }
     }
   }
 
@@ -151,12 +253,12 @@ const OrdersManagement = () => {
     })
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    )
+  const formatLastRefresh = () => {
+    if (!lastRefresh) return ''
+    const seconds = Math.floor((new Date() - lastRefresh) / 1000)
+    if (seconds < 60) return `Updated ${seconds}s ago`
+    const minutes = Math.floor(seconds / 60)
+    return `Updated ${minutes}m ago`
   }
 
   return (
@@ -173,7 +275,7 @@ const OrdersManagement = () => {
         </div>
       </div>
 
-      {/* InlineAlert for ORDER_INVALID_STATUS */}
+      {/* InlineAlert for errors */}
       {inlineError && inlineError.code === 'ORDER_INVALID_STATUS' && inlineError.details && (
         <InlineAlert
           type="error"
@@ -183,7 +285,46 @@ const OrdersManagement = () => {
         />
       )}
 
-      {/* Statistiques */}
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('recent')}
+            className={`
+              whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm
+              ${activeTab === 'recent'
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }
+            `}
+          >
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4" />
+              <span>Recent (15 days)</span>
+              {activeTab === 'recent' && lastRefresh && (
+                <span className="text-xs text-gray-400">{formatLastRefresh()}</span>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`
+              whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm
+              ${activeTab === 'history'
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }
+            `}
+          >
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4" />
+              <span>History</span>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
@@ -226,9 +367,21 @@ const OrdersManagement = () => {
         </div>
       </div>
 
-      {/* Filtres */}
+      {/* Filters */}
       <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+          {activeTab === 'recent' && (
+            <button
+              onClick={fetchRecentOrdersData}
+              disabled={isLoadingRecent}
+              className="flex items-center space-x-2 px-3 py-1.5 text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoadingRecent ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+          )}
+        </div>
 
         {/* Search by order number */}
         <div className="mb-4">
@@ -265,39 +418,48 @@ const OrdersManagement = () => {
               size="md"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start date
-            </label>
-            <CustomDatePicker
-              value={startDate}
-              onChange={handleStartDateChange}
-              placeholder="Select a start date"
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End date
-            </label>
-            <CustomDatePicker
-              value={endDate}
-              onChange={handleEndDateChange}
-              placeholder="Select an end date"
-              minDate={startDate || undefined}
-              className="w-full"
-            />
-          </div>
+
+          {/* Date range only for historical */}
+          {activeTab === 'history' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start date
+                </label>
+                <CustomDatePicker
+                  value={startDate}
+                  onChange={handleStartDateChange}
+                  placeholder="Select a start date"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End date
+                </label>
+                <CustomDatePicker
+                  value={endDate}
+                  onChange={handleEndDateChange}
+                  placeholder="Select an end date"
+                  minDate={startDate || undefined}
+                  className="w-full"
+                />
+              </div>
+            </>
+          )}
         </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
           <div className="flex items-center space-x-4">
-            {(startDate || endDate || filterStatus !== 'all' || searchOrderNumber) && (
+            {(filterStatus !== 'all' || searchOrderNumber || (activeTab === 'history' && (startDate || endDate))) && (
               <button
                 onClick={() => {
-                  setStartDate('')
-                  setEndDate('')
                   setFilterStatus('all')
                   setSearchOrderNumber('')
+                  if (activeTab === 'history') {
+                    setStartDate('')
+                    setEndDate('')
+                  }
                 }}
                 className="text-sm text-orange-600 hover:text-orange-800 underline"
               >
@@ -311,167 +473,160 @@ const OrdersManagement = () => {
         </div>
       </div>
 
-      {/* Liste des commandes */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No orders</h3>
-            <p className="text-gray-500">
-              {filterStatus === 'all'
-                ? 'No orders have been placed yet.'
-                : `No orders with status "${statusConfig[filterStatus]?.label.toLowerCase()}".`
-              }
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Vue Desktop - Tableau */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredOrders.map((order) => {
-                    const StatusIcon = statusConfig[order.status]?.icon || Package
-                    return (
-                      <tr key={order.id} className={getDeletedUserRowClass(order)}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            #{order.orderNumber}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{order.userName}</div>
-                            <div className="text-sm text-gray-500">{order.userEmail}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
-                            {order.items.length} item(s)
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatPrice(order.totalPrice)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
+      {/* Orders List */}
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64 bg-white rounded-lg border">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      ) : activeTab === 'history' && !startDate && !endDate ? (
+        <div className="bg-white rounded-lg border p-12 text-center">
+          <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Select a date range</h3>
+          <p className="text-gray-500">
+            Please select a start and end date to view historical orders.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          {filteredOrders.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No orders</h3>
+              <p className="text-gray-500">
+                {filterStatus === 'all'
+                  ? 'No orders found for the selected period.'
+                  : `No orders with status "${statusConfig[filterStatus]?.label.toLowerCase()}".`
+                }
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Order
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Items
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredOrders.map((order) => {
+                      const StatusIcon = statusConfig[order.status]?.icon || Package
+                      return (
+                        <tr key={order.id} className={getDeletedUserRowClass(order)}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              #{order.orderNumber}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{order.userName || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{order.userEmail}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">
+                              {order.items?.length || 0} item(s)
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {formatPrice(order.total || order.totalPrice || 0)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
+                              <StatusIcon className="h-3 w-3 mr-1" />
+                              {statusConfig[order.status]?.label}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(order.createdAt)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex items-center space-x-3">
+                              <button
+                                onClick={() => setSelectedOrder(order)}
+                                className="text-orange-600 hover:text-orange-900"
+                                title="View details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                                <SimpleSelect
+                                  value={order.status}
+                                  onChange={(newStatus) => handleStatusChange(order.id, newStatus)}
+                                  className="w-[110px]"
+                                  options={[
+                                    { value: 'pending', label: 'Pending' },
+                                    { value: 'confirmed', label: 'Confirmed' },
+                                    { value: 'preparing', label: 'Preparing' },
+                                    { value: 'ready', label: 'Ready' },
+                                    { value: 'delivered', label: 'Delivered' },
+                                    { value: 'cancelled', label: 'Cancelled' }
+                                  ]}
+                                />
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards View */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {filteredOrders.map((order) => {
+                  const StatusIcon = statusConfig[order.status]?.icon || Package
+                  return (
+                    <div key={order.id} className={`p-4 ${getDeletedUserRowClass(order)}`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900">#{order.orderNumber}</span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
                             <StatusIcon className="h-3 w-3 mr-1" />
                             {statusConfig[order.status]?.label}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(order.createdAt)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={() => setSelectedOrder(order)}
-                              className="text-orange-600 hover:text-orange-900"
-                              title="View details"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                              <SimpleSelect
-                                value={order.status}
-                                onChange={(newStatus) => handleStatusChange(order.id, newStatus)}
-                                className="w-[110px]"
-                                options={[
-                                  { value: 'pending', label: 'Pending' },
-                                  { value: 'confirmed', label: 'Confirmed' },
-                                  { value: 'preparing', label: 'Preparing' },
-                                  { value: 'ready', label: 'Ready' },
-                                  { value: 'delivered', label: 'Delivered' },
-                                  { value: 'cancelled', label: 'Cancelled' }
-                                ]}
-                              />
-                            )}
-                            <button
-                              onClick={() => handleDeleteOrder(order.id)}
-                              className="text-red-600 hover:text-red-900"
-                              title="Delete order"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Vue Mobile/Tablet - Cards */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {filteredOrders.map((order) => {
-                const StatusIcon = statusConfig[order.status]?.icon || Package
-                return (
-                  <div key={order.id} className={`p-4 ${getDeletedUserRowClass(order)}`}>
-                    {/* Header de la card */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-900">#{order.orderNumber}</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {statusConfig[order.status]?.label}
+                        </div>
+                        <span className="text-sm font-bold text-orange-600">
+                          {formatPrice(order.total || order.totalPrice || 0)}
                         </span>
                       </div>
-                      <span className="text-sm font-bold text-orange-600">
-                        {formatPrice(order.totalPrice)}
-                      </span>
-                    </div>
 
-                    {/* Informations client */}
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-gray-900">{order.userName}</p>
-                      <p className="text-xs text-gray-500">{order.userEmail}</p>
-                    </div>
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-900">{order.userName || 'N/A'}</p>
+                        <p className="text-xs text-gray-500">{order.userEmail}</p>
+                      </div>
 
-                    {/* Articles et date */}
-                    <div className="flex justify-between items-center mb-3 text-xs text-gray-500">
-                      <span>{order.items.length} item(s)</span>
-                      <span>{formatDate(order.createdAt)}</span>
-                    </div>
+                      <div className="flex justify-between items-center mb-3 text-xs text-gray-500">
+                        <span>{order.items?.length || 0} item(s)</span>
+                        <span>{formatDate(order.createdAt)}</span>
+                      </div>
 
-                    {/* Articles preview */}
-                    <div className="mb-3">
-                      <p className="text-xs text-gray-600">
-                        {order.items.slice(0, 2).map(item => item.name).join(', ')}
-                        {order.items.length > 2 && '...'}
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-between">
                         <button
                           onClick={() => setSelectedOrder(order)}
                           className="flex items-center space-x-2 text-orange-600 hover:text-orange-900 text-sm"
@@ -479,40 +634,94 @@ const OrdersManagement = () => {
                           <Eye className="h-4 w-4" />
                           <span>Details</span>
                         </button>
-                        <button
-                          onClick={() => handleDeleteOrder(order.id)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete order"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+
+                        {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                          <SimpleSelect
+                            value={order.status}
+                            onChange={(newStatus) => handleStatusChange(order.id, newStatus)}
+                            className="w-[140px]"
+                            options={[
+                              { value: 'pending', label: 'Pending' },
+                              { value: 'confirmed', label: 'Confirmed' },
+                              { value: 'preparing', label: 'Preparing' },
+                              { value: 'ready', label: 'Ready' },
+                              { value: 'delivered', label: 'Delivered' },
+                              { value: 'cancelled', label: 'Cancelled' }
+                            ]}
+                          />
+                        )}
                       </div>
-
-                      {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                        <SimpleSelect
-                          value={order.status}
-                          onChange={(newStatus) => handleStatusChange(order.id, newStatus)}
-                          className="w-[140px]"
-                          options={[
-                            { value: 'pending', label: 'Pending' },
-                            { value: 'confirmed', label: 'Confirmed' },
-                            { value: 'preparing', label: 'Preparing' },
-                            { value: 'ready', label: 'Ready' },
-                            { value: 'delivered', label: 'Delivered' },
-                            { value: 'cancelled', label: 'Cancelled' }
-                          ]}
-                        />
-                      )}
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
-      </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
-      {/* Modal détail commande */}
+      {/* Pagination */}
+      {!isLoading && filteredOrders.length > 0 && (
+        <div className="bg-white border-t px-6 py-4">
+          {activeTab === 'recent' && recentPagination && recentPagination.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing page <span className="font-medium">{recentPage}</span> of{' '}
+                <span className="font-medium">{recentPagination.totalPages}</span>
+                {' '}({recentPagination.total} total orders)
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => fetchRecentOrdersData(recentPage - 1)}
+                  disabled={recentPage === 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Previous</span>
+                </button>
+                <button
+                  onClick={() => fetchRecentOrdersData(recentPage + 1)}
+                  disabled={!recentPagination.hasMore}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'history' && historicalPagination && historicalPagination.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing page <span className="font-medium">{historicalPage}</span> of{' '}
+                <span className="font-medium">{historicalPagination.totalPages}</span>
+                {' '}({historicalPagination.total} total orders)
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => fetchHistoricalOrdersData(historicalPage - 1)}
+                  disabled={historicalPage === 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Previous</span>
+                </button>
+                <button
+                  onClick={() => fetchHistoricalOrdersData(historicalPage + 1)}
+                  disabled={!historicalPagination.hasMore}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
@@ -530,46 +739,46 @@ const OrdersManagement = () => {
               </div>
 
               <div className="space-y-6">
-                {/* Info client */}
+                {/* Customer Info */}
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Customer information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p><strong>Name:</strong> {selectedOrder.userName}</p>
+                    <p><strong>Name:</strong> {selectedOrder.userName || 'N/A'}</p>
                     <p><strong>Email:</strong> {selectedOrder.userEmail}</p>
                     <p><strong>Date:</strong> {formatDate(selectedOrder.createdAt)}</p>
                   </div>
                 </div>
 
-                {/* Articles */}
+                {/* Items */}
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Ordered items</h3>
                   <div className="space-y-3">
-                    {selectedOrder.items.map((item, index) => (
+                    {selectedOrder.items?.map((item, index) => (
                       <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-                          <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden flex-shrink-0">
-                            <ImageWithFallback
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{item.name}</p>
-                            <p className="text-sm text-gray-500">
-                              {formatPrice(item.price)} × {item.quantity}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">
-                              {formatPrice(item.price * item.quantity)}
-                            </p>
-                          </div>
+                        <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden flex-shrink-0">
+                          <ImageWithFallback
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{item.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {formatPrice(item.price)} × {item.quantity}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Paiement */}
+                {/* Payment */}
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Payment</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
@@ -601,7 +810,7 @@ const OrdersManagement = () => {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-orange-600">{formatPrice(selectedOrder.totalPrice)}</span>
+                    <span className="text-orange-600">{formatPrice(selectedOrder.total || selectedOrder.totalPrice || 0)}</span>
                   </div>
                 </div>
 
@@ -612,7 +821,6 @@ const OrdersManagement = () => {
                     <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedOrder.notes}</p>
                   </div>
                 )}
-
               </div>
             </div>
           </div>
