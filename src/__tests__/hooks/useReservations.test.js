@@ -240,7 +240,7 @@ describe('useReservations Hook', () => {
     })
 
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
-    expect(cancelResult).toBe(true)
+    expect(cancelResult.success).toBe(true)
     expect(mockCancelReservation).toHaveBeenCalledWith('1')
     expect(toast.success).toHaveBeenCalledWith('Reservation cancelled successfully')
   })
@@ -368,7 +368,8 @@ describe('useReservations Hook', () => {
     })
 
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
-    expect(cancelResult).toBe(false)
+    expect(cancelResult.success).toBe(false)
+    expect(cancelResult.error).toBe('Cancellation aborted by user')
     expect(mockCancelReservation).not.toHaveBeenCalled()
   })
 

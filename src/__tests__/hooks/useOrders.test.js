@@ -252,21 +252,24 @@ describe('useOrders Hook', () => {
     expect(result.current.canCancelOrder({ status: 'cancelled', paymentStatus: 'pending' })).toBe(false)
   })
 
-  test('should filter recent orders within 30 days', () => {
+  test('should filter recent orders within 15 days', () => {
     const { result } = renderHook(() => useOrders())
-    
+
     const recentOrders = result.current.recentOrders
-    
-    // Should include orders from 2024-01 (within 30 days of 2024-01-30)
+
+    // Should include orders from last 15 days (system time: 2024-01-30T10:00:00Z)
+    // 15 days ago = 2024-01-15T10:00:00Z
     const recentIds = recentOrders.map(order => order.id)
-    expect(recentIds).toContain('1') // 2024-01-20
-    expect(recentIds).toContain('2') // 2024-01-25
-    expect(recentIds).toContain('3') // 2024-01-15
-    expect(recentIds).toContain('4') // 2024-01-26
-    
+    expect(recentIds).toContain('1') // 2024-01-20 (10 days ago)
+    expect(recentIds).toContain('2') // 2024-01-25 (5 days ago)
+    expect(recentIds).toContain('4') // 2024-01-26 (4 days ago)
+
+    // Should not include order 3 (2024-01-15T09:15:00Z is before the 15-day cutoff at 10:00:00Z)
+    expect(recentIds).not.toContain('3') // 2024-01-15 09:15 (before cutoff)
+
     // Should not include old order from 2023-11
     expect(recentIds).not.toContain('5') // 2023-11-10
-    
+
     // Should be sorted newest first
     expect(recentOrders[0].id).toBe('4') // 2024-01-26 (newest)
   })
