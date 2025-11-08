@@ -66,7 +66,18 @@ describe('UsersManagement Component', () => {
   const mockStoreState = {
     users: mockUsers,
     isLoading: false,
+    stats: {
+      totalUsers: 3,
+      activeUsers: 2,
+      inactiveUsers: 1,
+      regularUsers: 2,
+      newUsers: 1,
+      recentlyLoggedUsers: 2,
+      activeCustomersLastMonth: 2
+    },
+    isLoadingStats: false,
     initializeUsers: vi.fn(),
+    fetchUsersStats: vi.fn(),
     toggleUserStatus: vi.fn(),
     updateUserRole: vi.fn(),
     getUsersStats: vi.fn(() => ({
