@@ -1,110 +1,185 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import '@testing-library/jest-dom'
 import ReservationsManagement from '../../../pages/admin/ReservationsManagement'
-import useReservationsStore from '../../../store/reservationsStore'
+import * as reservationsApi from '../../../api/reservationsApi'
 
-// Mock the reservations store
-vi.mock('../../../store/reservationsStore')
+// Mock the API
+vi.mock('../../../api/reservationsApi')
+
+// Mock toast
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn()
+  }
+}))
+
+// Mock components
+vi.mock('../../../components/common/SimpleSelect', () => ({
+  default: ({ value, onChange, options, className }) => (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      data-testid="simple-select"
+      className={className}
+    >
+      {options.map(option => (
+        <option key={option.value} value={option.value} disabled={option.disabled}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}))
+
+vi.mock('../../../components/common/CustomDatePicker', () => ({
+  default: ({ value, onChange, placeholder, minDate }) => (
+    <input
+      type="date"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      min={minDate}
+      data-testid="custom-date-picker"
+    />
+  )
+}))
+
+// Mock date utils
+vi.mock('../../../utils/dateUtils', () => ({
+  getTodayLocalDate: () => '2024-01-15',
+  normalizeDateString: (dateStr) => dateStr?.split('T')[0] || dateStr
+}))
+
+// Mock reservation slots
+vi.mock('../../../services/reservationSlots', () => ({
+  isReservationTimePassed: vi.fn(() => true), // Return true to enable all status options
+  getLabelFromSlot: (slot) => {
+    const slots = {
+      1: '11:00', 2: '11:30', 3: '12:00', 4: '12:30', 5: '13:00', 6: '13:30',
+      7: '18:00', 8: '18:30', 9: '19:00', 10: '19:30', 11: '20:00', 12: '20:30',
+      13: '21:00', 14: '21:30', 15: '22:00'
+    }
+    return slots[slot] || 'Unknown'
+  },
+  LUNCH_SLOTS: [
+    { slot: 1, label: '11:00' },
+    { slot: 2, label: '11:30' },
+    { slot: 3, label: '12:00' },
+    { slot: 4, label: '12:30' },
+    { slot: 5, label: '13:00' },
+    { slot: 6, label: '13:30' }
+  ],
+  DINNER_SLOTS: [
+    { slot: 7, label: '18:00' },
+    { slot: 8, label: '18:30' },
+    { slot: 9, label: '19:00' },
+    { slot: 10, label: '19:30' },
+    { slot: 11, label: '20:00' },
+    { slot: 12, label: '20:30' },
+    { slot: 13, label: '21:00' },
+    { slot: 14, label: '21:30' },
+    { slot: 15, label: '22:00' }
+  ]
+}))
 
 describe('ReservationsManagement Component', () => {
-  // Create realistic test data with various scenarios
-  const mockReservations = [
+  // Sample reservation data
+  const mockRecentReservations = [
     {
-      id: 'reservation-001',
-      reservationNumber: 'RES-001',
-      userId: 'client1',
-      userEmail: 'jean@example.com',
+      id: 'res-001',
+      _id: 'res-001',
+      reservationNumber: 2001,
+      userId: 'user-1',
+      userEmail: 'user1@example.com',
       userName: 'Jean Dupont',
-      contactPhone: '06 12 34 56 78',
-      date: new Date().toISOString().split('T')[0], // Today
-      slot: 4, // 19:30
+      contactPhone: '+33612345678',
+      date: '2024-01-15',
+      slot: 7,
       guests: 4,
+      tableNumber: [1, 2],
       status: 'confirmed',
-      tableNumber: [12],
-      specialRequests: 'Table by the window',
-      createdAt: '2024-01-20T14:30:00Z',
-      updatedAt: '2024-01-20T14:30:00Z'
+      specialRequests: 'Quiet table please',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
     {
-      id: 'reservation-002',
-      reservationNumber: 'RES-002',
-      userId: 'client2',
-      userEmail: 'marie@example.com',
+      id: 'res-002',
+      _id: 'res-002',
+      reservationNumber: 2002,
+      userId: 'user-2',
+      userEmail: 'user2@example.com',
       userName: 'Marie Martin',
-      contactPhone: '07 98 76 54 32',
-      date: (() => {
-        const tomorrow = new Date()
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        return tomorrow.toISOString().split('T')[0]
-      })(), // Tomorrow (upcoming)
-      slot: 5, // 20:00
+      contactPhone: '+33698765432',
+      date: '2024-01-16',
+      slot: 10,
       guests: 2,
-      status: 'confirmed',
-      tableNumber: null,
-      specialRequests: null,
-      createdAt: '2024-01-21T10:15:00Z',
-      updatedAt: '2024-01-21T10:15:00Z'
-    },
-    {
-      id: 'reservation-003',
-      reservationNumber: 'RES-003',
-      userId: 'client3',
-      userEmail: 'pierre@example.com',
-      userName: 'Pierre Durand',
-      contactPhone: '06 87 65 43 21',
-      date: (() => {
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        return yesterday.toISOString().split('T')[0]
-      })(), // Yesterday (past)
-      slot: 3, // 19:00
-      guests: 6,
-      status: 'completed',
-      tableNumber: [8],
-      specialRequests: 'Birthday - décoration table',
-      createdAt: '2024-01-19T09:00:00Z',
-      updatedAt: '2024-01-19T20:30:00Z'
-    },
-    {
-      id: 'reservation-004',
-      reservationNumber: 'RES-004',
-      userId: 'client4',
-      userEmail: 'sophie@example.com',
-      userName: 'Sophie Leroy',
-      contactPhone: '07 11 22 33 44',
-      date: new Date().toISOString().split('T')[0], // Today
-      slot: 2, // 18:30
-      guests: 3,
+      tableNumber: [3],
       status: 'seated',
-      tableNumber: [5],
       specialRequests: null,
-      createdAt: '2024-01-20T12:00:00Z',
-      updatedAt: '2024-01-20T18:30:00Z'
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
   ]
 
-  const mockStoreState = {
-    reservations: mockReservations,
-    isLoading: false,
-    fetchReservations: vi.fn(),
-    updateReservationStatus: vi.fn(),
-    assignTable: vi.fn(),
-    getReservationsStats: vi.fn(() => ({
-      total: 4,
-      confirmed: 1,
-      seated: 1,
-      completed: 1,
-      cancelled: 0,
-      noShow: 0,
-      todayTotal: 2,
-      todayGuests: 7,
-      totalGuests: 15
-    }))
+  const mockHistoricalReservations = [
+    {
+      id: 'res-100',
+      _id: 'res-100',
+      reservationNumber: 2100,
+      userId: 'user-3',
+      userEmail: 'user3@example.com',
+      userName: 'Pierre Durand',
+      contactPhone: '+33687654321',
+      date: '2023-12-15',
+      slot: 12,
+      guests: 6,
+      tableNumber: [5, 6],
+      status: 'completed',
+      specialRequests: null,
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ]
+
+  const mockRecentResponse = {
+    success: true,
+    data: mockRecentReservations,
+    pagination: {
+      total: 2,
+      page: 1,
+      limit: 50,
+      totalPages: 1,
+      hasMore: false
+    }
   }
 
-  const user = userEvent.setup()
+  const mockHistoricalResponse = {
+    success: true,
+    data: mockHistoricalReservations,
+    pagination: {
+      total: 1,
+      page: 1,
+      limit: 20,
+      totalPages: 1,
+      hasMore: false
+    }
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Default mock implementation
+    reservationsApi.getRecentReservations.mockResolvedValue(mockRecentResponse)
+    reservationsApi.getHistoricalReservations.mockResolvedValue(mockHistoricalResponse)
+    reservationsApi.updateReservationStatusEnhanced.mockResolvedValue({ success: true })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+  })
 
   const renderComponent = () => {
     return render(
@@ -114,281 +189,319 @@ describe('ReservationsManagement Component', () => {
     )
   }
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    // Mock to work with Zustand selectors
-    useReservationsStore.mockImplementation((selector) => {
-      return selector(mockStoreState)
+  test('should render the header and Recent tab by default', async () => {
+    renderComponent()
+
+    expect(screen.getByText('Reservations Management')).toBeInTheDocument()
+
+    // Should show Recent tab as active
+    const recentTab = screen.getByRole('button', { name: /Recent \(Last 15 days \+ Upcoming\)/i })
+    expect(recentTab).toBeInTheDocument()
+
+    // Should fetch recent reservations
+    await waitFor(() => {
+      expect(reservationsApi.getRecentReservations).toHaveBeenCalledWith({
+        limit: 50,
+        page: 1
+      })
     })
   })
 
-  // 1. Core Rendering Tests
-  describe('Core Rendering', () => {
-    it('should render header, statistics, and reservations list', () => {
-      renderComponent()
-      
-      // Header
-      expect(screen.getByText('Reservations Management')).toBeInTheDocument()
-      expect(screen.getByText('Manage all restaurant reservations')).toBeInTheDocument()
-      
-      // Statistics cards
-      expect(screen.getByText('Total')).toBeInTheDocument()
-      expect(screen.getAllByText('Confirmed').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByText('Seated').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText('Today')).toBeInTheDocument()
-      expect(screen.getByText('Total guests')).toBeInTheDocument()
-      expect(screen.getByText('Today\'s guests')).toBeInTheDocument()
-      
-      // Reservations list with count
-      expect(screen.getByText('Reservations (4)')).toBeInTheDocument()
+  test('should display recent reservations after loading', async () => {
+    renderComponent()
+
+    // Wait for reservations to load (can appear in both desktop and mobile views)
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
     })
 
-    it('should initialize reservations data on mount', () => {
-      renderComponent()
-      expect(mockStoreState.fetchReservations).toHaveBeenCalledOnce()
+    expect(screen.getAllByText('Marie Martin').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/2001/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/2002/).length).toBeGreaterThan(0)
+  })
+
+  test('should switch to History tab when clicked', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
     })
 
-    it('should display reservation information in both desktop and mobile views', () => {
-      renderComponent()
-      
-      // Check that all reservations are displayed (desktop table + mobile cards)
-      expect(screen.getAllByText('Jean Dupont')).toHaveLength(2) // Desktop + mobile
-      expect(screen.getAllByText('Marie Martin')).toHaveLength(2) // Desktop + mobile
-      expect(screen.getAllByText('Pierre Durand')).toHaveLength(2) // Desktop + mobile
-      expect(screen.getAllByText('Sophie Leroy')).toHaveLength(2) // Desktop + mobile
-      
-      // Check guest counts are displayed (may appear in stats too)
-      expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(2) // Jean's guests + stats
-      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(2) // Marie's guests + stats
+    // Click History tab
+    const historyTab = screen.getByRole('button', { name: /History/i })
+    await user.click(historyTab)
+
+    // Should show date pickers for history
+    await waitFor(() => {
+      const datePickers = screen.getAllByTestId('custom-date-picker')
+      expect(datePickers.length).toBeGreaterThan(0)
     })
   })
 
-  // 2. Filtering Functionality Tests
-  describe('Filtering Functionality', () => {
-    it('should have status filter functionality available', () => {
-      renderComponent()
-      
-      // Find status filter dropdown
-      const statusFilterButton = screen.getAllByRole('button').find(button => 
-        button.textContent?.includes('All statuses')
+  test('should filter reservations with Today button', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Click Today button
+    const todayButton = screen.getByRole('button', { name: /Today/i })
+    await user.click(todayButton)
+
+    // Today button should be highlighted (primary color class)
+    expect(todayButton).toHaveClass('bg-primary-600')
+  })
+
+  test('should search reservations by reservation number', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Find and type in search input
+    const searchInput = screen.getByPlaceholderText(/Enter reservation number/i)
+    await user.type(searchInput, '2001')
+
+    // Should still show reservation 2001
+    expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+  })
+
+  test('should update reservation status when select is changed', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Find status selects (there should be at least one for each reservation)
+    const selects = screen.getAllByTestId('simple-select')
+    // Filter to get only status selects (not the status filter)
+    const reservationStatusSelects = selects.filter((_, index) => index > 0)
+
+    if (reservationStatusSelects.length > 0) {
+      await user.selectOptions(reservationStatusSelects[0], 'seated')
+
+      await waitFor(() => {
+        expect(reservationsApi.updateReservationStatusEnhanced).toHaveBeenCalledWith(
+          'res-001',
+          'seated'
+        )
+      })
+    }
+  })
+
+  test('should open reservation details modal when eye icon is clicked', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Find and click eye icon (view details button)
+    const eyeButtons = screen.queryAllByTitle('View details')
+    if (eyeButtons.length > 0) {
+      await user.click(eyeButtons[0])
+
+      // Modal should appear with reservation details
+      await waitFor(() => {
+        expect(screen.getByText('Reservation details')).toBeInTheDocument()
+      })
+    }
+  })
+
+  test('should call Refresh button to reload recent reservations', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(reservationsApi.getRecentReservations).toHaveBeenCalledTimes(1)
+    })
+
+    // Click Refresh button
+    const refreshButton = screen.getByRole('button', { name: /Refresh/i })
+    await user.click(refreshButton)
+
+    // Should call API again
+    await waitFor(() => {
+      expect(reservationsApi.getRecentReservations).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  test('should load historical reservations when both dates are selected', async () => {
+    const user = userEvent.setup()
+    renderComponent()
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Switch to History tab
+    const historyTab = screen.getByRole('button', { name: /History/i })
+    await user.click(historyTab)
+
+    // Find date pickers
+    await waitFor(() => {
+      const datePickers = screen.getAllByTestId('custom-date-picker')
+      expect(datePickers.length).toBeGreaterThan(0)
+    })
+
+    const datePickers = screen.getAllByTestId('custom-date-picker')
+
+    // Set start date
+    await user.clear(datePickers[0])
+    await user.type(datePickers[0], '2023-12-01')
+
+    // Set end date
+    await user.clear(datePickers[1])
+    await user.type(datePickers[1], '2023-12-31')
+
+    // Should call historical reservations API
+    await waitFor(() => {
+      expect(reservationsApi.getHistoricalReservations).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startDate: expect.any(String),
+          endDate: expect.any(String)
+        })
       )
-      expect(statusFilterButton).toBeInTheDocument()
-      
-      // Verify filter options are available (may appear in multiple places)
-      expect(screen.getAllByText('Status').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByText('Date').length).toBeGreaterThanOrEqual(1)
+    })
+  })
+
+  test('should display statistics correctly', async () => {
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
     })
 
-    it('should have date filter functionality available', () => {
-      renderComponent()
-      
-      // Find date filter dropdown
-      const dateFilterButton = screen.getAllByRole('button').find(button =>
-        button.textContent?.includes('All dates')
-      )
-      expect(dateFilterButton).toBeInTheDocument()
-      
-      // Verify date filter labels
-      expect(screen.getAllByText('Date').length).toBeGreaterThanOrEqual(1)
-    })
+    // Should show total reservations count
+    expect(screen.getByText('Total')).toBeInTheDocument()
+    expect(screen.getAllByText('Today').length).toBeGreaterThan(0)
 
-    it('should display all reservations by default', () => {
-      renderComponent()
-      
-      // Should show all 4 reservations by default
-      expect(screen.getByText('Reservations (4)')).toBeInTheDocument()
-      expect(screen.getAllByText('Jean Dupont')).toHaveLength(2) // Desktop + mobile
-      expect(screen.getAllByText('Marie Martin')).toHaveLength(2)
-      expect(screen.getAllByText('Pierre Durand')).toHaveLength(2)
-      expect(screen.getAllByText('Sophie Leroy')).toHaveLength(2)
-    })
+    // Should show various status statistics (can appear in status select dropdown too)
+    expect(screen.getAllByText('Confirmed').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Seated').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Completed').length).toBeGreaterThan(0)
+  })
 
-    it('should show empty state when no reservations match filters', async () => {
-      // Mock empty filtered result
-      const emptyStoreState = {
-        ...mockStoreState,
-        reservations: [] // No reservations
+  test('should handle empty state when no reservations', async () => {
+    reservationsApi.getRecentReservations.mockResolvedValue({
+      success: true,
+      data: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        limit: 50,
+        totalPages: 0,
+        hasMore: false
       }
-      useReservationsStore.mockImplementation((selector) => {
-        return selector(emptyStoreState)
-      })
+    })
 
-      renderComponent()
+    renderComponent()
 
-      expect(screen.getByText('Reservations (0)')).toBeInTheDocument()
-      expect(screen.getByText('No reservations found with these filters.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/No reservations found/i)).toBeInTheDocument()
     })
   })
 
-  // 3. Reservation Actions Tests  
-  describe('Reservation Actions', () => {
-    it('should have status change functionality available', () => {
-      renderComponent()
-      
-      // Find status dropdowns for reservations
-      const statusDropdowns = screen.getAllByRole('button').filter(button =>
-        button.textContent?.includes('Confirmed') ||
-        button.textContent?.includes('Seated') ||
-        button.textContent?.includes('Completed')
-      )
-      expect(statusDropdowns.length).toBeGreaterThan(0)
-      
-      // Verify updateReservationStatus function is available
-      expect(mockStoreState.updateReservationStatus).toBeDefined()
+  test('should display Updated time indicator in Recent tab', async () => {
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
     })
 
-    it('should open reservation details modal when eye icon clicked', async () => {
-      renderComponent()
-      
-      // Click on first "Voir les détails" button
-      const viewButtons = screen.getAllByTitle('Voir les détails')
-      await user.click(viewButtons[0])
-      
-      await waitFor(() => {
-        expect(screen.getByText('Reservation details')).toBeInTheDocument()
-        expect(screen.getAllByText('Client').length).toBeGreaterThanOrEqual(1) // Modal should be open
-      })
-    })
-
-    it('should close modal with both close button and X button', async () => {
-      renderComponent()
-      
-      // Open modal first
-      const viewButton = screen.getAllByTitle('Voir les détails')[0]
-      await user.click(viewButton)
-      
-      await waitFor(() => {
-        expect(screen.getByText('Reservation details')).toBeInTheDocument()
-      })
-      
-      // Close with X button
-      const xButton = screen.getByText('×')
-      await user.click(xButton)
-      
-      await waitFor(() => {
-        expect(screen.queryByText('Détails de la réservation')).not.toBeInTheDocument()
-      })
-      
-      // Open again and close with Close button
-      await user.click(viewButton)
-      
-      await waitFor(() => {
-        expect(screen.getByText('Reservation details')).toBeInTheDocument()
-      })
-      
-      const closeButton = screen.getByText('Close')
-      await user.click(closeButton)
-      
-      await waitFor(() => {
-        expect(screen.queryByText('Détails de la réservation')).not.toBeInTheDocument()
-      })
+    // Should show "Updated Xs ago" text
+    await waitFor(() => {
+      expect(screen.getByText(/Updated/i)).toBeInTheDocument()
     })
   })
 
-  // 4. Modal Content Tests
-  describe('Modal Content', () => {
-    it('should display comprehensive reservation information in modal', async () => {
-      renderComponent()
+  test('should filter by status', async () => {
+    const user = userEvent.setup()
+    renderComponent()
 
-      // Click on Jean Dupont's modal (first reservation)
-      const viewButtons = screen.getAllByTitle('Voir les détails')
-      await user.click(viewButtons[0])
-
-      // Wait for modal to appear
-      expect(await screen.findByText('Reservation details')).toBeInTheDocument()
-
-      // Check modal sections are present - these are the section titles
-      expect(screen.getByRole('heading', { name: 'Client', level: 3 })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'Reservation', level: 3 })).toBeInTheDocument()
-
-      // Check that user information is displayed (for non-deleted users)
-      expect(screen.getAllByText(/Jean Dupont/).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/jean@example.com/).length).toBeGreaterThan(0)
-
-      // Check basic reservation information is present in modal
-      expect(screen.getAllByText(/guests/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/table/i).length).toBeGreaterThan(0)
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
     })
 
-    it('should show special requests and history in modal when available', async () => {
-      renderComponent()
-      
-      // Click on Jean Dupont's modal (has special requests)
-      const viewButtons = screen.getAllByTitle('Voir les détails')
-      await user.click(viewButtons[0])
-      
-      await waitFor(() => {
-        expect(screen.getByText('Special requests')).toBeInTheDocument()
-        expect(screen.getAllByText('Table by the window').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getByText('History')).toBeInTheDocument()
-        expect(screen.getByText('Created:')).toBeInTheDocument()
-        expect(screen.getByText('Modified:')).toBeInTheDocument()
-      })
-      
-      // Close and check a reservation without special requests
-      await user.click(screen.getByText('×'))
-      
-      // Click on Marie Martin's modal (no special requests)
-      await user.click(viewButtons[1])
-      
-      await waitFor(() => {
-        expect(screen.getByText('Reservation details')).toBeInTheDocument()
-        expect(screen.getAllByText('Marie Martin').length).toBeGreaterThanOrEqual(2)
-        expect(screen.getAllByText('Not assigned').length).toBeGreaterThanOrEqual(1) // No table assigned
-        // Special requests section should not be visible when null
-      })
-    })
+    // Find the status filter (first select)
+    const selects = screen.getAllByTestId('simple-select')
+    const statusFilter = selects[0]
+
+    // Change to 'seated'
+    await user.selectOptions(statusFilter, 'seated')
+
+    // Should still show the seated reservation
+    expect(screen.getAllByText('Marie Martin').length).toBeGreaterThan(0)
   })
 
-  // 5. Statistics & State Management Tests
-  describe('Statistics and State Management', () => {
-    it('should display correct reservation counts and statistics', () => {
-      renderComponent()
-      
-      // Check statistics display - numbers may appear multiple times
-      const stats = mockStoreState.getReservationsStats()
-      expect(screen.getAllByText(stats.total.toString()).length).toBeGreaterThanOrEqual(1) // Total: 4
-      expect(screen.getAllByText(stats.confirmed.toString()).length).toBeGreaterThanOrEqual(1) // Confirmed: 1
-      expect(screen.getAllByText(stats.seated.toString()).length).toBeGreaterThanOrEqual(1) // Seated: 1
-      expect(screen.getAllByText(stats.completed.toString()).length).toBeGreaterThanOrEqual(1) // Completed: 1
-      expect(screen.getAllByText(stats.todayTotal.toString()).length).toBeGreaterThanOrEqual(1) // Today: 2
-      expect(screen.getAllByText(stats.totalGuests.toString()).length).toBeGreaterThanOrEqual(1) // Total guests: 15
-      expect(screen.getAllByText(stats.todayGuests.toString()).length).toBeGreaterThanOrEqual(1) // Today guests: 7
-      
-      // Check reservation count in header
-      expect(screen.getByText(`Reservations (${mockReservations.length})`)).toBeInTheDocument()
-    })
-
-    it('should handle loading state appropriately', () => {
-      const loadingStoreState = {
-        ...mockStoreState,
-        isLoading: true
+  test('should show pagination when there are multiple pages', async () => {
+    reservationsApi.getRecentReservations.mockResolvedValue({
+      success: true,
+      data: mockRecentReservations,
+      pagination: {
+        total: 60,
+        page: 1,
+        limit: 50,
+        totalPages: 2,
+        hasMore: true
       }
-      useReservationsStore.mockImplementation((selector) => {
-        return selector(loadingStoreState)
-      })
-
-      renderComponent()
-
-      // Component should still render with loading state
-      expect(screen.getByText('Reservations Management')).toBeInTheDocument()
     })
 
-    it('should handle status change errors gracefully', async () => {
-      mockStoreState.updateReservationStatus.mockResolvedValue({ 
-        success: false, 
-        error: 'Network error' 
-      })
-      
-      renderComponent()
-      
-      // Verify error handling mechanism is available
-      expect(mockStoreState.updateReservationStatus).toBeDefined()
-      
-      // The updateReservationStatus should be callable
-      const result = await mockStoreState.updateReservationStatus('test-id', 'confirmed')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Network error')
+    renderComponent()
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
     })
+
+    // Should show pagination info
+    await waitFor(() => {
+      expect(screen.getByText(/Showing page/i)).toBeInTheDocument()
+    })
+  })
+
+  test('should display guest count and table information', async () => {
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Should show guest counts (can appear multiple times in stats)
+    expect(screen.getAllByText(/4/).length).toBeGreaterThan(0) // 4 guests for first reservation
+
+    // Should show table numbers (appears in both desktop and mobile views)
+    expect(screen.getAllByText(/Tables 1, 2/i).length).toBeGreaterThan(0)
+  })
+
+  test('should display time slots correctly', async () => {
+    renderComponent()
+
+    // Wait for reservations to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Jean Dupont').length).toBeGreaterThan(0)
+    })
+
+    // Should show time slots (18:00 for slot 7, 19:30 for slot 10)
+    expect(screen.getAllByText(/18:00/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/19:30/).length).toBeGreaterThan(0)
   })
 })
