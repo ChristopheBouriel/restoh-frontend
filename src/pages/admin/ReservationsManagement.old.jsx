@@ -1,226 +1,144 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Eye, Users, Calendar, Clock, MapPin, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Eye, Users, Calendar, Clock, MapPin } from 'lucide-react'
+import useReservationsStore from '../../store/reservationsStore'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import { isReservationTimePassed, getLabelFromSlot } from '../../services/reservationSlots'
 import { getTodayLocalDate, normalizeDateString } from '../../utils/dateUtils'
-import {
-  getRecentReservations,
-  getHistoricalReservations,
-  updateReservationStatusEnhanced
-} from '../../api/reservationsApi'
 
 const ReservationsManagement = () => {
-  // Active tab state
-  const [activeTab, setActiveTab] = useState('recent')
+  const reservations = useReservationsStore((state) => state.reservations)
+  const fetchReservations = useReservationsStore((state) => state.fetchReservations)
+  const updateReservationStatus = useReservationsStore((state) => state.updateReservationStatus)
+  const assignTable = useReservationsStore((state) => state.assignTable)
+  const getReservationsStats = useReservationsStore((state) => state.getReservationsStats)
 
-  // Recent reservations state
-  const [recentReservations, setRecentReservations] = useState([])
-  const [recentLoading, setRecentLoading] = useState(false)
-  const [recentPage, setRecentPage] = useState(1)
-  const [recentPagination, setRecentPagination] = useState({})
-  const [lastRefresh, setLastRefresh] = useState(null)
-  const [refreshTick, setRefreshTick] = useState(0) // Force re-render for timer
-
-  // Historical reservations state
-  const [historicalReservations, setHistoricalReservations] = useState([])
-  const [historicalLoading, setHistoricalLoading] = useState(false)
-  const [historicalPage, setHistoricalPage] = useState(1)
-  const [historicalPagination, setHistoricalPagination] = useState({})
-
-  // Filter state
   const [statusFilter, setStatusFilter] = useState('all')
+  const [dateFilter, setDateFilter] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [searchReservationNumber, setSearchReservationNumber] = useState('')
-
-  // Modal state
   const [selectedReservation, setSelectedReservation] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // ========================================
-  // FETCH FUNCTIONS
-  // ========================================
-
-  const fetchRecentReservationsData = useCallback(async (page = 1) => {
-    console.log('🔄 Fetching recent reservations...')
-    setRecentLoading(true)
-
-    const params = {
-      limit: 50,
-      page,
-      ...(statusFilter !== 'all' && { status: statusFilter })
-    }
-
-    const result = await getRecentReservations(params)
-
-    if (result.success) {
-      setRecentReservations(result.data || [])
-      setRecentPagination(result.pagination || {})
-      setRecentPage(page)
-      setLastRefresh(new Date())
-    }
-
-    setRecentLoading(false)
-  }, [statusFilter])
-
-  const fetchHistoricalReservationsData = useCallback(async (page = 1) => {
-    if (!startDate || !endDate) {
-      return
-    }
-
-    console.log('📜 Fetching historical reservations...')
-    setHistoricalLoading(true)
-
-    const params = {
-      startDate,
-      endDate,
-      limit: 20,
-      page,
-      ...(statusFilter !== 'all' && { status: statusFilter }),
-      ...(searchReservationNumber && { search: searchReservationNumber })
-    }
-
-    const result = await getHistoricalReservations(params)
-
-    if (result.success) {
-      setHistoricalReservations(result.data || [])
-      setHistoricalPagination(result.pagination || {})
-      setHistoricalPage(page)
-    }
-
-    setHistoricalLoading(false)
-  }, [startDate, endDate, statusFilter, searchReservationNumber])
-
-  // ========================================
-  // AUTO-REFRESH LOGIC (Recent only)
-  // ========================================
-
   useEffect(() => {
-    if (activeTab === 'recent') {
-      fetchRecentReservationsData()
+    fetchReservations(true)
+  }, [fetchReservations])
 
-      // Auto-refresh every 60 seconds
-      const interval = setInterval(() => {
-        fetchRecentReservationsData(recentPage)
-      }, 60000)
+  const stats = useMemo(() => getReservationsStats(), [reservations, getReservationsStats])
 
-      return () => clearInterval(interval)
-    }
-  }, [activeTab, fetchRecentReservationsData, recentPage])
+  const statusOptions = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'seated', label: 'Seated' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' },
+    { value: 'no-show', label: 'No-show' }
+  ]
 
-  // Update timer display every 5 seconds
-  useEffect(() => {
-    if (activeTab === 'recent' && lastRefresh) {
-      const interval = setInterval(() => {
-        setRefreshTick(tick => tick + 1)
-      }, 5000)
+  const dateOptions = [
+    { value: 'all', label: 'All dates' },
+    { value: 'today', label: 'Today' },
+    { value: 'upcoming', label: 'Upcoming' },
+    { value: 'past', label: 'Past' }
+  ]
 
-      return () => clearInterval(interval)
-    }
-  }, [activeTab, lastRefresh])
+  const getStatusOptionsForReservation = (reservation) => {
+    const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
+    const timeRestrictedReason = 'Only available after reservation time'
 
-  // ========================================
-  // HANDLERS
-  // ========================================
-
-  const handleStatusChange = async (reservationId, newStatus) => {
-    const result = await updateReservationStatusEnhanced(reservationId, newStatus)
-
-    if (result.success) {
-      // Refresh current view
-      if (activeTab === 'recent') {
-        await fetchRecentReservationsData(recentPage)
-      } else {
-        await fetchHistoricalReservationsData(historicalPage)
+    return [
+      { value: 'confirmed', label: 'Confirmed' },
+      {
+        value: 'seated',
+        label: 'Seated',
+        disabled: !timePassed,
+        disabledReason: timeRestrictedReason
+      },
+      {
+        value: 'completed',
+        label: 'Completed',
+        disabled: !timePassed,
+        disabledReason: timeRestrictedReason
+      },
+      { value: 'cancelled', label: 'Cancelled' },
+      {
+        value: 'no-show',
+        label: 'No-show',
+        disabled: !timePassed,
+        disabledReason: timeRestrictedReason
       }
-    }
+    ]
   }
 
-  const handleManualRefresh = () => {
-    fetchRecentReservationsData(recentPage)
-  }
+  const filteredReservations = reservations
+    .filter(reservation => {
+      const statusMatch = statusFilter === 'all' || reservation.status === statusFilter
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab)
-    setStatusFilter('all')
-    setSearchReservationNumber('')
-  }
+      let dateMatch = true
+      // Normalize reservation date to YYYY-MM-DD
+      const reservationDateStr = normalizeDateString(reservation.date)
+      const reservationDate = new Date(reservation.date)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-  const handleHistoricalSearch = () => {
-    setHistoricalPage(1)
-    fetchHistoricalReservationsData(1)
-  }
+      const hasDateRange = startDate || endDate
+
+      if (hasDateRange) {
+        if (startDate && endDate) {
+          dateMatch = reservationDateStr >= startDate && reservationDateStr <= endDate
+        } else if (startDate) {
+          dateMatch = reservationDateStr >= startDate
+        } else if (endDate) {
+          dateMatch = reservationDateStr <= endDate
+        }
+      } else {
+        if (dateFilter === 'today') {
+          const todayStr = getTodayLocalDate()
+          dateMatch = reservationDateStr === todayStr
+        } else if (dateFilter === 'upcoming') {
+          dateMatch = reservationDate >= today
+        } else if (dateFilter === 'past') {
+          dateMatch = reservationDate < today
+        }
+      }
+
+      // Search by reservation number
+      const searchMatch = searchReservationNumber === '' ||
+        (reservation.reservationNumber && reservation.reservationNumber.toString().includes(searchReservationNumber))
+
+      return statusMatch && dateMatch && searchMatch
+    })
+    .sort((a, b) => {
+      // Sort by date first (newest first)
+      const dateA = new Date(a.date)
+      const dateB = new Date(b.date)
+
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateB - dateA  // Descending order (newest first)
+      }
+
+      // If same date, sort by slot (latest time first)
+      return (b.slot || 0) - (a.slot || 0)  // Descending order
+    })
 
   const clearDateRange = () => {
     setStartDate('')
     setEndDate('')
-    setHistoricalReservations([])
   }
 
-  // ========================================
-  // STATS CALCULATION
-  // ========================================
+  const handleStatusChange = async (reservationId, newStatus) => {
+    await updateReservationStatus(reservationId, newStatus)
+  }
 
-  const stats = useMemo(() => {
-    const allReservations = activeTab === 'recent' ? recentReservations : historicalReservations
+  const openReservationModal = (reservation) => {
+    setSelectedReservation(reservation)
+    setIsModalOpen(true)
+  }
 
-    const today = getTodayLocalDate()
-
-    const todayReservations = allReservations.filter(r => {
-      const reservationDateStr = normalizeDateString(r.date)
-      return reservationDateStr === today
-    })
-
-    return {
-      total: allReservations.length,
-      todayTotal: todayReservations.length,
-      totalGuests: allReservations.reduce((sum, r) => sum + (r.guests || 0), 0),
-      todayGuests: todayReservations.reduce((sum, r) => sum + (r.guests || 0), 0),
-      confirmed: allReservations.filter(r => r.status === 'confirmed').length,
-      seated: allReservations.filter(r => r.status === 'seated').length,
-      completed: allReservations.filter(r => r.status === 'completed').length,
-      cancelled: allReservations.filter(r => r.status === 'cancelled').length,
-      noShow: allReservations.filter(r => r.status === 'no-show').length
-    }
-  }, [recentReservations, historicalReservations, activeTab])
-
-  // ========================================
-  // FILTERING
-  // ========================================
-
-  const displayedReservations = useMemo(() => {
-    const reservations = activeTab === 'recent' ? recentReservations : historicalReservations
-
-    return reservations.filter(reservation => {
-      // Status filter
-      if (statusFilter !== 'all' && reservation.status !== statusFilter) {
-        return false
-      }
-
-      // Search by reservation number (only for recent tab)
-      if (activeTab === 'recent' && searchReservationNumber) {
-        const matches = reservation.reservationNumber &&
-          reservation.reservationNumber.toString().includes(searchReservationNumber)
-        if (!matches) return false
-      }
-
-      return true
-    })
-  }, [recentReservations, historicalReservations, activeTab, statusFilter, searchReservationNumber])
-
-  // ========================================
-  // HELPERS
-  // ========================================
-
-  const getTimeSinceRefresh = () => {
-    if (!lastRefresh) return 'Never'
-
-    const seconds = Math.floor((new Date() - lastRefresh) / 1000)
-
-    if (seconds < 60) return `${seconds}s ago`
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-    return `${Math.floor(seconds / 3600)}h ago`
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setSelectedReservation(null)
   }
 
   const formatDate = (dateStr) => {
@@ -277,6 +195,7 @@ const ReservationsManagement = () => {
   const formatTableNumbers = (tableNumber) => {
     if (!tableNumber) return 'Not assigned'
 
+    // Handle both single number and array
     const tables = Array.isArray(tableNumber) ? tableNumber : [tableNumber]
 
     if (tables.length === 0) return 'Not assigned'
@@ -284,65 +203,20 @@ const ReservationsManagement = () => {
     const tableLabel = tables.length === 1 ? 'Table' : 'Tables'
     const sortedTables = [...tables].sort((a, b) => a - b)
 
+    // If 4 or less tables, show all
     if (sortedTables.length <= 4) {
       return `${tableLabel} ${sortedTables.join(', ')}`
     }
 
+    // If more than 4, show first 3 and ellipsis
     const firstThree = sortedTables.slice(0, 3).join(', ')
     const remaining = sortedTables.length - 3
     return `${tableLabel} ${firstThree}... (+${remaining})`
   }
 
-  const getStatusOptionsForReservation = (reservation) => {
-    const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
-    const timeRestrictedReason = 'Only available after reservation time'
-
-    return [
-      { value: 'confirmed', label: 'Confirmed' },
-      {
-        value: 'seated',
-        label: 'Seated',
-        disabled: !timePassed,
-        disabledReason: timeRestrictedReason
-      },
-      {
-        value: 'completed',
-        label: 'Completed',
-        disabled: !timePassed,
-        disabledReason: timeRestrictedReason
-      },
-      { value: 'cancelled', label: 'Cancelled' },
-      {
-        value: 'no-show',
-        label: 'No-show',
-        disabled: !timePassed,
-        disabledReason: timeRestrictedReason
-      }
-    ]
-  }
-
-  const openReservationModal = (reservation) => {
-    setSelectedReservation(reservation)
-    setIsModalOpen(true)
-  }
-
-  const closeModal = () => {
-    setIsModalOpen(false)
-    setSelectedReservation(null)
-  }
-
-  const statusOptions = [
-    { value: 'all', label: 'All statuses' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'seated', label: 'Seated' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' },
-    { value: 'no-show', label: 'No-show' }
-  ]
-
   return (
     <div className="p-6">
-      {/* Header */}
+      {/* En-tête */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Reservations Management</h1>
         <p className="text-gray-600">Manage all restaurant reservations</p>
@@ -354,40 +228,15 @@ const ReservationsManagement = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <div className="flex space-x-8">
-          <button
-            onClick={() => handleTabChange('recent')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'recent'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Recent (Last 15 days + Upcoming)
-          </button>
-          <button
-            onClick={() => handleTabChange('history')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'history'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            History
-          </button>
-        </div>
-      </div>
-
-      {/* Statistics */}
+      {/* Statistiques */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Row 1 - General Stats */}
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-gray-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.total}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
         </div>
@@ -397,7 +246,7 @@ const ReservationsManagement = () => {
             <Calendar className="h-8 w-8 text-green-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Today</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.todayTotal}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.todayTotal}</p>
             </div>
           </div>
         </div>
@@ -407,7 +256,7 @@ const ReservationsManagement = () => {
             <Users className="h-8 w-8 text-purple-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Total guests</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalGuests}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalGuests}</p>
             </div>
           </div>
         </div>
@@ -417,17 +266,18 @@ const ReservationsManagement = () => {
             <Users className="h-8 w-8 text-green-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Today's guests</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.todayGuests}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.todayGuests}</p>
             </div>
           </div>
         </div>
 
+        {/* Row 2 - Status Stats */}
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-blue-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Confirmed</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.confirmed}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.confirmed}</p>
             </div>
           </div>
         </div>
@@ -437,7 +287,7 @@ const ReservationsManagement = () => {
             <Users className="h-8 w-8 text-purple-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Seated</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.seated}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.seated}</p>
             </div>
           </div>
         </div>
@@ -447,7 +297,7 @@ const ReservationsManagement = () => {
             <Calendar className="h-8 w-8 text-green-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.completed}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
             </div>
           </div>
         </div>
@@ -457,198 +307,135 @@ const ReservationsManagement = () => {
             <Clock className="h-8 w-8 text-red-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Cancelled</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.cancelled}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.cancelled}</p>
             </div>
           </div>
         </div>
 
+        {/* Row 3 - Problem Stats */}
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-orange-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">No-show</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.noShow || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.noShow || 0}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filters - Recent Tab */}
-      {activeTab === 'recent' && (
-        <div className="bg-white rounded-lg border p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-            <div className="flex items-center space-x-4">
-              {lastRefresh && (
-                <span className="text-xs text-gray-500">
-                  Updated {getTimeSinceRefresh()}
-                </span>
-              )}
-              <button
-                onClick={handleManualRefresh}
-                disabled={recentLoading}
-                className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <RefreshCw className={`h-4 w-4 ${recentLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
-            </div>
-          </div>
+      {/* Filtres */}
+      <div className="bg-white rounded-lg border p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filtres</h2>
 
+        {/* Search by reservation number */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Search by reservation number
+            </label>
+            {searchReservationNumber && (
+              <button
+                onClick={() => setSearchReservationNumber('')}
+                className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+          <input
+            type="text"
+            value={searchReservationNumber}
+            onChange={(e) => setSearchReservationNumber(e.target.value)}
+            placeholder="Enter reservation number..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status
+            </label>
+            <SimpleSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={statusOptions}
+              className="w-full"
+              size="md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date
+            </label>
+            <SimpleSelect
+              value={dateFilter}
+              onChange={setDateFilter}
+              options={dateOptions}
+              className="w-full"
+              size="md"
+              disabled={startDate || endDate}
+            />
+          </div>
+        </div>
+        
+        {/* Période Section */}
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-700">Period</h3>
+            {(startDate || endDate) && (
+              <button
+                onClick={clearDateRange}
+                className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Clear fields
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Start date
               </label>
-              <SimpleSelect
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={statusOptions}
+              <CustomDatePicker
+                value={startDate}
+                onChange={setStartDate}
                 className="w-full"
-                size="md"
+                placeholder="Select start date"
               />
             </div>
-
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Search by reservation number
-                </label>
-                {searchReservationNumber && (
-                  <button
-                    onClick={() => setSearchReservationNumber('')}
-                    className="text-xs text-gray-500 hover:text-gray-700 font-medium"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <input
-                type="text"
-                value={searchReservationNumber}
-                onChange={(e) => setSearchReservationNumber(e.target.value)}
-                placeholder="Enter reservation number..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                End date
+              </label>
+              <CustomDatePicker
+                value={endDate}
+                onChange={setEndDate}
+                className="w-full"
+                minDate={startDate}
+                placeholder="Select end date"
               />
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Filters - History Tab */}
-      {activeTab === 'history' && (
-        <div className="bg-white rounded-lg border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <SimpleSelect
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={statusOptions}
-                className="w-full"
-                size="md"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Search by reservation number
-                </label>
-                {searchReservationNumber && (
-                  <button
-                    onClick={() => setSearchReservationNumber('')}
-                    className="text-xs text-gray-500 hover:text-gray-700 font-medium"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <input
-                type="text"
-                value={searchReservationNumber}
-                onChange={(e) => setSearchReservationNumber(e.target.value)}
-                placeholder="Enter reservation number..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-700">Period (Required)</h3>
-              {(startDate || endDate) && (
-                <button
-                  onClick={clearDateRange}
-                  className="text-xs text-gray-500 hover:text-gray-700 font-medium"
-                >
-                  Clear fields
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Start date
-                </label>
-                <CustomDatePicker
-                  value={startDate}
-                  onChange={setStartDate}
-                  className="w-full"
-                  placeholder="Select start date"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  End date
-                </label>
-                <CustomDatePicker
-                  value={endDate}
-                  onChange={setEndDate}
-                  className="w-full"
-                  minDate={startDate}
-                  placeholder="Select end date"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={handleHistoricalSearch}
-              disabled={!startDate || !endDate || historicalLoading}
-              className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {historicalLoading ? 'Loading...' : 'Search History'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Reservations List */}
+      {/* Liste des réservations */}
       <div className="bg-white rounded-lg border">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            Reservations ({displayedReservations.length})
+            Reservations ({filteredReservations.length})
           </h2>
         </div>
 
-        {recentLoading || historicalLoading ? (
-          <div className="p-12 text-center">
-            <RefreshCw className="h-8 w-8 text-gray-400 animate-spin mx-auto mb-4" />
-            <p className="text-gray-500">Loading reservations...</p>
-          </div>
-        ) : displayedReservations.length === 0 ? (
+        {filteredReservations.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
-            {activeTab === 'history' && !startDate && !endDate
-              ? 'Please select a date range to view historical reservations.'
-              : 'No reservations found with these filters.'}
+            No reservations found with these filters.
           </div>
         ) : (
           <>
-            {/* Desktop Table */}
+            {/* Vue Desktop - Tableau */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -677,7 +464,7 @@ const ReservationsManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {displayedReservations.map((reservation) => (
+                  {filteredReservations.map((reservation) => (
                     <tr key={reservation.id} className={getDeletedUserRowClass(reservation)}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
@@ -723,16 +510,11 @@ const ReservationsManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(reservation.status)}`}>
-                          {getStatusLabel(reservation.status)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <button
                             onClick={() => openReservationModal(reservation)}
                             className="text-gray-400 hover:text-blue-600 transition-colors"
-                            title="View details"
+                            title="Voir les détails"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -744,22 +526,27 @@ const ReservationsManagement = () => {
                           />
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(reservation.status)}`}>
+                          {getStatusLabel(reservation.status)}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Mobile Cards */}
+            {/* Vue Mobile/Tablet - Cards */}
             <div className="lg:hidden divide-y divide-gray-200">
-              {displayedReservations.map((reservation) => (
+              {filteredReservations.map((reservation) => (
                 <div key={reservation.id} className={`p-4 ${getDeletedUserRowClass(reservation)}`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => openReservationModal(reservation)}
                         className="text-gray-400 hover:text-blue-600 transition-colors"
-                        title="View details"
+                        title="Voir les détails"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
@@ -812,7 +599,7 @@ const ReservationsManagement = () => {
                         </span>
                       </div>
                     </div>
-
+                    
                     {reservation.specialRequests && (
                       <div className="text-sm text-gray-600 bg-gray-50 rounded p-2">
                         <strong>Special requests:</strong> {reservation.specialRequests}
@@ -822,56 +609,11 @@ const ReservationsManagement = () => {
                 </div>
               ))}
             </div>
-
-            {/* Pagination */}
-            {activeTab === 'recent' && recentPagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <button
-                  onClick={() => fetchRecentReservationsData(recentPage - 1)}
-                  disabled={recentPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-700">
-                  Page {recentPage} of {recentPagination.totalPages}
-                </span>
-                <button
-                  onClick={() => fetchRecentReservationsData(recentPage + 1)}
-                  disabled={!recentPagination.hasMore}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'history' && historicalPagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <button
-                  onClick={() => fetchHistoricalReservationsData(historicalPage - 1)}
-                  disabled={historicalPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-700">
-                  Page {historicalPage} of {historicalPagination.totalPages}
-                </span>
-                <button
-                  onClick={() => fetchHistoricalReservationsData(historicalPage + 1)}
-                  disabled={!historicalPagination.hasMore}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
 
-      {/* Reservation Detail Modal */}
+      {/* Modal de détail */}
       {isModalOpen && selectedReservation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
@@ -889,7 +631,7 @@ const ReservationsManagement = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Client Info */}
+                {/* Informations client */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Client</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -905,7 +647,7 @@ const ReservationsManagement = () => {
                   </div>
                 </div>
 
-                {/* Reservation Info */}
+                {/* Informations réservation */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Reservation</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -924,7 +666,7 @@ const ReservationsManagement = () => {
                 </div>
               </div>
 
-              {/* Special Requests */}
+              {/* Demandes spéciales */}
               {selectedReservation.specialRequests && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Special requests</h3>
@@ -934,7 +676,7 @@ const ReservationsManagement = () => {
                 </div>
               )}
 
-              {/* History */}
+              {/* Historique */}
               <div className="mt-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">History</h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-gray-600">

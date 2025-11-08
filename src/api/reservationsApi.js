@@ -1,8 +1,17 @@
 import apiClient from './apiClient'
+import {
+  getRecentReservationsMock,
+  getHistoricalReservationsMock,
+  updateReservationStatusMock
+} from './mocks/reservationsMock'
 
 /**
  * Reservations API
+ *
+ * Set VITE_MOCK_API=true in .env to use mock data for development
  */
+
+const MOCK_MODE = import.meta.env.VITE_MOCK_API === 'true'
 
 // Get current user's reservations
 export const getUserReservations = async () => {
@@ -118,4 +127,70 @@ export const getReservationsByUserId = async (userId) => {
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching user reservations', reservations: [] }
   }
+}
+
+// ========================================
+// NEW API ENDPOINTS (Recent/Historical Split)
+// ========================================
+
+/**
+ * Get recent reservations (last 15 days + upcoming) - ADMIN
+ * Auto-refreshed in the UI
+ */
+export const getRecentReservations = async (params = {}) => {
+  if (MOCK_MODE) {
+    return await getRecentReservationsMock(params)
+  }
+
+  try {
+    const queryParams = {
+      limit: params.limit || 50,
+      page: params.page || 1
+    }
+    if (params.status) queryParams.status = params.status
+
+    const response = await apiClient.get('/reservations/admin/recent', { params: queryParams })
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching recent reservations' }
+  }
+}
+
+/**
+ * Get historical reservations (> 15 days ago) - ADMIN
+ * Fetch on demand with date range
+ */
+export const getHistoricalReservations = async (params = {}) => {
+  if (MOCK_MODE) {
+    return await getHistoricalReservationsMock(params)
+  }
+
+  try {
+    const { startDate, endDate, limit = 20, page = 1, status, search } = params
+
+    if (!startDate || !endDate) {
+      return { success: false, error: 'Start date and end date are required' }
+    }
+
+    const queryParams = { startDate, endDate, limit, page }
+    if (status) queryParams.status = status
+    if (search) queryParams.search = search
+
+    const response = await apiClient.get('/reservations/admin/history', { params: queryParams })
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching historical reservations' }
+  }
+}
+
+/**
+ * Update reservation status - ADMIN (enhanced for mock support)
+ */
+export const updateReservationStatusEnhanced = async (reservationId, status) => {
+  if (MOCK_MODE) {
+    return await updateReservationStatusMock(reservationId, status)
+  }
+
+  // Use existing updateReservationStatus
+  return await updateReservationStatus(reservationId, status)
 }
