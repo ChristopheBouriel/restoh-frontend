@@ -94,11 +94,11 @@ const Checkout = () => {
         userName: user.name,
         items: availableItems,
         totalPrice: totalPriceAvailable,
-        deliveryAddress: {
+        deliveryAddress: formData.type === 'delivery' ? {
           street: formData.street,
           city: formData.city,
           zipCode: formData.zipCode
-        },
+        } : null,
         phone: formData.phone,
         notes: formData.notes,
         paymentMethod: formData.paymentMethod,

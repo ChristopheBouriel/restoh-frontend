@@ -812,8 +812,18 @@ const OrdersManagement = () => {
                   </div>
                 </div>
 
-                {/* Delivery Address */}
-                {selectedOrder.deliveryAddress && (
+                {/* Order Type */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Order type</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="font-medium">
+                      {selectedOrder.orderType === 'delivery' ? '🚚 Delivery' : '🏪 Pick-up'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Delivery Address - only for delivery orders */}
+                {selectedOrder.orderType === 'delivery' && selectedOrder.deliveryAddress && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Delivery address</h3>
                     <div className="bg-gray-50 p-4 rounded-lg">

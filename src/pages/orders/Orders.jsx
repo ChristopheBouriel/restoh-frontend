@@ -222,9 +222,12 @@ const Orders = () => {
                         </div>
 
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Delivery information</h4>
+                          <h4 className="font-semibold text-gray-900 mb-2">Order information</h4>
                           <div className="text-sm text-gray-600 space-y-1">
-                            {order.deliveryAddress && (
+                            {order.orderType && (
+                              <p><strong>Type:</strong> {order.orderType === 'delivery' ? 'Delivery' : 'Pick-up'}</p>
+                            )}
+                            {order.orderType === 'delivery' && order.deliveryAddress && (
                               <div>
                                 <p><strong>Address:</strong></p>
                                 <p className="ml-2">{order.deliveryAddress.street}</p>
