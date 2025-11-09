@@ -812,6 +812,17 @@ const OrdersManagement = () => {
                   </div>
                 </div>
 
+                {/* Delivery Address */}
+                {selectedOrder.deliveryAddress && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Delivery address</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p>{selectedOrder.deliveryAddress.street}</p>
+                      <p>{selectedOrder.deliveryAddress.zipCode} {selectedOrder.deliveryAddress.city}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Payment */}
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Payment</h3>

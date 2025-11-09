@@ -144,6 +144,7 @@ const Menu = () => {
                 onChange={setSelectedCuisine}
                 options={cuisineTypes.map(c => ({ value: c.id, label: c.name }))}
                 className="min-w-[200px]"
+                size="md"
               />
             </div>
 
@@ -155,20 +156,25 @@ const Menu = () => {
                 onChange={setSelectedCategory}
                 options={categories.map(c => ({ value: c.id, label: c.name }))}
                 className="min-w-[200px]"
+                size="md"
               />
             </div>
 
             {/* Sort */}
-            <SimpleSelect
-              value={sortBy}
-              onChange={setSortBy}
-              options={[
-                { value: 'name', label: 'Sort by name' },
-                { value: 'price-asc', label: 'Price ascending' },
-                { value: 'price-desc', label: 'Price descending' }
-              ]}
-              className="min-w-[180px]"
-            />
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <SimpleSelect
+                value={sortBy}
+                onChange={setSortBy}
+                options={[
+                  { value: 'name', label: 'Sort by price' },
+                  { value: 'price-asc', label: 'Price ascending' },
+                  { value: 'price-desc', label: 'Price descending' }
+                ]}
+                className="min-w-[180px]"
+                size="md"
+              />
+            </div>
           </div>
         </div>
 

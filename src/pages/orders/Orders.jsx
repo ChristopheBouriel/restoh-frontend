@@ -225,7 +225,11 @@ const Orders = () => {
                           <h4 className="font-semibold text-gray-900 mb-2">Delivery information</h4>
                           <div className="text-sm text-gray-600 space-y-1">
                             {order.deliveryAddress && (
-                              <p><strong>Address:</strong> {order.deliveryAddress}</p>
+                              <div>
+                                <p><strong>Address:</strong></p>
+                                <p className="ml-2">{order.deliveryAddress.street}</p>
+                                <p className="ml-2">{order.deliveryAddress.zipCode} {order.deliveryAddress.city}</p>
+                              </div>
                             )}
                             {order.phone && (
                               <p><strong>Phone:</strong> {order.phone}</p>
