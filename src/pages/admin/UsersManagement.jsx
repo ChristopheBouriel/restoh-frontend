@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, ShoppingCart, ShoppingBag, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, ShoppingCart, ShoppingBag, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2, Trash2 } from 'lucide-react'
 import useUsersStore from '../../store/usersStore'
 import { ordersApi, reservationsApi } from '../../api'
 import SimpleSelect from '../../components/common/SimpleSelect'
@@ -14,6 +14,7 @@ const UsersManagement = () => {
     fetchUsersStats,
     toggleUserStatus,
     updateUserRole,
+    deleteUser,
     searchUsers,
     getActiveUsers,
     getInactiveUsers,
@@ -25,6 +26,8 @@ const UsersManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
 
   // User activity states - fetch on demand for security
   const [userOrders, setUserOrders] = useState([])
@@ -78,6 +81,27 @@ const UsersManagement = () => {
 
   const handleRoleChange = async (user, newRole) => {
     await updateUserRole(user._id || user.id, newRole)
+  }
+
+  const openDeleteModal = (user) => {
+    setUserToDelete(user)
+    setIsDeleteModalOpen(true)
+  }
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setUserToDelete(null)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return
+
+    const userId = userToDelete._id || userToDelete.id
+    const result = await deleteUser(userId)
+
+    if (result.success) {
+      closeDeleteModal()
+    }
   }
 
   const openUserModal = async (user) => {
@@ -423,13 +447,22 @@ const UsersManagement = () => {
                         <div>Reservations: {user.totalReservations}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => openUserModal(user)}
-                          className="text-gray-400 hover:text-blue-600 transition-colors"
-                          title="View details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => openUserModal(user)}
+                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                            title="View details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(user)}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            title="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -449,6 +482,13 @@ const UsersManagement = () => {
                         title="View details"
                       >
                         <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(user)}
+                        className="text-gray-400 hover:text-red-600 transition-colors"
+                        title="Delete user"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
                         {getRoleLabel(user.role)}
@@ -934,6 +974,53 @@ const UsersManagement = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mr-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-700 mb-2">
+                Are you sure you want to delete this user?
+              </p>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm font-medium text-gray-900">{userToDelete.name}</p>
+                <p className="text-sm text-gray-600">{userToDelete.email}</p>
+              </div>
+              <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  ⚠ User data will be anonymized in orders and reservations for GDPR compliance.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete User
+              </button>
             </div>
           </div>
         </div>

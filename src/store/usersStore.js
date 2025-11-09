@@ -102,6 +102,35 @@ const useUsersStore = create(
         }
       },
 
+      // Supprimer un utilisateur
+      deleteUser: async (userId) => {
+        set({ isLoading: true })
+
+        try {
+          const result = await usersApi.deleteUser(userId)
+
+          if (result.success) {
+            // Remove user from local state
+            const updatedUsers = get().users.filter(u =>
+              u.id !== userId && u._id !== userId
+            )
+
+            set({ users: updatedUsers, isLoading: false })
+
+            // Refresh stats after deletion
+            get().fetchUsersStats()
+
+            return { success: true }
+          } else {
+            set({ isLoading: false })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          set({ isLoading: false })
+          return { success: false, error: error.message }
+        }
+      },
+
       // Mettre à jour la dernière connexion (utilisé par authStore)
       updateLastLogin: (userId) => {
         const updatedUsers = get().users.map(user =>
