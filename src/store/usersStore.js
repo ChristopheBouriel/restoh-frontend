@@ -64,7 +64,8 @@ const useUsersStore = create(
             return { success: true }
           } else {
             set({ isLoading: false })
-            return { success: false, error: result.error }
+            // Return full result with details and code for InlineAlert
+            return result
           }
         } catch (error) {
           set({ isLoading: false })
@@ -94,7 +95,8 @@ const useUsersStore = create(
             return { success: true }
           } else {
             set({ isLoading: false })
-            return { success: false, error: result.error }
+            // Return full result with details and code for InlineAlert
+            return result
           }
         } catch (error) {
           set({ isLoading: false })
@@ -123,7 +125,8 @@ const useUsersStore = create(
             return { success: true }
           } else {
             set({ isLoading: false })
-            return { success: false, error: result.error }
+            // Return full result with details and code for InlineAlert
+            return result
           }
         } catch (error) {
           set({ isLoading: false })

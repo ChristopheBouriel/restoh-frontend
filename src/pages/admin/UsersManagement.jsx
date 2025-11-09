@@ -4,6 +4,7 @@ import useUsersStore from '../../store/usersStore'
 import { ordersApi, reservationsApi } from '../../api'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import InlineAlert from '../../components/common/InlineAlert'
 
 const UsersManagement = () => {
   const {
@@ -28,6 +29,8 @@ const UsersManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
+  const [deleteError, setDeleteError] = useState(null)
+  const [modifyError, setModifyError] = useState(null)
 
   // User activity states - fetch on demand for security
   const [userOrders, setUserOrders] = useState([])
@@ -76,31 +79,49 @@ const UsersManagement = () => {
   })
 
   const handleStatusToggle = async (user) => {
-    await toggleUserStatus(user._id || user.id)
+    setModifyError(null)
+    const result = await toggleUserStatus(user._id || user.id)
+
+    // Check for structured error with details
+    if (!result.success && result.details) {
+      setModifyError(result)
+    }
   }
 
   const handleRoleChange = async (user, newRole) => {
-    await updateUserRole(user._id || user.id, newRole)
+    setModifyError(null)
+    const result = await updateUserRole(user._id || user.id, newRole)
+
+    // Check for structured error with details
+    if (!result.success && result.details) {
+      setModifyError(result)
+    }
   }
 
   const openDeleteModal = (user) => {
     setUserToDelete(user)
+    setDeleteError(null)
     setIsDeleteModalOpen(true)
   }
 
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false)
     setUserToDelete(null)
+    setDeleteError(null)
   }
 
   const handleConfirmDelete = async () => {
     if (!userToDelete) return
 
+    setDeleteError(null)
     const userId = userToDelete._id || userToDelete.id
     const result = await deleteUser(userId)
 
     if (result.success) {
       closeDeleteModal()
+    } else if (result.details) {
+      // Show structured error in modal
+      setDeleteError(result)
     }
   }
 
@@ -341,6 +362,18 @@ const UsersManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Error Alert for Modification Actions */}
+      {modifyError && modifyError.details && (
+        <div className="mb-6">
+          <InlineAlert
+            type="error"
+            message={modifyError.error}
+            details={modifyError.details}
+            onDismiss={() => setModifyError(null)}
+          />
+        </div>
+      )}
 
       {/* Users list */}
       <div className="bg-white rounded-lg border">
@@ -1006,6 +1039,17 @@ const UsersManagement = () => {
                   ⚠ User data will be anonymized in orders and reservations for GDPR compliance.
                 </p>
               </div>
+
+              {/* Error Alert */}
+              {deleteError && deleteError.details && (
+                <div className="mt-4">
+                  <InlineAlert
+                    type="error"
+                    message={deleteError.error}
+                    details={deleteError.details}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3">

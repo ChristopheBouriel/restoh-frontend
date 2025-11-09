@@ -11,7 +11,7 @@ import { useState } from 'react'
  *
  * @param {string} type - Type d'alerte : 'error' | 'warning' | 'info' | 'success'
  * @param {string} message - Message principal (requis)
- * @param {string} details - Message de détails optionnel
+ * @param {string|Object} details - Message de détails optionnel (string ou objet avec message/suggestion)
  * @param {Array} actions - Liste d'actions cliquables [{ label, onClick, variant }]
  * @param {boolean} dismissible - Peut être fermé par l'utilisateur (défaut: true)
  * @param {function} onDismiss - Callback quand l'alerte est fermée
@@ -102,9 +102,21 @@ const InlineAlert = ({
 
               {/* Details */}
               {details && (
-                <p className={`text-sm ${config.detailsColor} mt-1`}>
-                  {details}
-                </p>
+                <div className={`text-sm ${config.detailsColor} mt-1`}>
+                  {typeof details === 'string' ? (
+                    <p>{details}</p>
+                  ) : (
+                    <>
+                      {details.message && <p>{details.message}</p>}
+                      {details.suggestion && (
+                        <p className="mt-1 italic">{details.suggestion}</p>
+                      )}
+                      {details.userId && (
+                        <p className="mt-1 text-xs opacity-75">User ID: {details.userId}</p>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </>
           )}

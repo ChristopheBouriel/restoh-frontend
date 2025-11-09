@@ -20,7 +20,10 @@ export const updateUser = async (userId, userData) => {
     const response = await apiClient.put(`/users/${userId}`, userData)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error updating user' }
+    // Return full error object with code and details for InlineAlert
+    return error.code && error.details
+      ? error
+      : { success: false, error: error.error || 'Error updating user' }
   }
 }
 
@@ -30,7 +33,10 @@ export const deleteUser = async (userId) => {
     const response = await apiClient.delete(`/users/${userId}`)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error deleting user' }
+    // Return full error object with code and details for InlineAlert
+    return error.code && error.details
+      ? error
+      : { success: false, error: error.error || 'Error deleting user' }
   }
 }
 
