@@ -54,7 +54,7 @@ const ContactsManagement = () => {
   const handleDeleteMessage = async (messageId) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
       await deleteMessage(messageId)
-      if (selectedMessage?.id === messageId) {
+      if (selectedMessage?._id === messageId) {
         setSelectedMessage(null)
       }
     }
@@ -189,14 +189,14 @@ const ContactsManagement = () => {
               const StatusIcon = statusConfig[message.status]?.icon || Mail
               return (
                 <div
-                  key={message.id}
+                  key={message._id}
                   className={`p-6 hover:bg-gray-50 cursor-pointer ${
                     message.status === 'new' ? 'bg-blue-50 border-l-4 border-blue-400' : ''
                   }`}
                   onClick={() => {
                     setSelectedMessage(message)
                     if (message.status === 'new') {
-                      handleMarkAsRead(message.id)
+                      handleMarkAsRead(message._id)
                     }
                   }}
                 >
@@ -326,17 +326,17 @@ const ContactsManagement = () => {
               {/* Actions */}
               <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => handleDeleteMessage(selectedMessage.id)}
+                  onClick={() => handleDeleteMessage(selectedMessage._id)}
                   className="px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 flex items-center space-x-2"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Delete</span>
                 </button>
-                
+
                 {selectedMessage.status !== 'replied' && (
                   <button
                     onClick={() => {
-                      handleMarkAsReplied(selectedMessage.id)
+                      handleMarkAsReplied(selectedMessage._id)
                       setSelectedMessage({ ...selectedMessage, status: 'replied' })
                     }}
                     className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center space-x-2"

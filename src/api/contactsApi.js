@@ -28,7 +28,7 @@ export const getAllContacts = async (status = null) => {
 // Update message status (ADMIN)
 export const updateContactStatus = async (contactId, status) => {
   try {
-    const response = await apiClient.patch(`/contact/${contactId}/status`, { status })
+    const response = await apiClient.patch(`/contact/admin/messages/${contactId}/status`, { status })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error updating status' }
