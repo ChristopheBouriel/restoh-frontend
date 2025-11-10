@@ -11,6 +11,7 @@ export const ROUTES = {
   ORDERS: '/orders',
   RESERVATIONS: '/reservations',
   CONTACT: '/contact',
+  MY_MESSAGES: '/my-messages',
   ADMIN: '/admin',
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_MENU: '/admin/menu',

@@ -10,6 +10,7 @@ import Profile from './pages/profile/Profile'
 import Orders from './pages/orders/Orders'
 import Reservations from './pages/reservations/Reservations'
 import Contact from './pages/contact/Contact'
+import MyMessages from './pages/contact/MyMessages'
 import Dashboard from './pages/admin/Dashboard'
 import MenuManagement from './pages/admin/MenuManagement'
 import ProtectedRoute from './components/common/ProtectedRoute'
@@ -107,6 +108,11 @@ function App() {
           <Route index element={<Home />} />
           <Route path={ROUTES.MENU} element={<Menu />} />
           <Route path={ROUTES.CONTACT} element={<Contact />} />
+          <Route path={ROUTES.MY_MESSAGES} element={
+            <ProtectedRoute>
+              <MyMessages />
+            </ProtectedRoute>
+          } />
           <Route path={ROUTES.CHECKOUT} element={
             <ProtectedRoute>
               <Checkout />

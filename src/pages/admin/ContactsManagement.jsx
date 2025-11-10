@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Mail, Eye, Check, Reply, Trash2, Filter, Clock, User, Phone } from 'lucide-react'
+import { Mail, Eye, Check, Reply, Trash2, Filter, Clock, User, Phone, Send } from 'lucide-react'
 import useContactsStore from '../../store/contactsStore'
+import { toast } from 'react-hot-toast'
 
 const ContactsManagement = () => {
   const {
@@ -10,11 +11,14 @@ const ContactsManagement = () => {
     markAsRead,
     markAsReplied,
     deleteMessage,
+    addReply,
     getMessagesStats
   } = useContactsStore()
 
   const [filterStatus, setFilterStatus] = useState('all')
   const [selectedMessage, setSelectedMessage] = useState(null)
+  const [replyText, setReplyText] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     fetchMessages()
@@ -58,6 +62,54 @@ const ContactsManagement = () => {
         setSelectedMessage(null)
       }
     }
+  }
+
+  const handleSubmitReply = async (e) => {
+    e.preventDefault()
+
+    if (!replyText.trim()) {
+      toast.error('Please write a message')
+      return
+    }
+
+    if (replyText.length > 1000) {
+      toast.error('Message is too long (max 1000 characters)')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const result = await addReply(selectedMessage._id, replyText, 'Admin')
+
+      if (result.success) {
+        toast.success('Reply sent successfully')
+        setReplyText('')
+        // Refresh messages to get the updated discussion
+        await fetchMessages()
+        // Update selected message with the new discussion
+        const updatedMessage = messages.find(m => m._id === selectedMessage._id)
+        if (updatedMessage) {
+          setSelectedMessage(updatedMessage)
+        }
+      } else {
+        toast.error(result.error || 'Error sending reply')
+      }
+    } catch (error) {
+      toast.error('Error sending reply')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   const stats = getMessagesStats()
@@ -315,43 +367,104 @@ const ContactsManagement = () => {
                 </div>
               </div>
 
-              {/* Message */}
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Message</h3>
-                <div className="bg-gray-50 p-4 rounded-lg">
+              {/* Discussion Thread */}
+              <div className="space-y-4 mb-6">
+                {/* Original Message */}
+                <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium text-gray-900">{selectedMessage.name}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(selectedMessage.createdAt)}
+                    </span>
+                  </div>
                   <p className="text-gray-900 whitespace-pre-wrap">{selectedMessage.message}</p>
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => handleDeleteMessage(selectedMessage._id)}
-                  className="px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 flex items-center space-x-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
-                </button>
-
-                {selectedMessage.status !== 'replied' && (
-                  <button
-                    onClick={() => {
-                      handleMarkAsReplied(selectedMessage._id)
-                      setSelectedMessage({ ...selectedMessage, status: 'replied' })
-                    }}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center space-x-2"
-                  >
-                    <Reply className="w-4 h-4" />
-                    <span>Mark as replied</span>
-                  </button>
+                {/* Discussion Replies */}
+                {selectedMessage.discussion && selectedMessage.discussion.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900">Discussion</h3>
+                    {selectedMessage.discussion.map((reply, index) => (
+                      <div
+                        key={index}
+                        className={`rounded-lg p-4 border-l-4 ${
+                          reply.from === 'Admin'
+                            ? 'bg-green-50 border-green-400'
+                            : 'bg-blue-50 border-blue-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <User className="w-4 h-4 text-gray-500" />
+                            <span className="font-medium text-gray-900">
+                              {reply.from}
+                              {reply.from === 'Admin' && ' (You)'}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {formatDate(reply.date)}
+                          </span>
+                        </div>
+                        <p className="text-gray-900 whitespace-pre-wrap">{reply.text}</p>
+                      </div>
+                    ))}
+                  </div>
                 )}
-                
-                <button
-                  onClick={() => setSelectedMessage(null)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                >
-                  Close
-                </button>
+
+                {/* Reply Form */}
+                <div className="pt-4 border-t">
+                  <h3 className="font-semibold text-gray-900 mb-4">Add a reply</h3>
+                  <form onSubmit={handleSubmitReply} className="space-y-4">
+                    <div>
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Type your message here..."
+                        rows={4}
+                        maxLength={1000}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {replyText.length} / 1000 characters
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <div className="flex space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMessage(selectedMessage._id)}
+                          className="px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 flex items-center space-x-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMessage(null)}
+                          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                        >
+                          Close
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSubmitting || !replyText.trim()}
+                          className="flex items-center space-x-2 px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Send className="w-4 h-4" />
+                          <span>{isSubmitting ? 'Sending...' : 'Send Reply'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
               </div>
               </div>
             </div>

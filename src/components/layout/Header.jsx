@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react'
+import { Menu, X, ShoppingCart, User, LogOut, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useCart } from '../../hooks/useCart'
 import { useCartUI } from '../../contexts/CartUIContext'
@@ -127,6 +127,14 @@ const Header = () => {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       My Reservations
+                    </Link>
+                    <Link
+                      to={ROUTES.MY_MESSAGES}
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    >
+                      <MessageSquare size={16} className="mr-2" />
+                      My Messages
                     </Link>
                     {user?.role === 'admin' && (
                       <Link
