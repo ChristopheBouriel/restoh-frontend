@@ -7,6 +7,7 @@ const useContactsStore = create(
     (set, get) => ({
       // State
       messages: [],
+      myMessages: [],
       isLoading: false,
       error: null,
 
@@ -16,6 +17,37 @@ const useContactsStore = create(
       setError: (error) => set({ error }),
 
       clearError: () => set({ error: null }),
+
+      // Fetch user's own messages
+      fetchMyMessages: async () => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await contactsApi.getMyContactMessages()
+
+          if (result.success) {
+            set({
+              myMessages: result.data || [],
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error loading messages'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
 
       // Fetch all messages (admin only)
       fetchMessages: async () => {
@@ -114,16 +146,14 @@ const useContactsStore = create(
         return await get().updateMessageStatus(messageId, 'replied')
       },
 
-      // Reply to message (admin)
-      replyToMessage: async (messageId, replyData) => {
+      // Add reply to discussion (user or admin)
+      addReply: async (messageId, text, from) => {
         set({ isLoading: true, error: null })
 
         try {
-          const result = await contactsApi.replyToContact(messageId, replyData)
+          const result = await contactsApi.addReplyToDiscussion(messageId, text, from)
 
           if (result.success) {
-            // Reload messages after reply
-            await get().fetchMessages()
             set({ isLoading: false })
             return { success: true }
           } else {
@@ -134,7 +164,7 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Error sending reply'
+          const errorMessage = error.error || 'Error adding reply'
           set({
             error: errorMessage,
             isLoading: false

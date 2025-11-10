@@ -14,6 +14,16 @@ export const sendContactMessage = async (messageData) => {
   }
 }
 
+// Get user's own messages (USER)
+export const getMyContactMessages = async () => {
+  try {
+    const response = await apiClient.get('/contact/my-messages')
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching messages' }
+  }
+}
+
 // Get all messages (ADMIN)
 export const getAllContacts = async (status = null) => {
   try {
@@ -35,13 +45,13 @@ export const updateContactStatus = async (contactId, status) => {
   }
 }
 
-// Reply to a message (ADMIN)
-export const replyToContact = async (contactId, reply) => {
+// Add reply to discussion (USER can reply to own, ADMIN to all)
+export const addReplyToDiscussion = async (contactId, text, from) => {
   try {
-    const response = await apiClient.post(`/contact/${contactId}/reply`, { reply })
+    const response = await apiClient.patch(`/contact/${contactId}/reply`, { text, from })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error sending reply' }
+    return { success: false, error: error.error || 'Error adding reply' }
   }
 }
 
