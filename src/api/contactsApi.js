@@ -44,3 +44,13 @@ export const replyToContact = async (contactId, reply) => {
     return { success: false, error: error.error || 'Error sending reply' }
   }
 }
+
+// Delete a message (ADMIN)
+export const deleteContact = async (contactId) => {
+  try {
+    const response = await apiClient.delete(`/contact/admin/messages/${contactId}`)
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error deleting message' }
+  }
+}
