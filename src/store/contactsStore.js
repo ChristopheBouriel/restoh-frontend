@@ -146,6 +146,16 @@ const useContactsStore = create(
         return await get().updateMessageStatus(messageId, 'replied')
       },
 
+      // Mark message as newly replied (helper for updateMessageStatus)
+      markAsNewlyReplied: async (messageId) => {
+        return await get().updateMessageStatus(messageId, 'newlyReplied')
+      },
+
+      // Mark message as closed (helper for updateMessageStatus)
+      markAsClosed: async (messageId) => {
+        return await get().updateMessageStatus(messageId, 'closed')
+      },
+
       // Add reply to discussion (user or admin)
       addReply: async (messageId, text, from) => {
         set({ isLoading: true, error: null })
@@ -165,6 +175,33 @@ const useContactsStore = create(
           }
         } catch (error) {
           const errorMessage = error.error || 'Error adding reply'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      // Mark discussion message as read
+      markDiscussionMessageAsRead: async (contactId, discussionId) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await contactsApi.markDiscussionMessageAsRead(contactId, discussionId)
+
+          if (result.success) {
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error marking message as read'
           set({
             error: errorMessage,
             isLoading: false
@@ -223,7 +260,9 @@ const useContactsStore = create(
           total: messages.length,
           new: messages.filter(m => m.status === 'new').length,
           read: messages.filter(m => m.status === 'read').length,
-          replied: messages.filter(m => m.status === 'replied').length
+          replied: messages.filter(m => m.status === 'replied').length,
+          newlyReplied: messages.filter(m => m.status === 'newlyReplied').length,
+          closed: messages.filter(m => m.status === 'closed').length
         }
       }
     }),

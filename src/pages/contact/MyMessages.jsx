@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth'
 
 const MyMessages = () => {
   const { user } = useAuth()
-  const { myMessages, isLoading, fetchMyMessages, addReply } = useContactsStore()
+  const { myMessages, isLoading, fetchMyMessages, addReply, markDiscussionMessageAsRead } = useContactsStore()
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [replyText, setReplyText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -16,9 +16,43 @@ const MyMessages = () => {
   }, [fetchMyMessages])
 
   const statusConfig = {
-    new: { label: 'New', color: 'bg-blue-100 text-blue-800', icon: Mail },
+    new: { label: 'Sent', color: 'bg-blue-100 text-blue-800', icon: Mail },
     read: { label: 'Read', color: 'bg-yellow-100 text-yellow-800', icon: Mail },
-    replied: { label: 'Replied', color: 'bg-green-100 text-green-800', icon: MessageSquare }
+    replied: { label: 'Replied', color: 'bg-green-100 text-green-800', icon: MessageSquare },
+    newlyReplied: { label: 'New Reply', color: 'bg-purple-100 text-purple-800', icon: Mail },
+    opened: { label: 'Opened', color: 'bg-gray-100 text-gray-800', icon: MessageSquare },
+    closed: { label: 'Closed', color: 'bg-gray-100 text-gray-800', icon: MessageSquare }
+  }
+
+  // Calculate the display status for a message
+  const getDisplayStatus = (message) => {
+    // If closed, always show closed
+    if (message.status === 'closed') {
+      return 'closed'
+    }
+
+    // If no discussion yet, show based on contact status
+    if (!message.discussion || message.discussion.length === 0) {
+      return message.status === 'new' ? 'new' : 'opened'
+    }
+
+    // Get the last message in the discussion
+    const lastDiscussionMessage = message.discussion[message.discussion.length - 1]
+
+    // If last message is from user AND status is 'new' → "Replied"
+    if (!lastDiscussionMessage.from.includes('Admin User') && lastDiscussionMessage.status === 'new') {
+      return 'replied'
+    }
+
+    // If last message is from admin AND status is 'new' AND contact status is 'replied' → "New Reply"
+    if (lastDiscussionMessage.from.includes('Admin User') &&
+        lastDiscussionMessage.status === 'new' &&
+        message.status === 'replied') {
+      return 'newlyReplied'
+    }
+
+    // Otherwise → "Opened"
+    return 'opened'
   }
 
   const formatDate = (dateString) => {
@@ -29,6 +63,30 @@ const MyMessages = () => {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const handleMessageClick = async (message) => {
+    setSelectedMessage(message)
+
+    // If there are unread admin messages, mark them as read
+    if (message.discussion && message.discussion.length > 0) {
+      // Find all discussion messages from admin with status 'new'
+      const unreadAdminMessages = message.discussion.filter(
+        reply => reply.from.includes('Admin User') && reply.status === 'new'
+      )
+
+      // Mark each unread admin message as read
+      for (const reply of unreadAdminMessages) {
+        if (reply._id) {
+          await markDiscussionMessageAsRead(message._id, reply._id)
+        }
+      }
+
+      // Refresh messages to get updated statuses
+      if (unreadAdminMessages.length > 0) {
+        await fetchMyMessages()
+      }
+    }
   }
 
   const handleSubmitReply = async (e) => {
@@ -52,7 +110,7 @@ const MyMessages = () => {
       if (result.success) {
         toast.success('Reply sent successfully')
         setReplyText('')
-        // Refresh messages to get the updated discussion
+        // Refresh messages to get the updated discussion (backend will handle status change)
         await fetchMyMessages()
         // Update selected message with the new discussion
         const updatedMessage = myMessages.find(m => m._id === selectedMessage._id)
@@ -106,8 +164,8 @@ const MyMessages = () => {
                     Sent on {formatDate(selectedMessage.createdAt)}
                   </p>
                 </div>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConfig[selectedMessage.status]?.color}`}>
-                  {statusConfig[selectedMessage.status]?.label}
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConfig[getDisplayStatus(selectedMessage)]?.color}`}>
+                  {statusConfig[getDisplayStatus(selectedMessage)]?.label}
                 </span>
               </div>
             </div>
@@ -136,9 +194,9 @@ const MyMessages = () => {
                     <div
                       key={index}
                       className={`rounded-lg p-4 border-l-4 ${
-                        reply.from === user.name
-                          ? 'bg-blue-50 border-blue-400'
-                          : 'bg-green-50 border-green-400'
+                        reply.from.includes('Admin User')
+                          ? 'bg-green-50 border-green-400'
+                          : 'bg-blue-50 border-blue-400'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -146,8 +204,15 @@ const MyMessages = () => {
                           <User className="w-4 h-4 text-gray-500" />
                           <span className="font-medium text-gray-900">
                             {reply.from}
-                            {reply.from === user.name && ' (You)'}
-                            {reply.from !== user.name && ' (Admin)'}
+                            {!reply.from.includes('Admin User') && ' (You)'}
+                            {reply.from.includes('Admin User') && ' (Admin)'}
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            reply.status === 'read'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {reply.status === 'read' ? 'Read' : 'New'}
                           </span>
                         </div>
                         <span className="text-xs text-gray-500">
@@ -163,33 +228,39 @@ const MyMessages = () => {
               {/* Reply Form */}
               <div className="mt-6 pt-6 border-t">
                 <h3 className="font-semibold text-gray-900 mb-4">Add a reply</h3>
-                <form onSubmit={handleSubmitReply} className="space-y-4">
-                  <div>
-                    <textarea
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Type your message here..."
-                      rows={4}
-                      maxLength={1000}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {replyText.length} / 1000 characters
-                    </p>
+                {selectedMessage.status === 'closed' ? (
+                  <div className="bg-gray-50 p-4 rounded-lg text-center">
+                    <p className="text-gray-600">This conversation is closed. No more replies can be added.</p>
                   </div>
+                ) : (
+                  <form onSubmit={handleSubmitReply} className="space-y-4">
+                    <div>
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Type your message here..."
+                        rows={4}
+                        maxLength={1000}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {replyText.length} / 1000 characters
+                      </p>
+                    </div>
 
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !replyText.trim()}
-                      className="flex items-center space-x-2 px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span>{isSubmitting ? 'Sending...' : 'Send Reply'}</span>
-                    </button>
-                  </div>
-                </form>
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || !replyText.trim()}
+                        className="flex items-center space-x-2 px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>{isSubmitting ? 'Sending...' : 'Send Reply'}</span>
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           </div>
@@ -207,29 +278,25 @@ const MyMessages = () => {
             ) : (
               <div className="divide-y divide-gray-200">
                 {myMessages.map((message) => {
-                  const StatusIcon = statusConfig[message.status]?.icon || Mail
-                  const hasUnreadReplies = message.discussion && message.discussion.length > 0 && message.status === 'replied'
+                  const displayStatus = getDisplayStatus(message)
+                  const StatusIcon = statusConfig[displayStatus]?.icon || Mail
+                  const hasNewReply = displayStatus === 'newlyReplied'
 
                   return (
                     <div
                       key={message._id}
                       className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        hasUnreadReplies ? 'bg-green-50' : ''
+                        hasNewReply ? 'bg-purple-50' : ''
                       }`}
-                      onClick={() => setSelectedMessage(message)}
+                      onClick={() => handleMessageClick(message)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[message.status]?.color}`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[displayStatus]?.color}`}>
                               <StatusIcon className="w-3 h-3 mr-1" />
-                              {statusConfig[message.status]?.label}
+                              {statusConfig[displayStatus]?.label}
                             </span>
-                            {hasUnreadReplies && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                New reply
-                              </span>
-                            )}
                           </div>
 
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">

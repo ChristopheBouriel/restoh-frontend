@@ -64,3 +64,13 @@ export const deleteContact = async (contactId) => {
     return { success: false, error: error.error || 'Error deleting message' }
   }
 }
+
+// Mark a discussion message as read (USER can mark admin messages, ADMIN can mark user messages)
+export const markDiscussionMessageAsRead = async (contactId, discussionId) => {
+  try {
+    const response = await apiClient.patch(`/contact/${contactId}/discussion/${discussionId}/status`, { status: 'read' })
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error marking message as read' }
+  }
+}
