@@ -15,7 +15,8 @@ const ContactsManagement = () => {
     deleteMessage,
     addReply,
     getMessagesStats,
-    markDiscussionMessageAsRead
+    markDiscussionMessageAsRead,
+    updateMessageStatus
   } = useContactsStore()
 
   const [filterStatus, setFilterStatus] = useState('all')
@@ -581,6 +582,29 @@ const ContactsManagement = () => {
                       <Trash2 className="w-4 h-4" />
                       <span>Delete</span>
                     </button>
+
+                    {/* Mark as Replied button - only for unregistered users */}
+                    {(!selectedMessage.userId || selectedMessage.userId === 'deleted-user') &&
+                     selectedMessage.status !== 'replied' &&
+                     selectedMessage.status !== 'closed' && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const result = await updateMessageStatus(selectedMessage._id, 'replied')
+                          if (result.success) {
+                            toast.success('Message marked as replied')
+                            await fetchMessages()
+                          } else {
+                            toast.error(result.error || 'Error updating status')
+                          }
+                        }}
+                        className="px-4 py-2 text-green-600 border border-green-600 rounded-md hover:bg-green-50 flex items-center space-x-2"
+                      >
+                        <Reply className="w-4 h-4" />
+                        <span>Mark as Replied</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => handleMarkAsClosed(selectedMessage._id)}
