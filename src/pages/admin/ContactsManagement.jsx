@@ -532,11 +532,17 @@ const ContactsManagement = () => {
                 <div className="pt-4 border-t">
                   <h3 className="font-semibold text-gray-900 mb-4">Add a reply</h3>
                   {selectedMessage.status === 'closed' ? (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                    <div className="bg-gray-50 p-4 rounded-lg text-center mb-4">
                       <p className="text-gray-600">This conversation is closed. No more replies can be added.</p>
                     </div>
+                  ) : !selectedMessage.userId || selectedMessage.userId === 'deleted-user' ? (
+                    <div className="bg-yellow-50 p-4 rounded-lg text-center mb-4 border border-yellow-200">
+                      <p className="text-gray-700">
+                        <strong>Unregistered user.</strong> Please contact them by email or phone.
+                      </p>
+                    </div>
                   ) : (
-                    <form onSubmit={handleSubmitReply} className="space-y-4">
+                    <form onSubmit={handleSubmitReply} className="space-y-4 mb-4">
                       <div>
                         <textarea
                           value={replyText}
@@ -552,28 +558,7 @@ const ContactsManagement = () => {
                         </p>
                       </div>
 
-                    <div className="flex justify-between">
-                      <div className="flex space-x-3">
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteMessage(selectedMessage._id)}
-                          className="px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 flex items-center space-x-2"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span>Delete</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMarkAsClosed(selectedMessage._id)}
-                          disabled={selectedMessage.status === 'closed'}
-                          className="px-4 py-2 text-gray-600 border border-gray-600 rounded-md hover:bg-gray-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span>{selectedMessage.status === 'closed' ? 'Closed' : 'Mark as Closed'}</span>
-                        </button>
-                      </div>
-
-                      <div className="flex space-x-3">
+                      <div className="flex justify-end">
                         <button
                           type="submit"
                           disabled={isSubmitting || !replyText.trim()}
@@ -583,9 +568,29 @@ const ContactsManagement = () => {
                           <span>{isSubmitting ? 'Sending...' : 'Send Reply'}</span>
                         </button>
                       </div>
-                    </div>
                     </form>
                   )}
+
+                  {/* Management buttons - always visible */}
+                  <div className="flex space-x-3 pt-4 border-t">
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMessage(selectedMessage._id)}
+                      className="px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 flex items-center space-x-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMarkAsClosed(selectedMessage._id)}
+                      disabled={selectedMessage.status === 'closed'}
+                      className="px-4 py-2 text-gray-600 border border-gray-600 rounded-md hover:bg-gray-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{selectedMessage.status === 'closed' ? 'Closed' : 'Mark as Closed'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               </div>

@@ -1,11 +1,14 @@
-import { useState } from 'react'
-import { Phone, Mail, MapPin, Clock, Send, MessageSquare } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Phone, Mail, MapPin, Clock, Send, MessageSquare, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useContactsStore from '../../store/contactsStore'
+import { useAuth } from '../../hooks/useAuth'
 import SimpleSelect from '../../components/common/SimpleSelect'
 
 const Contact = () => {
   const { createMessage, isLoading } = useContactsStore()
+  const { user } = useAuth()
+  const [messageSent, setMessageSent] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -15,6 +18,18 @@ const Contact = () => {
     message: '',
     contactReason: 'general'
   })
+
+  // Pre-fill form with user data if logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || ''
+      }))
+    }
+  }, [user])
 
 
   const contactReasons = [
@@ -89,17 +104,21 @@ const Contact = () => {
       })
       
       if (result.success) {
-        toast.success('Message sent successfully! We will respond quickly.')
-        
-        // Reset form
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          subject: '',
-          message: '',
-          contactReason: 'general'
-        })
+        // For registered users, show toast and reset form
+        if (user) {
+          toast.success('Message sent successfully! We will respond quickly.')
+          setFormData({
+            name: user.name || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            subject: '',
+            message: '',
+            contactReason: 'general'
+          })
+        } else {
+          // For unregistered users, show confirmation message
+          setMessageSent(true)
+        }
       } else {
         toast.error('Error sending message. Please try again.')
       }
@@ -192,9 +211,45 @@ const Contact = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                 <MessageSquare className="w-6 h-6 mr-2" />
-                Send us a message
+                {messageSent && !user ? 'Message sent successfully!' : 'Send us a message'}
               </h2>
-              
+
+              {messageSent && !user ? (
+                /* Success message for unregistered users */
+                <div className="space-y-6">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                      <Check className="h-6 w-6 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Thank you for your message!
+                    </h3>
+                    <p className="text-gray-700 mb-4">
+                      We have received your message and will contact you shortly <strong>by email or phone</strong>.
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Please check your inbox (including spam folder) for our response.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setMessageSent(false)
+                      setFormData({
+                        name: '',
+                        email: '',
+                        phone: '',
+                        subject: '',
+                        message: '',
+                        contactReason: 'general'
+                      })
+                    }}
+                    className="w-full flex justify-center items-center px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                  >
+                    Send another message
+                  </button>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-6" role="form">
                 {/* Contact reason */}
                 <div>
@@ -322,6 +377,7 @@ const Contact = () => {
                   * Required fields
                 </p>
               </form>
+              )}
             </div>
           </div>
         </div>
