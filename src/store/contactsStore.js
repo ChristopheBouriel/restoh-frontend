@@ -141,16 +141,6 @@ const useContactsStore = create(
         return await get().updateMessageStatus(messageId, 'read')
       },
 
-      // Mark message as replied (helper for updateMessageStatus)
-      markAsReplied: async (messageId) => {
-        return await get().updateMessageStatus(messageId, 'replied')
-      },
-
-      // Mark message as newly replied (helper for updateMessageStatus)
-      markAsNewlyReplied: async (messageId) => {
-        return await get().updateMessageStatus(messageId, 'newlyReplied')
-      },
-
       // Mark message as closed (helper for updateMessageStatus)
       markAsClosed: async (messageId) => {
         return await get().updateMessageStatus(messageId, 'closed')

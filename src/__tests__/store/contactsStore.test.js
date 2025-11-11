@@ -136,35 +136,6 @@ const createTestContactsStore = () => create((set, get) => ({
     }
   },
 
-  // Marquer un message comme répondu
-  markAsReplied: async (messageId) => {
-    set({ isLoading: true })
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      const now = new Date().toISOString()
-      const updatedMessages = get().messages.map(message =>
-        message.id === messageId 
-          ? { 
-              ...message, 
-              status: 'replied',
-              readAt: message.readAt || now,
-              repliedAt: now
-            }
-          : message
-      )
-      
-      set({ messages: updatedMessages, isLoading: false })
-      localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-      
-      return { success: true }
-    } catch (error) {
-      set({ isLoading: false })
-      return { success: false, error: error.message }
-    }
-  },
-
   // Delete un message
   deleteMessage: async (messageId) => {
     set({ isLoading: true })
@@ -369,42 +340,6 @@ describe('contactsStore', () => {
       expect(messages[0].readAt).toMatch(/2024-01-20T10:00:00\.\d{3}Z/)
       
       expect(mockLocalStorage.setItem).toHaveBeenCalled()
-    })
-
-    it('should mark message as replied with proper status transition', async () => {
-      // Set up initial message
-      const initialMessage = {
-        id: 'test-msg',
-        name: 'Test User',
-        email: 'test@example.com',
-        subject: 'Test',
-        message: 'Test content',
-        status: 'read',
-        createdAt: '2024-01-19T10:00:00Z',
-        readAt: '2024-01-19T11:00:00Z',
-        repliedAt: null
-      }
-      
-      store.setState({ messages: [initialMessage] })
-      
-      const promise = store.getState().markAsReplied('test-msg')
-      
-      await vi.advanceTimersByTimeAsync(300)
-      const result = await promise
-      
-      expect(result).toEqual({ success: true })
-      
-      const { messages } = store.getState()
-      
-      expect(messages[0]).toMatchObject({
-        id: 'test-msg',
-        status: 'replied',
-        readAt: '2024-01-19T11:00:00Z', // Should preserve existing readAt
-        repliedAt: expect.any(String)
-      })
-      
-      // Check timestamp format
-      expect(messages[0].repliedAt).toMatch(/2024-01-20T10:00:00\.\d{3}Z/)
     })
 
     it('should delete message and remove from store', async () => {

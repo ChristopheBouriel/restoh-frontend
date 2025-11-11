@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Mail, Eye, Check, Reply, Trash2, Filter, Clock, User, Phone, Send } from 'lucide-react'
 import useContactsStore from '../../store/contactsStore'
 import { toast } from 'react-hot-toast'
@@ -9,7 +9,6 @@ const ContactsManagement = () => {
     isLoading,
     fetchMessages,
     markAsRead,
-    markAsReplied,
     markAsClosed,
     deleteMessage,
     addReply,
@@ -21,10 +20,28 @@ const ContactsManagement = () => {
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [replyText, setReplyText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const discussionEndRef = useRef(null)
 
   useEffect(() => {
     fetchMessages()
   }, [fetchMessages])
+
+  // Update selectedMessage when messages change (after refresh)
+  useEffect(() => {
+    if (selectedMessage && messages.length > 0) {
+      const updatedMessage = messages.find(m => m._id === selectedMessage._id)
+      if (updatedMessage) {
+        setSelectedMessage(updatedMessage)
+      }
+    }
+  }, [messages])
+
+  // Scroll to bottom of discussion when modal opens or discussion updates
+  useEffect(() => {
+    if (selectedMessage && discussionEndRef.current) {
+      discussionEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [selectedMessage])
 
   const statusConfig = {
     new: {
@@ -58,14 +75,6 @@ const ContactsManagement = () => {
     if (filterStatus === 'all') return true
     return message.status === filterStatus
   })
-
-  const handleMarkAsRead = async (messageId) => {
-    await markAsRead(messageId)
-  }
-
-  const handleMarkAsReplied = async (messageId) => {
-    await markAsReplied(messageId)
-  }
 
   const handleDeleteMessage = async (messageId) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
@@ -136,18 +145,11 @@ const ContactsManagement = () => {
       const result = await addReply(selectedMessage._id, replyText, 'Admin')
 
       if (result.success) {
-        // Mark as replied after admin replies
-        await markAsReplied(selectedMessage._id)
-
         toast.success('Reply sent successfully')
         setReplyText('')
-        // Refresh messages to get the updated discussion
+        // Refresh messages to get the updated discussion (useEffect will update selectedMessage)
+        // Backend automatically changes contact status to 'replied'
         await fetchMessages()
-        // Update selected message with the new discussion
-        const updatedMessage = messages.find(m => m._id === selectedMessage._id)
-        if (updatedMessage) {
-          setSelectedMessage(updatedMessage)
-        }
       } else {
         toast.error(result.error || 'Error sending reply')
       }
@@ -405,8 +407,14 @@ const ContactsManagement = () => {
       {selectedMessage && (() => {
         const StatusIcon = statusConfig[selectedMessage.status]?.icon || Mail
         return (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedMessage(null)}
+          >
+            <div
+              className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-6">
@@ -515,6 +523,9 @@ const ContactsManagement = () => {
                     ))}
                   </div>
                 )}
+
+                {/* Scroll anchor */}
+                <div ref={discussionEndRef} />
 
                 {/* Reply Form */}
                 <div className="pt-4 border-t">

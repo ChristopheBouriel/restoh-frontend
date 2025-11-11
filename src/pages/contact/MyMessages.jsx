@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MessageSquare, Mail, Clock, Send, ChevronLeft, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useContactsStore from '../../store/contactsStore'
@@ -10,17 +10,34 @@ const MyMessages = () => {
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [replyText, setReplyText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const discussionEndRef = useRef(null)
 
   useEffect(() => {
     fetchMyMessages()
   }, [fetchMyMessages])
+
+  // Update selectedMessage when myMessages change (after refresh)
+  useEffect(() => {
+    if (selectedMessage && myMessages.length > 0) {
+      const updatedMessage = myMessages.find(m => m._id === selectedMessage._id)
+      if (updatedMessage) {
+        setSelectedMessage(updatedMessage)
+      }
+    }
+  }, [myMessages])
+
+  // Scroll to bottom of discussion when message opens or discussion updates
+  useEffect(() => {
+    if (selectedMessage && discussionEndRef.current) {
+      discussionEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [selectedMessage])
 
   const statusConfig = {
     new: { label: 'Sent', color: 'bg-blue-100 text-blue-800', icon: Mail },
     read: { label: 'Read', color: 'bg-yellow-100 text-yellow-800', icon: Mail },
     replied: { label: 'Replied', color: 'bg-green-100 text-green-800', icon: MessageSquare },
     newlyReplied: { label: 'New Reply', color: 'bg-purple-100 text-purple-800', icon: Mail },
-    opened: { label: 'Opened', color: 'bg-gray-100 text-gray-800', icon: MessageSquare },
     closed: { label: 'Closed', color: 'bg-gray-100 text-gray-800', icon: MessageSquare }
   }
 
@@ -33,7 +50,7 @@ const MyMessages = () => {
 
     // If no discussion yet, show based on contact status
     if (!message.discussion || message.discussion.length === 0) {
-      return message.status === 'new' ? 'new' : 'opened'
+      return message.status === 'new' ? 'new' : 'read'
     }
 
     // Get the last message in the discussion
@@ -51,8 +68,8 @@ const MyMessages = () => {
       return 'newlyReplied'
     }
 
-    // Otherwise → "Opened"
-    return 'opened'
+    // Otherwise → "Read"
+    return 'read'
   }
 
   const formatDate = (dateString) => {
@@ -110,13 +127,8 @@ const MyMessages = () => {
       if (result.success) {
         toast.success('Reply sent successfully')
         setReplyText('')
-        // Refresh messages to get the updated discussion (backend will handle status change)
+        // Refresh messages to get the updated discussion (useEffect will update selectedMessage)
         await fetchMyMessages()
-        // Update selected message with the new discussion
-        const updatedMessage = myMessages.find(m => m._id === selectedMessage._id)
-        if (updatedMessage) {
-          setSelectedMessage(updatedMessage)
-        }
       } else {
         toast.error(result.error || 'Error sending reply')
       }
@@ -224,6 +236,9 @@ const MyMessages = () => {
                   ))}
                 </div>
               )}
+
+              {/* Scroll anchor */}
+              <div ref={discussionEndRef} />
 
               {/* Reply Form */}
               <div className="mt-6 pt-6 border-t">

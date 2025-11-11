@@ -72,8 +72,10 @@ describe('ContactsManagement Component', () => {
     isLoading: false,
     fetchMessages: vi.fn(),
     markAsRead: vi.fn(),
-    markAsReplied: vi.fn(),
+    markAsClosed: vi.fn(),
     deleteMessage: vi.fn(),
+    addReply: vi.fn(),
+    markDiscussionMessageAsRead: vi.fn(),
     getMessagesStats: vi.fn(() => ({
       total: 4,
       new: 2,
@@ -254,26 +256,6 @@ describe('ContactsManagement Component', () => {
       })
     })
 
-    it('should mark message as replied from modal', async () => {
-      mockStoreState.markAsReplied.mockResolvedValue({ success: true })
-      renderComponent()
-      
-      // Open a message that's not yet replied
-      const messageElement = screen.getByText('Réservation événement d\'entreprise').closest('div[class*="p-6"]')
-      await user.click(messageElement)
-      
-      await waitFor(() => {
-        expect(screen.getByText('Mark as replied')).toBeInTheDocument()
-      })
-      
-      // Click the reply button
-      await user.click(screen.getByText('Mark as replied'))
-      
-      await waitFor(() => {
-        expect(mockStoreState.markAsReplied).toHaveBeenCalledWith('msg-002')
-      })
-    })
-
     it('should delete message with confirmation prompt', async () => {
       mockStoreState.deleteMessage.mockResolvedValue({ success: true })
       renderComponent()
@@ -368,33 +350,6 @@ describe('ContactsManagement Component', () => {
       
       await waitFor(() => {
         expect(screen.queryByText('Message')).not.toBeInTheDocument()
-      })
-    })
-
-    it('should show different action buttons based on message status', async () => {
-      renderComponent()
-      
-      // Open a new/read message - should show "Mark as replied"
-      const unRepliedMessage = screen.getByText('Réservation événement d\'entreprise').closest('div[class*="p-6"]')
-      await user.click(unRepliedMessage)
-      
-      await waitFor(() => {
-        expect(screen.getByText('Mark as replied')).toBeInTheDocument()
-        expect(screen.getByText('Delete')).toBeInTheDocument()
-        expect(screen.getByText('Close')).toBeInTheDocument()
-      })
-      
-      // Close modal
-      await user.click(screen.getByText('Close'))
-      
-      // Open a replied message - should NOT show "Mark as replied"
-      const repliedMessage = screen.getByText('Compliments sur le service').closest('div[class*="p-6"]')
-      await user.click(repliedMessage)
-      
-      await waitFor(() => {
-        expect(screen.queryByText('Mark as replied')).not.toBeInTheDocument()
-        expect(screen.getByText('Delete')).toBeInTheDocument()
-        expect(screen.getByText('Close')).toBeInTheDocument()
       })
     })
   })
