@@ -122,7 +122,7 @@ const MyMessages = () => {
     setIsSubmitting(true)
 
     try {
-      const result = await addReply(selectedMessage._id, replyText, user.name)
+      const result = await addReply(selectedMessage._id, replyText)
 
       if (result.success) {
         toast.success('Reply sent successfully')

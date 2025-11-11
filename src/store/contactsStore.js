@@ -147,11 +147,11 @@ const useContactsStore = create(
       },
 
       // Add reply to discussion (user or admin)
-      addReply: async (messageId, text, from) => {
+      addReply: async (messageId, text) => {
         set({ isLoading: true, error: null })
 
         try {
-          const result = await contactsApi.addReplyToDiscussion(messageId, text, from)
+          const result = await contactsApi.addReplyToDiscussion(messageId, text)
 
           if (result.success) {
             set({ isLoading: false })

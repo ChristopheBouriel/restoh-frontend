@@ -46,9 +46,9 @@ export const updateContactStatus = async (contactId, status) => {
 }
 
 // Add reply to discussion (USER can reply to own, ADMIN to all)
-export const addReplyToDiscussion = async (contactId, text, from) => {
+export const addReplyToDiscussion = async (contactId, text) => {
   try {
-    const response = await apiClient.patch(`/contact/${contactId}/reply`, { text, from })
+    const response = await apiClient.patch(`/contact/${contactId}/reply`, { text })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error adding reply' }
