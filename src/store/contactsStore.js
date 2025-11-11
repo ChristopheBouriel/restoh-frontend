@@ -240,7 +240,7 @@ const useContactsStore = create(
       },
 
       getNewMessagesCount: () => {
-        return get().messages.filter(message => message.status === 'new').length
+        return get().messages.filter(message => message.status === 'new' || message.status === 'newlyReplied').length
       },
 
       // Statistics (computed locally)

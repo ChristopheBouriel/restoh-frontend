@@ -160,7 +160,7 @@ const createTestContactsStore = () => create((set, get) => ({
   },
 
   getNewMessagesCount: () => {
-    return get().messages.filter(message => message.status === 'new').length
+    return get().messages.filter(message => message.status === 'new' || message.status === 'newlyReplied').length
   },
 
   // Statistiques
@@ -456,8 +456,23 @@ describe('contactsStore', () => {
 
     it('should count new messages accurately', () => {
       const newCount = store.getState().getNewMessagesCount()
-      
+
       expect(newCount).toBe(2)
+    })
+
+    it('should count new and newly replied messages together', () => {
+      const messagesWithNewlyReplied = [
+        { id: 'msg-1', status: 'new', name: 'User 1' },
+        { id: 'msg-2', status: 'newlyReplied', name: 'User 2' },
+        { id: 'msg-3', status: 'read', name: 'User 3' },
+        { id: 'msg-4', status: 'replied', name: 'User 4' }
+      ]
+
+      store.setState({ messages: messagesWithNewlyReplied })
+
+      const newCount = store.getState().getNewMessagesCount()
+
+      expect(newCount).toBe(2) // 1 new + 1 newlyReplied
     })
 
     it('should calculate message statistics by status', () => {
