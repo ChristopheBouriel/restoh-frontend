@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Mail, Eye, Check, Reply, Trash2, Filter, Clock, User, Phone, Send } from 'lucide-react'
 import useContactsStore from '../../store/contactsStore'
+import { useAuth } from '../../hooks/useAuth'
 import { toast } from 'react-hot-toast'
 
 const ContactsManagement = () => {
+  const { user } = useAuth()
   const {
     messages,
     isLoading,
@@ -105,7 +107,7 @@ const ContactsManagement = () => {
     if (message.status === 'newlyReplied' && message.discussion && message.discussion.length > 0) {
       // Find all discussion messages from user with status 'new'
       const unreadUserMessages = message.discussion.filter(
-        reply => !reply.from.includes('Admin User') && reply.status === 'new'
+        reply => reply.role !== 'admin' && reply.status === 'new'
       )
 
       // Mark each unread user message as read
@@ -142,7 +144,7 @@ const ContactsManagement = () => {
     setIsSubmitting(true)
 
     try {
-      const result = await addReply(selectedMessage._id, replyText, 'Admin')
+      const result = await addReply(selectedMessage._id, replyText, user.name)
 
       if (result.success) {
         toast.success('Reply sent successfully')
@@ -494,7 +496,7 @@ const ContactsManagement = () => {
                       <div
                         key={index}
                         className={`rounded-lg p-4 border-l-4 ${
-                          reply.from.includes('Admin User')
+                          reply.role === 'admin'
                             ? 'bg-green-50 border-green-400'
                             : 'bg-blue-50 border-blue-400'
                         }`}
@@ -503,8 +505,7 @@ const ContactsManagement = () => {
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4 text-gray-500" />
                             <span className="font-medium text-gray-900">
-                              {reply.from}
-                              {reply.from.includes('Admin User') && ' (You)'}
+                              {reply.userId === user._id ? 'You' : reply.name}
                             </span>
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                               reply.status === 'read'

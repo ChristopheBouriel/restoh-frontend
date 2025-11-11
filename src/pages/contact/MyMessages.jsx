@@ -57,12 +57,12 @@ const MyMessages = () => {
     const lastDiscussionMessage = message.discussion[message.discussion.length - 1]
 
     // If last message is from user AND status is 'new' → "Replied"
-    if (!lastDiscussionMessage.from.includes('Admin User') && lastDiscussionMessage.status === 'new') {
+    if (lastDiscussionMessage.role !== 'admin' && lastDiscussionMessage.status === 'new') {
       return 'replied'
     }
 
     // If last message is from admin AND status is 'new' AND contact status is 'replied' → "New Reply"
-    if (lastDiscussionMessage.from.includes('Admin User') &&
+    if (lastDiscussionMessage.role === 'admin' &&
         lastDiscussionMessage.status === 'new' &&
         message.status === 'replied') {
       return 'newlyReplied'
@@ -89,7 +89,7 @@ const MyMessages = () => {
     if (message.discussion && message.discussion.length > 0) {
       // Find all discussion messages from admin with status 'new'
       const unreadAdminMessages = message.discussion.filter(
-        reply => reply.from.includes('Admin User') && reply.status === 'new'
+        reply => reply.role === 'admin' && reply.status === 'new'
       )
 
       // Mark each unread admin message as read
@@ -206,7 +206,7 @@ const MyMessages = () => {
                     <div
                       key={index}
                       className={`rounded-lg p-4 border-l-4 ${
-                        reply.from.includes('Admin User')
+                        reply.role === 'admin'
                           ? 'bg-green-50 border-green-400'
                           : 'bg-blue-50 border-blue-400'
                       }`}
@@ -215,9 +215,7 @@ const MyMessages = () => {
                         <div className="flex items-center space-x-2">
                           <User className="w-4 h-4 text-gray-500" />
                           <span className="font-medium text-gray-900">
-                            {reply.from}
-                            {!reply.from.includes('Admin User') && ' (You)'}
-                            {reply.from.includes('Admin User') && ' (Admin)'}
+                            {reply.userId === user._id ? 'You' : (reply.role === 'admin' ? 'Admin' : reply.name)}
                           </span>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             reply.status === 'read'
