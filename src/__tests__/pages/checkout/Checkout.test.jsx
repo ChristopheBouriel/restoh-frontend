@@ -126,16 +126,22 @@ describe('Checkout Component', () => {
   test('should update form fields when user types in inputs', async () => {
     const user = userEvent.setup()
     render(<CheckoutWrapper />)
-    
-    const addressField = screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris')
+
+    const streetField = screen.getByPlaceholderText('123 Rue de la Paix')
+    const cityField = screen.getByPlaceholderText('Paris')
+    const zipCodeField = screen.getByPlaceholderText('75001')
     const phoneField = screen.getByPlaceholderText('06 12 34 56 78')
     const notesField = screen.getByPlaceholderText('Floor, access code, special instructions...')
-    
-    await user.type(addressField, '123 Rue de la Paix')
+
+    await user.type(streetField, '123 Rue de la Paix')
+    await user.type(cityField, 'Paris')
+    await user.type(zipCodeField, '75001')
     await user.type(phoneField, '0123456789')
     await user.type(notesField, 'Ring at 2nd floor')
-    
-    expect(addressField).toHaveValue('123 Rue de la Paix')
+
+    expect(streetField).toHaveValue('123 Rue de la Paix')
+    expect(cityField).toHaveValue('Paris')
+    expect(zipCodeField).toHaveValue('75001')
     expect(phoneField).toHaveValue('0123456789')
     expect(notesField).toHaveValue('Ring at 2nd floor')
   })
@@ -161,20 +167,24 @@ describe('Checkout Component', () => {
   test('should require delivery address and phone fields for form submission', async () => {
     const user = userEvent.setup()
     render(<CheckoutWrapper />)
-    
+
     const submitButton = screen.getByRole('button', { name: /Order - 44.30€/i })
-    
+
     // Try to submit without filling required fields
     await user.click(submitButton)
-    
+
     // Form should not submit (createOrder should not be called)
     expect(mockCreateOrder).not.toHaveBeenCalled()
-    
+
     // Required field validation is handled by HTML5 required attribute
-    const addressField = screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris')
+    const streetField = screen.getByPlaceholderText('123 Rue de la Paix')
+    const cityField = screen.getByPlaceholderText('Paris')
+    const zipCodeField = screen.getByPlaceholderText('75001')
     const phoneField = screen.getByPlaceholderText('06 12 34 56 78')
-    
-    expect(addressField).toBeRequired()
+
+    expect(streetField).toBeRequired()
+    expect(cityField).toBeRequired()
+    expect(zipCodeField).toBeRequired()
     expect(phoneField).toBeRequired()
   })
 
@@ -182,90 +192,100 @@ describe('Checkout Component', () => {
   test('should create order successfully when form is submitted with valid data', async () => {
     const user = userEvent.setup()
     render(<CheckoutWrapper />)
-    
+
     // Fill required fields
-    await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
+    await user.type(screen.getByPlaceholderText('75001'), '75001')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
     await user.type(screen.getByPlaceholderText('Floor, access code, special instructions...'), 'Ring at 2nd')
-    
+
     // Submit form
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
-    
+
     // Wait for async operations to complete
     await vi.waitFor(() => {
       expect(mockCreateOrder).toHaveBeenCalled()
     }, { timeout: 3000 })
-    
+
     expect(mockCreateOrder).toHaveBeenCalledWith({
       userId: mockUser.id,
       userEmail: mockUser.email,
       userName: mockUser.name,
       items: mockCartItems,
       totalPrice: 44.30,
-      deliveryAddress: '123 Rue de la Paix',
+      deliveryAddress: {
+        street: '123 Rue de la Paix',
+        city: 'Paris',
+        zipCode: '75001'
+      },
       phone: '0123456789',
       notes: 'Ring at 2nd',
       orderType: 'delivery',
       paymentMethod: 'card',
       paymentStatus: 'paid' // Card payments are automatically paid
     })
-    
+
     expect(mockClearCart).toHaveBeenCalled()
     expect(toast.success).toHaveBeenCalledWith('🎉 Order placed successfully!')
   })
 
   test('should show loading state during order processing', async () => {
     const user = userEvent.setup()
-    
+
     // Mock slow order creation
     let resolveOrder
     const orderPromise = new Promise(resolve => {
       resolveOrder = resolve
     })
     mockCreateOrder.mockReturnValue(orderPromise)
-    
+
     render(<CheckoutWrapper />)
-    
+
     // Fill required fields
-    await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
+    await user.type(screen.getByPlaceholderText('75001'), '75001')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
-    
+
     // Submit form
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
-    
+
     // Should show loading state
     expect(screen.getByText('Processing...')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Processing.../i })).toBeDisabled()
-    
+
     // Resolve the promise to cleanup
     resolveOrder({ success: true, orderId: 'ORDER123' })
   })
 
   test('should handle order creation errors gracefully', async () => {
     const user = userEvent.setup()
-    
+
     // Mock order creation failure
     mockCreateOrder.mockResolvedValue({
       success: false,
       error: 'Payment failed'
     })
-    
+
     render(<CheckoutWrapper />)
-    
+
     // Fill required fields and submit
-    await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
+    await user.type(screen.getByPlaceholderText('75001'), '75001')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
-    
+
     // Wait for order processing to complete and error to be handled
     await vi.waitFor(() => {
       expect(mockCreateOrder).toHaveBeenCalled()
     }, { timeout: 3000 })
-    
+
     await vi.waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Payment failed')
     }, { timeout: 3000 })
-    
+
     // Should not clear cart on error
     expect(mockClearCart).not.toHaveBeenCalled()
   })
@@ -302,23 +322,25 @@ describe('Checkout Component', () => {
   test('should show order confirmation with order details after successful submission', async () => {
     const user = userEvent.setup()
     render(<CheckoutWrapper />)
-    
+
     // Fill form and submit
-    await user.type(screen.getByPlaceholderText('123 Rue de la Paix, 75001 Paris'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
+    await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
+    await user.type(screen.getByPlaceholderText('75001'), '75001')
     await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
-    
+
     // Wait for success state
     await vi.waitFor(() => {
       expect(screen.getByText('Order confirmed!')).toBeInTheDocument()
     }, { timeout: 3000 })
-    
+
     // Check order confirmation details
     expect(screen.getByText(/Your order/)).toBeInTheDocument()
     expect(screen.getByText('#ORDER123')).toBeInTheDocument()
     expect(screen.getByText('Total paid:')).toBeInTheDocument()
     expect(screen.getByText('Items:')).toBeInTheDocument()
-    
+
     // Check navigation buttons
     expect(screen.getByRole('button', { name: 'View my orders' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Continue shopping' })).toBeInTheDocument()

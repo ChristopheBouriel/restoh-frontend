@@ -19,7 +19,12 @@ const mockOrders = [
       { name: 'Pizza Margherita', quantity: 1, price: 12.50 },
       { name: 'Tiramisu', quantity: 2, price: 8.00 }
     ],
-    deliveryAddress: '123 Rue de la Paix, Paris',
+    deliveryAddress: {
+      street: '123 Rue de la Paix',
+      city: 'Paris',
+      zipCode: '75001'
+    },
+    orderType: 'delivery',
     phone: '0123456789',
     paymentMethod: 'card',
     paymentStatus: 'paid',
@@ -36,7 +41,12 @@ const mockOrders = [
       { name: 'Salade César', quantity: 1, price: 9.50 },
       { name: 'Panna Cotta', quantity: 1, price: 7.50 }
     ],
-    deliveryAddress: '456 Avenue des Champs, Lyon',
+    deliveryAddress: {
+      street: '456 Avenue des Champs',
+      city: 'Lyon',
+      zipCode: '69000'
+    },
+    orderType: 'delivery',
     phone: '0987654321',
     paymentMethod: 'cash',
     paymentStatus: 'pending'
@@ -51,7 +61,12 @@ const mockOrders = [
       { name: 'Pizza Pepperoni', quantity: 1, price: 15.50 },
       { name: 'Coca Cola', quantity: 1, price: 4.00 }
     ],
-    deliveryAddress: '789 Boulevard Saint-Germain, Paris',
+    deliveryAddress: {
+      street: '789 Boulevard Saint-Germain',
+      city: 'Paris',
+      zipCode: '75006'
+    },
+    orderType: 'delivery',
     phone: '0147258369',
     paymentMethod: 'cash',
     paymentStatus: 'pending',
@@ -67,7 +82,12 @@ const mockOrders = [
       { name: 'Lasagnes', quantity: 1, price: 16.50 },
       { name: 'Bruschetta', quantity: 2, price: 7.75 }
     ],
-    deliveryAddress: '321 Rue de Rivoli, Paris',
+    deliveryAddress: {
+      street: '321 Rue de Rivoli',
+      city: 'Paris',
+      zipCode: '75001'
+    },
+    orderType: 'delivery',
     paymentMethod: 'cash',
     paymentStatus: 'pending'
   }
@@ -266,9 +286,11 @@ describe('Orders Component', () => {
     expect(screen.getByText('Pizza Margherita x1')).toBeInTheDocument()
     expect(screen.getByText('Tiramisu x2')).toBeInTheDocument()
 
-    // Should show delivery information
-    expect(screen.getByText('Delivery information')).toBeInTheDocument()
-    expect(screen.getByText('123 Rue de la Paix, Paris')).toBeInTheDocument()
+    // Should show delivery information with new address format
+    expect(screen.getByText('Address:')).toBeInTheDocument()
+    expect(screen.getByText('123 Rue de la Paix')).toBeInTheDocument()
+    expect(screen.getByText('75001 Paris')).toBeInTheDocument()
+    expect(screen.getByText('Phone:')).toBeInTheDocument()
     expect(screen.getByText('0123456789')).toBeInTheDocument()
     expect(screen.getByText(/Card/)).toBeInTheDocument()
     expect(screen.getByText('Sonnez au 2ème étage')).toBeInTheDocument()

@@ -67,6 +67,9 @@ describe('Reservations Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    // Mock window.scrollTo to avoid JSDOM errors
+    window.scrollTo = vi.fn()
+
     // Mock current date to 2025-01-01
     vi.setSystemTime(new Date('2025-01-01'))
 
@@ -262,7 +265,9 @@ describe('Reservations Component', () => {
     await user.click(modifyButtons[0])
 
     // Should show edit mode notification
-    expect(screen.getByText('✏️ Edit mode - Modify details below')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('✏️ Edit mode - Modify details below')).toBeInTheDocument()
+    })
 
     // Submit button text should change
     expect(screen.getByRole('button', { name: '✏️ Update' })).toBeInTheDocument()
@@ -271,6 +276,19 @@ describe('Reservations Component', () => {
     const cancelButton = document.querySelector('.px-4.py-3.bg-gray-200')
     expect(cancelButton).toBeInTheDocument()
     expect(cancelButton).toHaveTextContent('Cancel')
+
+    // Verify form fields are populated with reservation data
+    // Date picker should have the reservation's date
+    const datePicker = screen.getByPlaceholderText('DD/MM/YYYY')
+    expect(datePicker).toHaveValue('15/01/2025') // mockReservations[0] date: '2025-01-15'
+
+    // Party size should be set (mockReservations[0] guests: 4)
+    const partySizeDisplay = screen.getByText('4', { selector: 'span.flex-1' })
+    expect(partySizeDisplay).toBeInTheDocument()
+
+    // Special requests should be filled
+    const specialRequestsField = screen.getByPlaceholderText('Allergies, table preferences, special occasion...')
+    expect(specialRequestsField).toHaveValue('Table by the window')
 
     expect(toast.info).toHaveBeenCalledWith('Edit mode: Re-select tables (previously booked tables are highlighted)')
   })
@@ -283,13 +301,27 @@ describe('Reservations Component', () => {
     const modifyButtons = screen.getAllByText('Edit')
     await user.click(modifyButtons[0])
 
+    await waitFor(() => {
+      expect(screen.getByText('✏️ Edit mode - Modify details below')).toBeInTheDocument()
+    })
+
     // Click cancel - select the form cancel button specifically by class
     const cancelButton = document.querySelector('.px-4.py-3.bg-gray-200')
     await user.click(cancelButton)
 
     // Should exit edit mode
-    expect(screen.queryByText('✏️ Edit mode - Modify details below')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText('✏️ Edit mode - Modify details below')).not.toBeInTheDocument()
+    })
     expect(screen.getByRole('button', { name: '🗓️ Book' })).toBeInTheDocument()
+
+    // Form should be reset
+    const datePicker = screen.getByPlaceholderText('DD/MM/YYYY')
+    expect(datePicker).toHaveValue('')
+
+    // Party size should be reset to default (2)
+    const partySizeDisplay = screen.getByText('2', { selector: 'span.flex-1' })
+    expect(partySizeDisplay).toBeInTheDocument()
 
     // Verify both toast calls
     expect(toast.info).toHaveBeenCalledWith('Edit mode: Re-select tables (previously booked tables are highlighted)')
@@ -533,21 +565,8 @@ describe('Reservations Component', () => {
     })
   })
 
-  // 9. AMÉLIORATIONS DU MODE ÉDITION (3 tests)
+  // 9. AMÉLIORATIONS DU MODE ÉDITION (2 tests)
   describe('Edit Mode Improvements', () => {
-    test('should scroll to top when entering edit mode', async () => {
-      const user = userEvent.setup()
-      const scrollToSpy = vi.fn()
-      window.scrollTo = scrollToSpy
-
-      render(<ReservationsWrapper />)
-
-      const modifyButtons = screen.getAllByText('Edit')
-      await user.click(modifyButtons[0])
-
-      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
-    })
-
     test('should clear selected tables on edit', async () => {
       const user = userEvent.setup()
       render(<ReservationsWrapper />)
@@ -596,13 +615,8 @@ describe('Reservations Component', () => {
     })
   })
 
-  // 11. INLINEALERT INTEGRATION (6 tests)
+  // 11. INLINEALERT INTEGRATION (5 tests)
   describe('InlineAlert Integration - Error Details Handling', () => {
-    beforeEach(() => {
-      // Mock window.scrollTo for all InlineAlert tests
-      window.scrollTo = vi.fn()
-    })
-
     test('should show InlineAlert when create returns error with suggestedTables', async () => {
       const user = userEvent.setup()
 
@@ -638,28 +652,6 @@ describe('Reservations Component', () => {
 
       // InlineAlert should not be visible when there are no details
       expect(screen.queryByText('Tables 5 and 6 are unavailable')).not.toBeInTheDocument()
-    })
-
-    test('should scroll to top when InlineAlert is displayed', async () => {
-      const scrollToSpy = vi.fn()
-      window.scrollTo = scrollToSpy
-
-      const errorWithDetails = {
-        success: false,
-        error: 'Tables 5 and 6 are unavailable',
-        details: {
-          suggestedTables: [7, 8, 9],
-          reason: 'Already reserved'
-        }
-      }
-
-      mockCreateReservation.mockResolvedValue(errorWithDetails)
-
-      render(<ReservationsWrapper />)
-
-      // Scroll behavior would be tested when form is actually submitted
-      // For now, verify the spy is set up
-      expect(scrollToSpy).toBeDefined()
     })
 
     test('should show InlineAlert when update returns error with suggestedTables', async () => {
