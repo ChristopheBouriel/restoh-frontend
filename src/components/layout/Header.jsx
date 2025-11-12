@@ -40,12 +40,13 @@ const Header = () => {
     return path !== ROUTES.HOME && location.pathname.startsWith(path)
   }
 
+  // Filter nav items based on user role
   const navItems = [
     { label: 'Home', path: ROUTES.HOME },
     { label: 'Menu', path: ROUTES.MENU },
     { label: 'Reservations', path: ROUTES.RESERVATIONS },
-    { label: 'Contact', path: ROUTES.CONTACT },
-  ]
+    { label: 'Contact', path: ROUTES.CONTACT, hideForAdmin: true },
+  ].filter(item => !(item.hideForAdmin && user?.role === 'admin'))
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50" onClick={handleHeaderClick}>
@@ -128,14 +129,16 @@ const Header = () => {
                     >
                       My Reservations
                     </Link>
-                    <Link
-                      to={ROUTES.MY_MESSAGES}
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                    >
-                      <MessageSquare size={16} className="mr-2" />
-                      My Messages
-                    </Link>
+                    {user?.role !== 'admin' && (
+                      <Link
+                        to={ROUTES.MY_MESSAGES}
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <MessageSquare size={16} className="mr-2" />
+                        My Messages
+                      </Link>
+                    )}
                     {user?.role === 'admin' && (
                       <Link
                         to="/admin"

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MessageSquare, Mail, Clock, Send, ChevronLeft, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useContactsStore from '../../store/contactsStore'
 import { useAuth } from '../../hooks/useAuth'
 
 const MyMessages = () => {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { myMessages, isLoading, fetchMyMessages, addReply, markDiscussionMessageAsRead } = useContactsStore()
   const [selectedMessage, setSelectedMessage] = useState(null)
@@ -12,9 +14,19 @@ const MyMessages = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const discussionEndRef = useRef(null)
 
+  // Redirect admins to admin panel
   useEffect(() => {
-    fetchMyMessages()
-  }, [fetchMyMessages])
+    if (user?.role === 'admin') {
+      toast.error('Admins should use the Contacts Management page')
+      navigate('/admin/contacts')
+    }
+  }, [user, navigate])
+
+  useEffect(() => {
+    if (user?.role !== 'admin') {
+      fetchMyMessages()
+    }
+  }, [fetchMyMessages, user])
 
   // Update selectedMessage when myMessages change (after refresh)
   useEffect(() => {

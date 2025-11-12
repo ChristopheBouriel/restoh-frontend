@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Phone, Mail, MapPin, Clock, Send, MessageSquare, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useContactsStore from '../../store/contactsStore'
@@ -6,9 +7,18 @@ import { useAuth } from '../../hooks/useAuth'
 import SimpleSelect from '../../components/common/SimpleSelect'
 
 const Contact = () => {
+  const navigate = useNavigate()
   const { createMessage, isLoading } = useContactsStore()
   const { user } = useAuth()
   const [messageSent, setMessageSent] = useState(false)
+
+  // Redirect admins to admin panel
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      toast.error('Admins should use the Contacts Management page')
+      navigate('/admin/contacts')
+    }
+  }, [user, navigate])
 
   const [formData, setFormData] = useState({
     name: '',
