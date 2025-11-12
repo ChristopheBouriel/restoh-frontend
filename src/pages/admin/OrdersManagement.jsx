@@ -779,6 +779,9 @@ const OrdersManagement = () => {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p><strong>Name:</strong> {selectedOrder.userName || 'N/A'}</p>
                     <p><strong>Email:</strong> {selectedOrder.userEmail}</p>
+                    {selectedOrder.phone && (
+                      <p><strong>Phone:</strong> {selectedOrder.phone}</p>
+                    )}
                     <p><strong>Date:</strong> {formatDate(selectedOrder.createdAt)}</p>
                   </div>
                 </div>
