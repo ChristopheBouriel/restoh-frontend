@@ -4,9 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import ContactsManagement from '../../../pages/admin/ContactsManagement'
 import useContactsStore from '../../../store/contactsStore'
+import { useAuth } from '../../../hooks/useAuth'
 
-// Mock the contacts store
+// Mock dependencies
 vi.mock('../../../store/contactsStore')
+vi.mock('../../../hooks/useAuth')
+
+// Mock scrollIntoView
+window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 // Mock window.confirm for delete confirmation
 Object.defineProperty(window, 'confirm', {
@@ -18,49 +23,53 @@ describe('ContactsManagement Component', () => {
   // Create realistic test data with various message scenarios
   const mockMessages = [
     {
-      id: 'msg-001',
+      _id: 'msg-001',
       name: 'Marie Dubois',
       email: 'marie.dubois@email.com',
       phone: '06 12 34 56 78',
       subject: 'Question about allergens',
       message: 'Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.',
       status: 'new',
+      discussion: [],
       createdAt: '2024-01-20T10:00:00Z',
       readAt: null,
       repliedAt: null
     },
     {
-      id: 'msg-002',
+      _id: 'msg-002',
       name: 'Pierre Martin',
       email: 'pierre.martin@company.fr',
       phone: '01 23 45 67 89',
       subject: 'Réservation événement d\'entreprise',
       message: 'Nous souhaitons organiser un événement d\'entreprise pour 50 personnes le mois prochain. Proposez-vous des menus de groupe et avez-vous une salle privée disponible ?',
       status: 'read',
+      discussion: [],
       createdAt: '2024-01-19T14:30:00Z',
       readAt: '2024-01-19T14:45:00Z',
       repliedAt: null
     },
     {
-      id: 'msg-003',
+      _id: 'msg-003',
       name: 'Sophie Leroy',
       email: 'sophie.leroy@gmail.com',
       phone: null, // No phone number
       subject: 'Compliments sur le service',
       message: 'Excellent repas hier soir ! Le service était impeccable et les plats délicieux. Nous reviendrons certainement. Merci à toute l\'équipe.',
       status: 'replied',
+      discussion: [],
       createdAt: '2024-01-18T19:15:00Z',
       readAt: '2024-01-18T19:30:00Z',
       repliedAt: '2024-01-18T20:00:00Z'
     },
     {
-      id: 'msg-004',
+      _id: 'msg-004',
       name: 'Jean Dupont',
       email: 'jean.dupont@hotmail.com',
       phone: '07 98 76 54 32',
       subject: 'Question about hours',
       message: 'Hello, are you open on Sunday at noon? Thank you.',
       status: 'new',
+      discussion: [],
       createdAt: '2024-01-20T09:15:00Z',
       readAt: null,
       repliedAt: null
@@ -76,6 +85,7 @@ describe('ContactsManagement Component', () => {
     deleteMessage: vi.fn(),
     addReply: vi.fn(),
     markDiscussionMessageAsRead: vi.fn(),
+    updateMessageStatus: vi.fn(),
     getMessagesStats: vi.fn(() => ({
       total: 4,
       new: 2,
@@ -97,7 +107,21 @@ describe('ContactsManagement Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     window.confirm.mockReturnValue(true) // Default to confirming deletion
+
+    // Set successful return values for async store methods
+    mockStoreState.markAsRead.mockResolvedValue({ success: true })
+    mockStoreState.fetchMessages.mockResolvedValue({ success: true })
+    mockStoreState.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
     useContactsStore.mockReturnValue(mockStoreState)
+    useAuth.mockReturnValue({
+      user: {
+        _id: 'admin-123',
+        name: 'Admin User',
+        email: 'admin@test.com',
+        role: 'admin'
+      }
+    })
   })
 
   // 1. Core Rendering Tests
@@ -228,17 +252,19 @@ describe('ContactsManagement Component', () => {
   describe('Message Actions', () => {
     it('should open message modal when message is clicked', async () => {
       renderComponent()
-      
+
       // Click on the first message
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
-      
+
       await waitFor(() => {
         // Modal should be open with message details
-        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(1)
-        expect(screen.getByText('Message')).toBeInTheDocument()
+        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(2) // Name appears in list and modal
+        expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(2)
+        expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(2)
+        // Check for modal-specific labels
+        expect(screen.getByText('Name')).toBeInTheDocument()
+        expect(screen.getByText('Email')).toBeInTheDocument()
         expect(screen.getAllByText('Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.').length).toBeGreaterThanOrEqual(1)
       })
     })
@@ -296,60 +322,41 @@ describe('ContactsManagement Component', () => {
         
         // Check contact information section
         expect(screen.getByText('Name')).toBeInTheDocument()
-        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(2) // Appears in list and modal
         expect(screen.getByText('Email')).toBeInTheDocument()
-        expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(2)
         expect(screen.getByText('Phone')).toBeInTheDocument()
-        expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(2)
         expect(screen.getByText('Date')).toBeInTheDocument()
-        
-        // Check message content
-        expect(screen.getByText('Message')).toBeInTheDocument()
+
+        // Check message content is displayed
         expect(screen.getAllByText('Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.').length).toBeGreaterThanOrEqual(1)
       })
     })
 
-    it('should close modal with close button and X button', async () => {
+    it('should close modal with X button', async () => {
       renderComponent()
-      
+
       // Open modal
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Message')).toBeInTheDocument()
+        // Check modal is open by looking for modal-specific labels
+        expect(screen.getByText('Name')).toBeInTheDocument()
+        expect(screen.getByText('Email')).toBeInTheDocument()
       })
-      
+
       // Close with X button (find by SVG path since X is implemented as SVG)
       const xButtons = screen.getAllByRole('button')
       const xButton = xButtons.find(button => button.querySelector('svg path[d*="M6 18L18 6M6 6l12 12"]'))
-      if (xButton) {
-        await user.click(xButton)
-        
-        await waitFor(() => {
-          expect(screen.queryByText('Message')).not.toBeInTheDocument()
-        })
-      } else {
-        // Skip X button test if not found, focus on close button test
-        await user.click(screen.getByText('Close'))
-        
-        await waitFor(() => {
-          expect(screen.queryByText('Message')).not.toBeInTheDocument()
-        })
-      }
-      
-      // Open again and close with "Close" button
-      await user.click(messageElement)
-      
+
+      expect(xButton).toBeDefined()
+      await user.click(xButton)
+
       await waitFor(() => {
-        expect(screen.getByText('Message')).toBeInTheDocument()
-      })
-      
-      const closeButton = screen.getByText('Close')
-      await user.click(closeButton)
-      
-      await waitFor(() => {
-        expect(screen.queryByText('Message')).not.toBeInTheDocument()
+        // Modal should be closed - Date label should not be visible
+        expect(screen.queryByText('Date')).not.toBeInTheDocument()
       })
     })
   })

@@ -5,10 +5,12 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import Contact from '../../../pages/contact/Contact'
 import useContactsStore from '../../../store/contactsStore'
+import { useAuth } from '../../../hooks/useAuth'
 import { toast } from 'react-hot-toast'
 
 // Mock external dependencies
 vi.mock('../../../store/contactsStore')
+vi.mock('../../../hooks/useAuth')
 vi.mock('react-hot-toast')
 
 const mockCreateMessage = vi.fn()
@@ -23,16 +25,27 @@ const ContactWrapper = () => (
 describe('Contact Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Default successful mock setup
     vi.mocked(useContactsStore).mockReturnValue({
       createMessage: mockCreateMessage,
       isLoading: false
     })
-    
+
     mockCreateMessage.mockResolvedValue({
       success: true,
       messageId: 'msg-123'
+    })
+
+    // Mock authenticated user by default
+    vi.mocked(useAuth).mockReturnValue({
+      user: {
+        _id: 'user-123',
+        name: 'Jean Dupont',
+        email: 'jean@email.com',
+        phone: '0123456789',
+        role: 'user'
+      }
     })
   })
 
@@ -89,25 +102,33 @@ describe('Contact Component', () => {
   test('should update form fields when user types input', async () => {
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
+
+    // Wait for form to be pre-filled with user data
+    await vi.waitFor(() => {
+      expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    })
+
     // Get form fields
     const nameField = screen.getByPlaceholderText('Your name')
     const emailField = screen.getByPlaceholderText('your@email.com')
     const phoneField = screen.getByPlaceholderText('01 23 45 67 89')
     const subjectField = screen.getByPlaceholderText('The subject of your message')
     const messageField = screen.getByPlaceholderText('Your message...')
-    
-    // Type in fields
-    await user.type(nameField, 'Jean Dupont')
-    await user.type(emailField, 'jean.dupont@email.com')
-    await user.type(phoneField, '0123456789')
+
+    // Clear pre-filled fields and type new values
+    await user.clear(nameField)
+    await user.type(nameField, 'Marie Martin')
+    await user.clear(emailField)
+    await user.type(emailField, 'marie.martin@email.com')
+    await user.clear(phoneField)
+    await user.type(phoneField, '9876543210')
     await user.type(subjectField, 'Question about the menu')
     await user.type(messageField, 'J\'aimerais connaître les ingrédients de vos plats.')
-    
-    // Check values
-    expect(nameField).toHaveValue('Jean Dupont')
-    expect(emailField).toHaveValue('jean.dupont@email.com')
-    expect(phoneField).toHaveValue('0123456789')
+
+    // Check values were updated correctly
+    expect(nameField).toHaveValue('Marie Martin')
+    expect(emailField).toHaveValue('marie.martin@email.com')
+    expect(phoneField).toHaveValue('9876543210')
     expect(subjectField).toHaveValue('Question about the menu')
     expect(messageField).toHaveValue('J\'aimerais connaître les ingrédients de vos plats.')
   })
@@ -151,38 +172,47 @@ describe('Contact Component', () => {
   test('should reset form after successful submission', async () => {
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
-    // Fill form with valid data
-    await user.type(screen.getByPlaceholderText('Your name'), 'Jean Dupont')
-    await user.type(screen.getByPlaceholderText('your@email.com'), 'jean@email.com')
+
+    // Wait for form to be pre-filled with user data
+    await vi.waitFor(() => {
+      expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    })
+
+    // Fill subject and message (name, email, phone are pre-filled)
     await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
     await user.type(screen.getByPlaceholderText('Your message...'), 'This is a test message with enough characters')
-    
+
     // Submit form
     await user.click(screen.getByRole('button', { name: /Send message/i }))
-    
+
     // Wait for form to be reset
+    // For authenticated users, form is reset to user's data (not empty)
     await vi.waitFor(() => {
-      expect(screen.getByPlaceholderText('Your name')).toHaveValue('')
+      expect(screen.getByPlaceholderText('The subject of your message')).toHaveValue('')
+      expect(screen.getByPlaceholderText('Your message...')).toHaveValue('')
     }, { timeout: 3000 })
-    
-    expect(screen.getByPlaceholderText('your@email.com')).toHaveValue('')
-    expect(screen.getByPlaceholderText('The subject of your message')).toHaveValue('')
-    expect(screen.getByPlaceholderText('Your message...')).toHaveValue('')
+
+    // Name, email, phone should be reset to user data
+    expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    expect(screen.getByPlaceholderText('your@email.com')).toHaveValue('jean@email.com')
+    expect(screen.getByPlaceholderText('01 23 45 67 89')).toHaveValue('0123456789')
     expect(screen.getByText('General inquiry')).toBeInTheDocument() // Reset to default
   })
 
   // 3. FORM VALIDATION (3 tests)
   test('should prevent form submission when required fields are empty', async () => {
+    // Use non-authenticated user for this test
+    vi.mocked(useAuth).mockReturnValue({ user: null })
+
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
+
     // Try to submit empty form (HTML5 validation should prevent submission)
     await user.click(screen.getByRole('button', { name: /Send message/i }))
-    
+
     // createMessage should not be called because HTML5 validation prevents submission
     expect(mockCreateMessage).not.toHaveBeenCalled()
-    
+
     // The form fields should still be empty (form wasn't submitted)
     expect(screen.getByPlaceholderText('Your name')).toHaveValue('')
     expect(screen.getByPlaceholderText('your@email.com')).toHaveValue('')
@@ -215,22 +245,30 @@ describe('Contact Component', () => {
   test('should disable button when email format is invalid', async () => {
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
+
+    // Wait for form to be pre-filled with user data
+    await vi.waitFor(() => {
+      expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    })
+
     const submitButton = screen.getByRole('button', { name: /Send message/i })
-    
-    // Fill form with invalid email format
-    await user.type(screen.getByPlaceholderText('Your name'), 'Jean Dupont')
-    await user.type(screen.getByPlaceholderText('your@email.com'), 'invalid-email')
+    const emailField = screen.getByPlaceholderText('your@email.com')
+
+    // Fill subject and message (name is already pre-filled)
     await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
     await user.type(screen.getByPlaceholderText('Your message...'), 'Valid message with enough characters')
-    
+
+    // Clear email and type invalid format
+    await user.clear(emailField)
+    await user.type(emailField, 'invalid-email')
+
     // Button should be disabled because email format is invalid
     expect(submitButton).toBeDisabled()
-    
+
     // Fix email format
-    await user.clear(screen.getByPlaceholderText('your@email.com'))
-    await user.type(screen.getByPlaceholderText('your@email.com'), 'jean@email.com')
-    
+    await user.clear(emailField)
+    await user.type(emailField, 'jean@email.com')
+
     // Now button should be enabled
     expect(submitButton).not.toBeDisabled()
   })
@@ -239,26 +277,29 @@ describe('Contact Component', () => {
   test('should submit form successfully with valid data', async () => {
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
-    // Fill form with valid data
-    await user.type(screen.getByPlaceholderText('Your name'), 'Jean Dupont')
-    await user.type(screen.getByPlaceholderText('your@email.com'), 'jean@email.com')
-    await user.type(screen.getByPlaceholderText('01 23 45 67 89'), '0123456789')
+
+    // Wait for form to be pre-filled with user data
+    await vi.waitFor(() => {
+      expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    })
+
+    // Name, email, and phone are already pre-filled for authenticated users
+    // Only need to fill subject and message
     await user.type(screen.getByPlaceholderText('The subject of your message'), 'Important question')
     await user.type(screen.getByPlaceholderText('Your message...'), 'This is a test message avec suffisamment de caractères')
-    
+
     // Change contact reason with SimpleSelect
     await user.click(screen.getByText('General inquiry'))
     await user.click(screen.getByText('Reservation'))
-    
+
     // Submit form
     await user.click(screen.getByRole('button', { name: /Send message/i }))
-    
+
     // Wait for submission
     await vi.waitFor(() => {
       expect(mockCreateMessage).toHaveBeenCalled()
     }, { timeout: 3000 })
-    
+
     // Check createMessage was called with correct data
     expect(mockCreateMessage).toHaveBeenCalledWith({
       name: 'Jean Dupont',
@@ -267,8 +308,8 @@ describe('Contact Component', () => {
       subject: 'Reservation - Important question',
       message: 'This is a test message avec suffisamment de caractères'
     })
-    
-    // Check success message
+
+    // Check success message for authenticated user
     expect(toast.success).toHaveBeenCalledWith('Message sent successfully! We will respond quickly.')
   })
 
@@ -294,31 +335,35 @@ describe('Contact Component', () => {
 
   test('should handle submission errors gracefully', async () => {
     const user = userEvent.setup()
-    
+
     // Mock submission failure
     mockCreateMessage.mockResolvedValue({
       success: false,
       error: 'Network error'
     })
-    
+
     render(<ContactWrapper />)
-    
-    // Fill form with valid data
-    await user.type(screen.getByPlaceholderText('Your name'), 'Jean Dupont')
-    await user.type(screen.getByPlaceholderText('your@email.com'), 'jean@email.com')
+
+    // Wait for form to be pre-filled with user data
+    await vi.waitFor(() => {
+      expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    })
+
+    // Name, email, phone are already pre-filled - only fill subject and message
     await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
     await user.type(screen.getByPlaceholderText('Your message...'), 'Valid message with enough characters')
-    
+
     // Submit form
     await user.click(screen.getByRole('button', { name: /Send message/i }))
-    
+
     // Wait for error handling
     await vi.waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Error sending message. Please try again.')
     }, { timeout: 3000 })
-    
-    // Form should not be reset on error
+
+    // Form should not be reset on error - still has pre-filled and typed values
     expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
     expect(screen.getByPlaceholderText('your@email.com')).toHaveValue('jean@email.com')
+    expect(screen.getByPlaceholderText('The subject of your message')).toHaveValue('Test subject')
   })
 })
