@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, ShoppingCart, User, LogOut, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -9,6 +9,7 @@ import { ROUTES } from '../../constants'
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const userMenuRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
   const { user, isAuthenticated, logout } = useAuth()
@@ -25,7 +26,27 @@ const Header = () => {
   }
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
-  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen)
+
+  const toggleUserMenu = (e) => {
+    e.stopPropagation()
+    setIsUserMenuOpen(!isUserMenuOpen)
+  }
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    if (!isUserMenuOpen) return
+
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isUserMenuOpen])
 
   // Function to check if a nav item is active
   const isActiveRoute = (path) => {
@@ -97,9 +118,9 @@ const Header = () => {
             </button>
             
             {isAuthenticated ? (
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <button
-                  onClick={toggleUserMenu}
+                  onMouseDown={toggleUserMenu}
                   className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <User size={20} />
@@ -108,13 +129,13 @@ const Header = () => {
 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                    <Link
-                      to={ROUTES.PROFILE}
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      My Profile
-                    </Link>
+                      <Link
+                        to={ROUTES.PROFILE}
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        My Profile
+                      </Link>
                     <Link
                       to={ROUTES.ORDERS}
                       onClick={() => setIsUserMenuOpen(false)}

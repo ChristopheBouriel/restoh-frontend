@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
@@ -264,6 +264,28 @@ describe('Header Component', () => {
       // Menu should close
       await waitFor(() => {
         expect(screen.queryByRole('link', { name: /My Orders/ })).not.toBeInTheDocument()
+      })
+    })
+
+    it('should close user menu when clicking outside', async () => {
+      renderComponent(regularUser)
+
+      // Open menu with mousedown (since we changed to onMouseDown)
+      const userButton = screen.getByRole('button', { name: /John Doe/ })
+      fireEvent.mouseDown(userButton)
+
+      // Verify menu is open
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: /My Profile/ })).toBeInTheDocument()
+      })
+
+      // Click outside the menu (on the header)
+      const header = document.querySelector('header')
+      fireEvent.mouseDown(header)
+
+      // Menu should close
+      await waitFor(() => {
+        expect(screen.queryByRole('link', { name: /My Profile/ })).not.toBeInTheDocument()
       })
     })
   })
