@@ -27,8 +27,6 @@ const Profile = () => {
   })
 
   const [notifications, setNotifications] = useState({
-    orderConfirmations: user?.notifications?.orderConfirmations ?? true,
-    reservationReminders: user?.notifications?.reservationReminders ?? true,
     newsletter: user?.notifications?.newsletter ?? false,
     promotions: user?.notifications?.promotions ?? false,
   })
@@ -46,8 +44,6 @@ const Profile = () => {
         state: user.address?.state || '',
       })
       setNotifications({
-        orderConfirmations: user.notifications?.orderConfirmations ?? true,
-        reservationReminders: user.notifications?.reservationReminders ?? true,
         newsletter: user.notifications?.newsletter ?? false,
         promotions: user.notifications?.promotions ?? false,
       })
@@ -359,8 +355,6 @@ const Profile = () => {
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Notifications</h3>
                   <div className="space-y-4">
                     {[
-                      { key: 'orderConfirmations', label: 'Order Confirmations' },
-                      { key: 'reservationReminders', label: 'Reservation Reminders' },
                       { key: 'newsletter', label: 'Newsletter' },
                       { key: 'promotions', label: 'Promotional Offers' },
                     ].map(({ key, label }) => (

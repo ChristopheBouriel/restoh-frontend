@@ -136,21 +136,15 @@ describe('Profile Component', () => {
 
     it('should show notification preferences as checkboxes', () => {
       render(<Profile />)
-      
-      // Check les checkboxes de notification
-      const orderConfirmations = document.querySelector('input[name="orderConfirmations"]')
-      const reservationReminders = document.querySelector('input[name="reservationReminders"]')
+
+      // Check les checkboxes de notification (only newsletter and promotions)
       const newsletter = document.querySelector('input[name="newsletter"]')
       const promotions = document.querySelector('input[name="promotions"]')
-      
-      expect(orderConfirmations).toBeChecked()
-      expect(reservationReminders).toBeChecked()
+
       expect(newsletter).not.toBeChecked()
       expect(promotions).not.toBeChecked()
-      
+
       // Check qu'elles sont désactivées en mode lecture
-      expect(orderConfirmations).toBeDisabled()
-      expect(reservationReminders).toBeDisabled()
       expect(newsletter).toBeDisabled()
       expect(promotions).toBeDisabled()
     })
@@ -278,8 +272,6 @@ describe('Profile Component', () => {
             state: 'Île-de-France'
           },
           notifications: {
-            orderConfirmations: true,
-            reservationReminders: true,
             newsletter: true,
             promotions: false
           }
