@@ -2,15 +2,6 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as authApi from '../api/authApi'
 
-// Helper to normalize user object: use _id as id if available
-const normalizeUser = (user) => {
-  if (!user) return null
-  return {
-    ...user,
-    id: user._id || user.id
-  }
-}
-
 const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -40,7 +31,7 @@ const useAuthStore = create(
 
           if (result.success) {
             set({
-              user: normalizeUser(result.user),
+              user: result.user,
               // token: result.token, // NO LONGER NEEDED - Cookie is set by server
               isAuthenticated: true,
               isLoading: false,
@@ -142,7 +133,7 @@ const useAuthStore = create(
 
           if (result.success) {
             set({
-              user: normalizeUser(result.user),
+              user: result.user,
               isLoading: false,
               error: null
             })
@@ -235,7 +226,7 @@ const useAuthStore = create(
 
           if (result.success) {
             set({
-              user: normalizeUser(result.user),
+              user: result.user,
               isAuthenticated: true,
               isLoading: false,
               error: null

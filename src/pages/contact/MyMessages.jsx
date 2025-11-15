@@ -227,7 +227,7 @@ const MyMessages = () => {
                         <div className="flex items-center space-x-2">
                           <User className="w-4 h-4 text-gray-500" />
                           <span className="font-medium text-gray-900">
-                            {reply.userId === user._id ? 'You' : (reply.role === 'admin' ? 'Admin' : reply.name)}
+                            {reply.userId === user.id ? 'You' : (reply.role === 'admin' ? 'Admin' : reply.name)}
                           </span>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             reply.status === 'read'

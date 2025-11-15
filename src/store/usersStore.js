@@ -86,7 +86,7 @@ const useUsersStore = create(
           if (result.success) {
             // Update local state
             const updatedUsers = get().users.map(user =>
-              (user.id === userId || user._id === userId)
+              (user.id === userId || user.id === userId)
                 ? { ...user, role: newRole }
                 : user
             )
@@ -137,7 +137,7 @@ const useUsersStore = create(
       // Mettre à jour la dernière connexion (utilisé par authStore)
       updateLastLogin: (userId) => {
         const updatedUsers = get().users.map(user =>
-          (user.id === userId || user._id === userId)
+          (user.id === userId || user.id === userId)
             ? { ...user, lastLoginAt: new Date().toISOString() }
             : user
         )

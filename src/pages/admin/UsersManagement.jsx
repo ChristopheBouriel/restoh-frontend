@@ -80,7 +80,7 @@ const UsersManagement = () => {
 
   const handleStatusToggle = async (user) => {
     setModifyError(null)
-    const result = await toggleUserStatus(user._id || user.id)
+    const result = await toggleUserStatus(user.id || user.id)
 
     // Check for structured error with details
     if (!result.success && result.details) {
@@ -90,7 +90,7 @@ const UsersManagement = () => {
 
   const handleRoleChange = async (user, newRole) => {
     setModifyError(null)
-    const result = await updateUserRole(user._id || user.id, newRole)
+    const result = await updateUserRole(user.id || user.id, newRole)
 
     // Check for structured error with details
     if (!result.success && result.details) {
@@ -130,7 +130,7 @@ const UsersManagement = () => {
     setIsModalOpen(true)
 
     // Fetch orders and reservations immediately for accurate statistics
-    const userId = user.id || user._id
+    const userId = user.id || user.id
     await Promise.all([
       fetchUserOrders(userId),
       fetchUserReservations(userId)
@@ -416,14 +416,14 @@ const UsersManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map((user) => (
-                    <tr key={user._id || user.id} className="hover:bg-gray-50">
+                    <tr key={user.id || user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
                             {user.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {user._id || user.id}
+                            ID: {user.id || user.id}
                           </div>
                         </div>
                       </td>
@@ -506,7 +506,7 @@ const UsersManagement = () => {
             {/* Mobile/Tablet View - Cards */}
             <div className="lg:hidden divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <div key={user._id || user.id} className="p-4 hover:bg-gray-50">
+                <div key={user.id || user.id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <button
@@ -554,7 +554,7 @@ const UsersManagement = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-900">{user.name}</span>
-                      <span className="text-xs text-gray-500">ID: {user._id || user.id}</span>
+                      <span className="text-xs text-gray-500">ID: {user.id || user.id}</span>
                     </div>
                     
                     <div className="flex items-center justify-between">
