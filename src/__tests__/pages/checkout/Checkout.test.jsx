@@ -220,10 +220,11 @@ describe('Checkout Component', () => {
       deliveryAddress: {
         street: '123 Rue de la Paix',
         city: 'Paris',
-        zipCode: '75001'
+        zipCode: '75001',
+        instructions: 'Ring at 2nd'
       },
       phone: '0123456789',
-      notes: 'Ring at 2nd',
+      specialInstructions: 'Ring at 2nd',
       orderType: 'delivery',
       paymentMethod: 'card',
       paymentStatus: 'paid' // Card payments are automatically paid

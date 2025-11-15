@@ -32,7 +32,7 @@ const Checkout = () => {
     city: '',
     zipCode: '',
     phone: '',
-    notes: '',
+    instructions: '',
     paymentMethod: 'card',
     type: 'delivery'
   })
@@ -104,10 +104,11 @@ const Checkout = () => {
         deliveryAddress: formData.type === 'delivery' ? {
           street: formData.street,
           city: formData.city,
-          zipCode: formData.zipCode
+          zipCode: formData.zipCode,
+          instructions: formData.instructions || ''
         } : null,
         phone: formData.phone,
-        notes: formData.notes,
+        specialInstructions: formData.instructions || '',
         paymentMethod: formData.paymentMethod,
         paymentStatus: formData.paymentMethod === 'card' ? 'paid' : 'pending',
         orderType: formData.type
@@ -382,8 +383,8 @@ const Checkout = () => {
                       Delivery instructions
                     </label>
                     <textarea
-                      name="notes"
-                      value={formData.notes}
+                      name="instructions"
+                      value={formData.instructions}
                       onChange={handleInputChange}
                       rows={2}
                       placeholder="Floor, access code, special instructions..."
