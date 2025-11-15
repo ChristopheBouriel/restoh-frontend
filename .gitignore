@@ -33,7 +33,4 @@ dist-ssr
 # Claude Code documentation (local only)
 CLAUDE.md
 
-TRANSLATION_COMPLETE_REPORT.md
-BACKEND_TODO.md
-CORS_SETUP.md
-COOKIE_AUTH_MIGRATION.md
+docs
