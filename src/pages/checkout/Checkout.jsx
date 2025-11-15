@@ -88,11 +88,18 @@ const Checkout = () => {
       await new Promise(resolve => setTimeout(resolve, 1500))
 
       // Create order
+      // Format items for backend: use menuItem instead of id
+      const formattedItems = availableItems.map(item => ({
+        menuItem: item.id,
+        quantity: item.quantity,
+        price: item.currentPrice || item.price
+      }))
+
       const orderData = {
         userId: user.id,
         userEmail: user.email,
         userName: user.name,
-        items: availableItems,
+        items: formattedItems,
         totalPrice: totalPriceAvailable,
         deliveryAddress: formData.type === 'delivery' ? {
           street: formData.street,

@@ -37,8 +37,7 @@ const useOrdersStore = create(
           // Items normalization (ensure each item has normalized data)
           items: (order.items || []).map(item => ({
             ...item,
-            id: item._id || item.id,
-            // Remove _id from items to avoid conflicts
+            // Remove _id from items to avoid conflicts (backend now only sends id)
             _id: undefined
           })),
           // Remove _id from final object to avoid conflicts

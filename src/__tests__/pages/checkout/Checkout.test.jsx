@@ -212,7 +212,10 @@ describe('Checkout Component', () => {
       userId: mockUser.id,
       userEmail: mockUser.email,
       userName: mockUser.name,
-      items: mockCartItems,
+      items: [
+        { menuItem: 1, quantity: 2, price: 15.90 },
+        { menuItem: 2, quantity: 1, price: 12.50 }
+      ],
       totalPrice: 44.30,
       deliveryAddress: {
         street: '123 Rue de la Paix',

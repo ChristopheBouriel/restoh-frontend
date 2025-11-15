@@ -28,7 +28,6 @@ const useMenuStore = create((set, get) => ({
             // Normalize items to ensure all required fields exist
             const items = rawItems.map(item => ({
               ...item,
-              id: item._id || item.id, // Normalize MongoDB _id to id
               allergens: item.allergens || [],
               ingredients: item.ingredients || [],
               preparationTime: item.preparationTime || 0,
@@ -101,7 +100,7 @@ const useMenuStore = create((set, get) => ({
       },
 
       getItemById: (id) => {
-        return get().items.find(item => item._id === id || item.id === id)
+        return get().items.find(item => item.id === id)
       },
 
       // CRUD Actions (for admin) - API Calls
