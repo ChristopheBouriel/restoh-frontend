@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
@@ -9,19 +9,32 @@ import { useAuth } from '../../../hooks/useAuth'
 // Mock dependencies
 vi.mock('../../../store/contactsStore')
 vi.mock('../../../hooks/useAuth')
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn()
+  }
+}))
 
 // Mock scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
-// Mock window.confirm for delete confirmation
+// Mock window.confirm
 Object.defineProperty(window, 'confirm', {
   writable: true,
   value: vi.fn()
 })
 
 describe('ContactsManagement Component', () => {
-  // Create realistic test data with various message scenarios
-  const mockMessages = [
+  const mockCurrentAdmin = {
+    id: 'admin-current',
+    name: 'Current Admin',
+    email: 'current@admin.com',
+    role: 'admin'
+  }
+
+  // Test data for basic features
+  const mockMessagesBasic = [
     {
       _id: 'msg-001',
       name: 'Marie Dubois',
@@ -52,7 +65,7 @@ describe('ContactsManagement Component', () => {
       _id: 'msg-003',
       name: 'Sophie Leroy',
       email: 'sophie.leroy@gmail.com',
-      phone: null, // No phone number
+      phone: null,
       subject: 'Compliments sur le service',
       message: 'Excellent repas hier soir ! Le service était impeccable et les plats délicieux. Nous reviendrons certainement. Merci à toute l\'équipe.',
       status: 'replied',
@@ -76,8 +89,125 @@ describe('ContactsManagement Component', () => {
     }
   ]
 
-  const mockStoreState = {
-    messages: mockMessages,
+  // Test data for enhanced features (discussion, newlyReplied, closed)
+  const mockMessagesEnhanced = [
+    // Message with discussion from user and current admin (newlyReplied status to test marking as read)
+    {
+      _id: 'msg-001',
+      userId: 'user-123',
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '01 23 45 67 89',
+      subject: 'Question about menu',
+      message: 'Do you have vegetarian options?',
+      status: 'newlyReplied',
+      discussion: [
+        {
+          _id: 'reply-001',
+          userId: 'admin-current',
+          name: 'Current Admin',
+          role: 'admin',
+          text: 'Yes, we have several vegetarian dishes.',
+          date: '2024-01-20T11:00:00Z',
+          status: 'read'
+        },
+        {
+          _id: 'reply-002',
+          userId: 'user-123',
+          name: 'John Doe',
+          role: 'user',
+          text: 'Thank you! Can I see the menu?',
+          date: '2024-01-20T12:00:00Z',
+          status: 'new'
+        }
+      ],
+      createdAt: '2024-01-20T10:00:00Z'
+    },
+    // Message with newlyReplied status
+    {
+      _id: 'msg-002',
+      userId: 'user-456',
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '06 98 76 54 32',
+      subject: 'Reservation question',
+      message: 'Can I book for 10 people?',
+      status: 'newlyReplied',
+      discussion: [
+        {
+          _id: 'reply-003',
+          userId: 'user-456',
+          name: 'Jane Smith',
+          role: 'user',
+          text: 'I need this for Saturday',
+          date: '2024-01-19T10:00:00Z',
+          status: 'read'
+        },
+        {
+          _id: 'reply-004',
+          userId: 'admin-other',
+          name: 'Other Admin',
+          role: 'admin',
+          text: 'Yes, we can accommodate that.',
+          date: '2024-01-19T11:00:00Z',
+          status: 'new'
+        }
+      ],
+      createdAt: '2024-01-19T09:00:00Z'
+    },
+    // Message from unregistered user (no userId)
+    {
+      _id: 'msg-003',
+      userId: null,
+      name: 'Anonymous User',
+      email: 'anonymous@example.com',
+      phone: null,
+      subject: 'General inquiry',
+      message: 'What are your opening hours?',
+      status: 'new',
+      discussion: [],
+      createdAt: '2024-01-18T14:00:00Z'
+    },
+    // Message from deleted user
+    {
+      _id: 'msg-004',
+      userId: 'deleted-user',
+      name: 'Deleted User',
+      email: 'deleted@account.com',
+      phone: null,
+      subject: 'Old question',
+      message: 'This is from a deleted account',
+      status: 'read',
+      discussion: [],
+      createdAt: '2024-01-17T10:00:00Z'
+    },
+    // Closed conversation
+    {
+      _id: 'msg-005',
+      userId: 'user-789',
+      name: 'Bob Johnson',
+      email: 'bob@example.com',
+      phone: '07 11 22 33 44',
+      subject: 'Complaint',
+      message: 'The service was slow',
+      status: 'closed',
+      discussion: [
+        {
+          _id: 'reply-005',
+          userId: 'admin-current',
+          name: 'Current Admin',
+          role: 'admin',
+          text: 'We apologize for the inconvenience.',
+          date: '2024-01-16T15:00:00Z',
+          status: 'read'
+        }
+      ],
+      createdAt: '2024-01-16T14:00:00Z'
+    }
+  ]
+
+  const mockStoreStateBasic = {
+    messages: mockMessagesBasic,
     isLoading: false,
     fetchMessages: vi.fn(),
     markAsRead: vi.fn(),
@@ -94,6 +224,27 @@ describe('ContactsManagement Component', () => {
     }))
   }
 
+  const mockStoreStateEnhanced = {
+    messages: mockMessagesEnhanced,
+    isLoading: false,
+    fetchMessages: vi.fn(),
+    markAsRead: vi.fn(),
+    updateMessageStatus: vi.fn(),
+    markAsClosed: vi.fn(),
+    deleteMessage: vi.fn(),
+    addReply: vi.fn(),
+    markDiscussionMessageAsRead: vi.fn(),
+    getMessagesStats: vi.fn(() => ({
+      total: 5,
+      new: 1,
+      read: 1,
+      replied: 0,
+      newlyReplied: 2,
+      closed: 1
+    })),
+    getNewMessagesCount: vi.fn(() => 3) // 1 new + 2 newlyReplied
+  }
+
   const user = userEvent.setup()
 
   const renderComponent = () => {
@@ -106,40 +257,36 @@ describe('ContactsManagement Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    window.confirm.mockReturnValue(true) // Default to confirming deletion
-
-    // Set successful return values for async store methods
-    mockStoreState.markAsRead.mockResolvedValue({ success: true })
-    mockStoreState.fetchMessages.mockResolvedValue({ success: true })
-    mockStoreState.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
-
-    useContactsStore.mockReturnValue(mockStoreState)
-    useAuth.mockReturnValue({
-      user: {
-        _id: 'admin-123',
-        name: 'Admin User',
-        email: 'admin@test.com',
-        role: 'admin'
-      }
-    })
+    window.confirm.mockReturnValue(true)
   })
 
-  // 1. Core Rendering Tests
+  // ========================================
+  // BASIC FEATURES TESTS
+  // ========================================
+
   describe('Core Rendering', () => {
+    beforeEach(() => {
+      mockStoreStateBasic.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateBasic.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateBasic.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateBasic)
+      useAuth.mockReturnValue({
+        user: mockCurrentAdmin
+      })
+    })
+
     it('should render header, statistics, and message filters', () => {
       renderComponent()
-      
-      // Header
+
       expect(screen.getByText('Messages Management')).toBeInTheDocument()
       expect(screen.getByText('Manage messages received via the contact form')).toBeInTheDocument()
-      
-      // Statistics cards (Note: "New", "Read", "Replied" appear multiple times in UI)
+
       expect(screen.getByText('Total')).toBeInTheDocument()
       expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByText('Read').length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByText('Replied').length).toBeGreaterThanOrEqual(1)
-      
-      // Filter buttons with counts
+
       expect(screen.getByText('All (4)')).toBeInTheDocument()
       expect(screen.getByText('New (2)')).toBeInTheDocument()
       expect(screen.getByText('Read (1)')).toBeInTheDocument()
@@ -148,80 +295,81 @@ describe('ContactsManagement Component', () => {
 
     it('should initialize messages data on mount', () => {
       renderComponent()
-      expect(mockStoreState.fetchMessages).toHaveBeenCalledOnce()
+      expect(mockStoreStateBasic.fetchMessages).toHaveBeenCalledOnce()
     })
 
     it('should display message list with different status indicators', () => {
       renderComponent()
-      
-      // Check that all messages are displayed with their subjects
+
       expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
       expect(screen.getByText('Question about hours')).toBeInTheDocument()
-      
-      // Check status indicators (may appear in stats, filters, and message cards)
-      expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(2) // At least 2 new messages
-      expect(screen.getAllByText('Read').length).toBeGreaterThanOrEqual(1) // At least 1 read message
-      expect(screen.getAllByText('Replied').length).toBeGreaterThanOrEqual(1) // At least 1 replied message
-      
-      // Check contact information is displayed
+
+      expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(2)
+      expect(screen.getAllByText('Read').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Replied').length).toBeGreaterThanOrEqual(1)
+
       expect(screen.getByText('Marie Dubois')).toBeInTheDocument()
       expect(screen.getByText('marie.dubois@email.com')).toBeInTheDocument()
       expect(screen.getByText('06 12 34 56 78')).toBeInTheDocument()
     })
   })
 
-  // 2. Statistics & Filtering Tests
   describe('Statistics and Filtering', () => {
+    beforeEach(() => {
+      mockStoreStateBasic.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateBasic.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateBasic.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateBasic)
+      useAuth.mockReturnValue({
+        user: mockCurrentAdmin
+      })
+    })
+
     it('should display correct message counts in statistics cards', () => {
       renderComponent()
-      
-      const stats = mockStoreState.getMessagesStats()
-      
-      // Check statistics numbers are displayed
-      expect(screen.getAllByText(stats.total.toString()).length).toBeGreaterThanOrEqual(1) // Stats card + possibly filter button
-      expect(screen.getAllByText(stats.new.toString()).length).toBeGreaterThanOrEqual(1) // Stats card + possibly filter button
-      expect(screen.getAllByText(stats.read.toString()).length).toBeGreaterThanOrEqual(1) // Stats card + possibly filter button
-      expect(screen.getAllByText(stats.replied.toString()).length).toBeGreaterThanOrEqual(1) // Stats card + possibly filter button
+
+      const stats = mockStoreStateBasic.getMessagesStats()
+
+      expect(screen.getAllByText(stats.total.toString()).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText(stats.new.toString()).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText(stats.read.toString()).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText(stats.replied.toString()).length).toBeGreaterThanOrEqual(1)
     })
 
     it('should filter messages by status when filter buttons are clicked', async () => {
       renderComponent()
-      
-      // Initially all messages should be visible
+
       expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
       expect(screen.getByText('Question about hours')).toBeInTheDocument()
-      
-      // Filter by "New" - should show only new messages
+
       await user.click(screen.getByText('New (2)'))
-      
+
       expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Question about hours')).toBeInTheDocument()
       expect(screen.queryByText('Réservation événement d\'entreprise')).not.toBeInTheDocument()
       expect(screen.queryByText('Compliments sur le service')).not.toBeInTheDocument()
-      
-      // Filter by "Read" - should show only read messages
+
       await user.click(screen.getByText('Read (1)'))
-      
+
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.queryByText('Question about allergens')).not.toBeInTheDocument()
       expect(screen.queryByText('Question about hours')).not.toBeInTheDocument()
       expect(screen.queryByText('Compliments sur le service')).not.toBeInTheDocument()
-      
-      // Filter by "Replied" - should show only replied messages
+
       await user.click(screen.getByText('Replied (1)'))
-      
+
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
       expect(screen.queryByText('Question about allergens')).not.toBeInTheDocument()
       expect(screen.queryByText('Réservation événement d\'entreprise')).not.toBeInTheDocument()
       expect(screen.queryByText('Question about hours')).not.toBeInTheDocument()
-      
-      // Back to "Tous" - should show all messages again
+
       await user.click(screen.getByText('All (4)'))
-      
+
       expect(screen.getByText('Question about allergens')).toBeInTheDocument()
       expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
       expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
@@ -229,9 +377,8 @@ describe('ContactsManagement Component', () => {
     })
 
     it('should show empty state when no messages match filter', () => {
-      // Mock store with no messages
       useContactsStore.mockReturnValue({
-        ...mockStoreState,
+        ...mockStoreStateBasic,
         messages: [],
         getMessagesStats: vi.fn(() => ({
           total: 0,
@@ -240,29 +387,37 @@ describe('ContactsManagement Component', () => {
           replied: 0
         }))
       })
-      
+
       renderComponent()
-      
+
       expect(screen.getByText('No messages')).toBeInTheDocument()
       expect(screen.getByText('No messages received yet.')).toBeInTheDocument()
     })
   })
 
-  // 3. Message Actions Tests
   describe('Message Actions', () => {
+    beforeEach(() => {
+      mockStoreStateBasic.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateBasic.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateBasic.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+      mockStoreStateBasic.deleteMessage.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateBasic)
+      useAuth.mockReturnValue({
+        user: mockCurrentAdmin
+      })
+    })
+
     it('should open message modal when message is clicked', async () => {
       renderComponent()
 
-      // Click on the first message
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
-        // Modal should be open with message details
-        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(2) // Name appears in list and modal
+        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(2)
         expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(2)
         expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(2)
-        // Check for modal-specific labels
         expect(screen.getByText('Name')).toBeInTheDocument()
         expect(screen.getByText('Email')).toBeInTheDocument()
         expect(screen.getAllByText('Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.').length).toBeGreaterThanOrEqual(1)
@@ -270,66 +425,66 @@ describe('ContactsManagement Component', () => {
     })
 
     it('should mark new message as read when clicked', async () => {
-      mockStoreState.markAsRead.mockResolvedValue({ success: true })
       renderComponent()
-      
-      // Click on a new message
+
       const newMessageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(newMessageElement)
-      
+
       await waitFor(() => {
-        expect(mockStoreState.markAsRead).toHaveBeenCalledWith('msg-001')
+        expect(mockStoreStateBasic.markAsRead).toHaveBeenCalledWith('msg-001')
       })
     })
 
     it('should delete message with confirmation prompt', async () => {
-      mockStoreState.deleteMessage.mockResolvedValue({ success: true })
       renderComponent()
-      
-      // Open a message modal
+
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Delete')).toBeInTheDocument()
       })
-      
-      // Click delete button
+
       await user.click(screen.getByText('Delete'))
-      
-      // Should show confirmation dialog
+
       expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this message?')
-      
+
       await waitFor(() => {
-        expect(mockStoreState.deleteMessage).toHaveBeenCalledWith('msg-001')
+        expect(mockStoreStateBasic.deleteMessage).toHaveBeenCalledWith('msg-001')
       })
     })
   })
 
-  // 4. Modal Functionality Tests
   describe('Modal Functionality', () => {
+    beforeEach(() => {
+      mockStoreStateBasic.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateBasic.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateBasic.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateBasic)
+      useAuth.mockReturnValue({
+        user: mockCurrentAdmin
+      })
+    })
+
     it('should display comprehensive message information in modal', async () => {
       renderComponent()
-      
-      // Open message modal
+
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
-      
+
       await waitFor(() => {
-        // Check header
         expect(screen.getAllByText('Question about allergens').length).toBeGreaterThanOrEqual(1)
         expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1)
-        
-        // Check contact information section
+
         expect(screen.getByText('Name')).toBeInTheDocument()
-        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(2) // Appears in list and modal
+        expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(2)
         expect(screen.getByText('Email')).toBeInTheDocument()
         expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(2)
         expect(screen.getByText('Phone')).toBeInTheDocument()
         expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(2)
         expect(screen.getByText('Date')).toBeInTheDocument()
 
-        // Check message content is displayed
         expect(screen.getAllByText('Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ? J\'ai une allergie sévère. Merci.').length).toBeGreaterThanOrEqual(1)
       })
     })
@@ -337,17 +492,14 @@ describe('ContactsManagement Component', () => {
     it('should close modal with X button', async () => {
       renderComponent()
 
-      // Open modal
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
-        // Check modal is open by looking for modal-specific labels
         expect(screen.getByText('Name')).toBeInTheDocument()
         expect(screen.getByText('Email')).toBeInTheDocument()
       })
 
-      // Close with X button (find by SVG path since X is implemented as SVG)
       const xButtons = screen.getAllByRole('button')
       const xButton = xButtons.find(button => button.querySelector('svg path[d*="M6 18L18 6M6 6l12 12"]'))
 
@@ -355,29 +507,37 @@ describe('ContactsManagement Component', () => {
       await user.click(xButton)
 
       await waitFor(() => {
-        // Modal should be closed - Date label should not be visible
         expect(screen.queryByText('Date')).not.toBeInTheDocument()
       })
     })
   })
 
-  // 5. State Management & Edge Cases
   describe('State Management and Edge Cases', () => {
+    beforeEach(() => {
+      mockStoreStateBasic.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateBasic.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateBasic.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateBasic)
+      useAuth.mockReturnValue({
+        user: mockCurrentAdmin
+      })
+    })
+
     it('should handle loading state appropriately', () => {
       useContactsStore.mockReturnValue({
-        ...mockStoreState,
+        ...mockStoreStateBasic,
         isLoading: true
       })
-      
+
       renderComponent()
-      
-      // Component should still render with loading state
+
       expect(screen.getByText('Messages Management')).toBeInTheDocument()
     })
 
     it('should handle empty message list gracefully', async () => {
       useContactsStore.mockReturnValue({
-        ...mockStoreState,
+        ...mockStoreStateBasic,
         messages: [],
         getMessagesStats: vi.fn(() => ({
           total: 0,
@@ -386,14 +546,12 @@ describe('ContactsManagement Component', () => {
           replied: 0
         }))
       })
-      
+
       renderComponent()
-      
-      // Should show empty state
+
       expect(screen.getByText('No messages')).toBeInTheDocument()
       expect(screen.getByText('No messages received yet.')).toBeInTheDocument()
-      
-      // Filter buttons should show zero counts
+
       expect(screen.getByText('All (0)')).toBeInTheDocument()
       expect(screen.getByText('New (0)')).toBeInTheDocument()
       expect(screen.getByText('Read (0)')).toBeInTheDocument()
@@ -402,42 +560,506 @@ describe('ContactsManagement Component', () => {
 
     it('should handle message without phone number', async () => {
       renderComponent()
-      
-      // Open message from Sophie Leroy (no phone)
+
       const messageElement = screen.getByText('Compliments sur le service').closest('div[class*="p-6"]')
       await user.click(messageElement)
-      
+
       await waitFor(() => {
-        // Should show contact info without phone section
         expect(screen.getAllByText('Sophie Leroy').length).toBeGreaterThanOrEqual(1)
         expect(screen.getAllByText('sophie.leroy@gmail.com').length).toBeGreaterThanOrEqual(1)
-        // Phone should not be displayed in modal when null
         expect(screen.queryByText('Phone')).not.toBeInTheDocument()
       })
     })
 
     it('should prevent deletion when user cancels confirmation', async () => {
-      // Mock confirm to return false (user cancels)
       window.confirm.mockReturnValue(false)
-      
+
       renderComponent()
-      
-      // Open a message modal
+
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
-      
+
       await waitFor(() => {
         expect(screen.getByText('Delete')).toBeInTheDocument()
       })
-      
-      // Click delete button
+
       await user.click(screen.getByText('Delete'))
-      
-      // Should show confirmation dialog
+
       expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this message?')
-      
-      // Should NOT call deleteMessage since user cancelled
-      expect(mockStoreState.deleteMessage).not.toHaveBeenCalled()
+
+      expect(mockStoreStateBasic.deleteMessage).not.toHaveBeenCalled()
+    })
+  })
+
+  // ========================================
+  // ENHANCED FEATURES TESTS
+  // ========================================
+
+  describe('Discussion Display', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should display discussion thread in message modal', async () => {
+      renderComponent()
+
+      const messageElement = screen.getByText('Question about menu').closest('div[class*="p-6"]')
+      await user.click(messageElement)
+
+      await waitFor(() => {
+        expect(screen.getByText('Discussion')).toBeInTheDocument()
+        expect(screen.getByText('Yes, we have several vegetarian dishes.')).toBeInTheDocument()
+        expect(screen.getByText('Thank you! Can I see the menu?')).toBeInTheDocument()
+      })
+    })
+
+    it('should show "You" for current admin messages', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        const discussionSection = screen.getByText('Discussion').closest('div')
+        const youLabels = within(discussionSection).getAllByText('You')
+        expect(youLabels.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('should show other admin names (not "You")', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Reservation question')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Other Admin')).toBeInTheDocument()
+        const discussionSection = screen.getByText('Discussion').closest('div')
+        const otherAdminMessages = within(discussionSection).getAllByText('Other Admin')
+        expect(otherAdminMessages.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('should show user names for user messages', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getAllByText('John Doe').length).toBeGreaterThanOrEqual(2)
+      })
+    })
+
+    it('should show read/new status for discussion messages', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        const discussionSection = screen.getByText('Discussion').closest('div')
+        expect(within(discussionSection).getByText('New')).toBeInTheDocument()
+        expect(within(discussionSection).getByText('Read')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Add Reply', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.addReply.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should allow admin to add reply', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
+      })
+
+      const textarea = screen.getByPlaceholderText('Type your message here...')
+      await user.type(textarea, 'Here is our vegetarian menu link.')
+
+      const sendButton = screen.getByRole('button', { name: /Send Reply/i })
+      await user.click(sendButton)
+
+      await waitFor(() => {
+        expect(mockStoreStateEnhanced.addReply).toHaveBeenCalledWith(
+          'msg-001',
+          'Here is our vegetarian menu link.'
+        )
+        expect(mockStoreStateEnhanced.addReply).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('should show character count while typing', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByText('0 / 1000 characters')).toBeInTheDocument()
+      })
+
+      const textarea = screen.getByPlaceholderText('Type your message here...')
+      await user.type(textarea, 'Test message')
+
+      expect(screen.getByText('12 / 1000 characters')).toBeInTheDocument()
+    })
+
+    it('should enforce 1000 character limit', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        const textarea = screen.getByPlaceholderText('Type your message here...')
+        expect(textarea).toHaveAttribute('maxLength', '1000')
+      })
+    })
+
+    it('should show success toast after reply sent', async () => {
+      const { toast } = await import('react-hot-toast')
+
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
+      })
+
+      const textarea = screen.getByPlaceholderText('Type your message here...')
+      await user.type(textarea, 'Thank you for your inquiry')
+
+      const sendButton = screen.getByRole('button', { name: /Send Reply/i })
+      await user.click(sendButton)
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Reply sent successfully')
+      })
+    })
+  })
+
+  describe('Unregistered User Handling', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.updateMessageStatus.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should hide reply form for unregistered users', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('General inquiry')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Unregistered user.', { exact: false })).toBeInTheDocument()
+        expect(screen.queryByPlaceholderText('Type your message here...')).not.toBeInTheDocument()
+      })
+    })
+
+    it('should show "Mark as Replied" button for unregistered users', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('General inquiry')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mark as Replied/i })).toBeInTheDocument()
+      })
+    })
+
+    it('should mark unregistered user message as replied', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('General inquiry')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mark as Replied/i })).toBeInTheDocument()
+      })
+
+      const markAsRepliedButton = screen.getByRole('button', { name: /Mark as Replied/i })
+      await user.click(markAsRepliedButton)
+
+      await waitFor(() => {
+        expect(mockStoreStateEnhanced.updateMessageStatus).toHaveBeenCalledWith('msg-003', 'replied')
+      })
+    })
+
+    it('should hide reply form for deleted users', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Old question')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Unregistered user.', { exact: false })).toBeInTheDocument()
+        expect(screen.queryByPlaceholderText('Type your message here...')).not.toBeInTheDocument()
+      })
+    })
+
+    it('should keep Delete and Mark as Closed buttons visible for unregistered users', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('General inquiry')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Mark as Closed', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markAsClosed.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should show "Mark as Closed" button for open conversations', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
+      })
+    })
+
+    it('should mark conversation as closed', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
+      })
+
+      const closeButton = screen.getByRole('button', { name: /Mark as Closed/i })
+      await user.click(closeButton)
+
+      await waitFor(() => {
+        expect(mockStoreStateEnhanced.markAsClosed).toHaveBeenCalledWith('msg-001')
+      })
+    })
+
+    it('should disable reply form for closed conversations', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Complaint')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByText('This conversation is closed. No more replies can be added.')).toBeInTheDocument()
+        expect(screen.queryByPlaceholderText('Type your message here...')).not.toBeInTheDocument()
+      })
+    })
+
+    it('should show "Closed" status badge for closed messages', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Complaint')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Closed').length).toBeGreaterThanOrEqual(1)
+      })
+    })
+  })
+
+  describe('Mark Discussion Message as Read', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should mark unread user messages as read when opening', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(mockStoreStateEnhanced.markDiscussionMessageAsRead).toHaveBeenCalledWith('msg-001', 'reply-002')
+      })
+    })
+
+    it('should not mark admin messages as read', async () => {
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockClear()
+
+      renderComponent()
+
+      const messageCard = screen.getByText('Reservation question')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(mockStoreStateEnhanced.markDiscussionMessageAsRead).not.toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('NewlyReplied Status', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should display newlyReplied badge in message list', () => {
+      renderComponent()
+
+      const reservationMessage = screen.getByText('Reservation question')
+      const messageCard = reservationMessage.closest('div[class*="p-6"]')
+
+      expect(within(messageCard).getByText('New Reply')).toBeInTheDocument()
+    })
+
+    it('should include newlyReplied in badge count', () => {
+      renderComponent()
+
+      const newCount = mockStoreStateEnhanced.getNewMessagesCount()
+      expect(newCount).toBe(3)
+    })
+
+    it('should show newlyReplied in statistics', () => {
+      renderComponent()
+
+      const stats = mockStoreStateEnhanced.getMessagesStats()
+      expect(stats.newlyReplied).toBe(2)
+    })
+  })
+
+  describe('Management Buttons', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should show Delete and Mark as Closed buttons even when reply form is hidden', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('General inquiry')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.queryByPlaceholderText('Type your message here...')).not.toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
+      })
+    })
+
+    it('should show Delete and Mark as Closed buttons for closed conversations', async () => {
+      renderComponent()
+
+      const messageCard = screen.getByText('Complaint')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+        const closedButtons = screen.getAllByRole('button', { name: /Closed/i })
+        const closedButton = closedButtons.find(btn => btn.disabled)
+        expect(closedButton).toBeDefined()
+        expect(closedButton).toBeDisabled()
+      })
+    })
+  })
+
+  describe('Error Handling', () => {
+    beforeEach(() => {
+      mockStoreStateEnhanced.markAsRead.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.fetchMessages.mockResolvedValue({ success: true })
+      mockStoreStateEnhanced.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
+
+      useContactsStore.mockReturnValue(mockStoreStateEnhanced)
+      useAuth.mockReturnValue({ user: mockCurrentAdmin })
+    })
+
+    it('should show error toast when reply fails', async () => {
+      const { toast } = await import('react-hot-toast')
+      mockStoreStateEnhanced.addReply.mockResolvedValue({ success: false, error: 'Network error' })
+
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
+      })
+
+      const textarea = screen.getByPlaceholderText('Type your message here...')
+      await user.type(textarea, 'Test reply')
+
+      const sendButton = screen.getByRole('button', { name: /Send Reply/i })
+      await user.click(sendButton)
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Network error')
+      })
+    })
+
+    it('should show error toast when marking as closed fails', async () => {
+      const { toast } = await import('react-hot-toast')
+      mockStoreStateEnhanced.markAsClosed.mockResolvedValue({ success: false, error: 'Failed to close' })
+
+      renderComponent()
+
+      const messageCard = screen.getByText('Question about menu')
+      await user.click(messageCard.closest('div[class*="p-6"]'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
+      })
+
+      const closeButton = screen.getByRole('button', { name: /Mark as Closed/i })
+      await user.click(closeButton)
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Failed to close')
+      })
     })
   })
 })
