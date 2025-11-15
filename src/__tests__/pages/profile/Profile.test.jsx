@@ -4,12 +4,14 @@ import userEvent from '@testing-library/user-event'
 import Profile from '../../../pages/profile/Profile'
 import { useAuth } from '../../../hooks/useAuth'
 import { toast } from 'react-hot-toast'
+import * as emailApi from '../../../api/emailApi'
 
 // Mocks
 vi.mock('../../../hooks/useAuth')
 vi.mock('react-hot-toast')
+vi.mock('../../../api/emailApi')
 vi.mock('../../../components/profile/DeleteAccountModal', () => ({
-  default: ({ isOpen, onClose, onConfirm }) => 
+  default: ({ isOpen, onClose, onConfirm }) =>
     isOpen ? (
       <div data-testid="delete-account-modal">
         <button onClick={() => onConfirm('password123')}>Confirm deletion</button>
@@ -113,13 +115,238 @@ describe('Profile Component', () => {
 
     it('should show both tab buttons with correct labels and icons', () => {
       render(<Profile />)
-      
+
       expect(screen.getByRole('button', { name: /Personal information/ })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Security/ })).toBeInTheDocument()
     })
   })
 
-  // 2. ONGLET INFORMATIONS PERSONNELLES - MODE AFFICHAGE
+  // 2. EMAIL VERIFICATION BANNER
+  describe('Email Verification Banner', () => {
+    it('should show verification banner when user email is not verified', () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      render(<Profile />)
+
+      expect(screen.getByText('Email Not Verified')).toBeInTheDocument()
+      expect(screen.getByText(/Your email address has not been verified yet/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Resend Verification Email' })).toBeInTheDocument()
+    })
+
+    it('should NOT show verification banner when user email is verified', () => {
+      const verifiedUser = {
+        ...mockUser,
+        isEmailVerified: true
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: verifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      render(<Profile />)
+
+      expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Resend Verification Email' })).not.toBeInTheDocument()
+    })
+
+    it('should NOT show banner when user is null', () => {
+      vi.mocked(useAuth).mockReturnValue({
+        user: null,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      render(<Profile />)
+
+      expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument()
+    })
+
+    it('should call resendVerification API when clicking resend button', async () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      emailApi.resendVerification = vi.fn().mockResolvedValue({ success: true })
+
+      render(<Profile />)
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      await waitFor(() => {
+        expect(emailApi.resendVerification).toHaveBeenCalledWith(unverifiedUser.email)
+      })
+    })
+
+    it('should show success toast on successful resend', async () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      emailApi.resendVerification = vi.fn().mockResolvedValue({
+        success: true,
+        message: 'Verification email sent'
+      })
+
+      render(<Profile />)
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Verification email sent! Check your inbox.')
+      })
+    })
+
+    it('should show error toast on failed resend with error message', async () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      emailApi.resendVerification = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'Rate limit exceeded'
+      })
+
+      render(<Profile />)
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Rate limit exceeded')
+      })
+    })
+
+    it('should show error toast on API error', async () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      emailApi.resendVerification = vi.fn().mockRejectedValue(new Error('Network error'))
+
+      render(<Profile />)
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Failed to resend verification email')
+      })
+    })
+
+    it('should show loading state when resending verification email', async () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      // Mock slow API response
+      emailApi.resendVerification = vi.fn().mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
+      )
+
+      render(<Profile />)
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      // Should show loading text
+      expect(screen.getByText('Sending...')).toBeInTheDocument()
+      expect(resendButton).toBeDisabled()
+
+      // Wait for completion
+      await waitFor(() => {
+        expect(screen.queryByText('Sending...')).not.toBeInTheDocument()
+      })
+    })
+
+    it('should have amber/yellow warning banner styling', () => {
+      const unverifiedUser = {
+        ...mockUser,
+        isEmailVerified: false
+      }
+
+      vi.mocked(useAuth).mockReturnValue({
+        user: unverifiedUser,
+        updateProfile: mockUpdateProfile,
+        changePassword: mockChangePassword,
+        deleteAccount: mockDeleteAccount,
+        isLoading: false
+      })
+
+      const { container } = render(<Profile />)
+
+      // Check for amber/yellow styling (warning banner) using querySelector
+      const banner = container.querySelector('.bg-amber-50')
+      expect(banner).toBeInTheDocument()
+      expect(banner).toHaveClass('border-amber-200')
+      expect(screen.getByText('Email Not Verified')).toBeInTheDocument()
+    })
+  })
+
+  // 3. ONGLET INFORMATIONS PERSONNELLES - MODE AFFICHAGE
   describe('Personal Information Tab - Display Mode', () => {
     it('should display all user profile fields', () => {
       render(<Profile />)

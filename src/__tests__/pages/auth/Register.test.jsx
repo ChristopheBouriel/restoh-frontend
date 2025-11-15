@@ -2,13 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Register from '../../../pages/auth/Register'
-import { useAuth } from '../../../hooks/useAuth'
+import useAuthStore from '../../../store/authStore'
+import * as emailApi from '../../../api/emailApi'
 
 // Mocks
-vi.mock('../../../hooks/useAuth')
+vi.mock('../../../store/authStore')
+vi.mock('../../../api/emailApi')
+
 vi.mock('react-router-dom', () => ({
   Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
   useNavigate: () => vi.fn()
+}))
+
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn()
+  }
 }))
 
 describe('Register Component', () => {
@@ -17,46 +27,37 @@ describe('Register Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useAuth).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       register: mockRegister,
       isLoading: false,
       error: null
     })
+
+    // Mock window.scrollTo
+    window.scrollTo = vi.fn()
   })
 
   // 1. RENDU INITIAL
   describe('Initial Rendering', () => {
     it('should render registration form with all required fields', () => {
       render(<Register />)
-      
-      // Check main elements
+
       expect(screen.getByText('RestOh!')).toBeInTheDocument()
       expect(screen.getByText('Create your account')).toBeInTheDocument()
-
-      // Check all required fields
       expect(screen.getByLabelText('Full name')).toBeInTheDocument()
       expect(screen.getByLabelText('Email address')).toBeInTheDocument()
       expect(screen.getByLabelText('Password')).toBeInTheDocument()
       expect(screen.getByLabelText('Confirm password')).toBeInTheDocument()
-
-      // Check terms checkbox
       expect(screen.getByLabelText(/I accept the/)).toBeInTheDocument()
-
-      // Check submit button
       expect(screen.getByRole('button', { name: 'Create my account' })).toBeInTheDocument()
     })
 
     it('should display navigation links to login and home', () => {
       render(<Register />)
-      
-      // Lien vers la page d'accueil
+
       expect(screen.getByRole('link', { name: 'RestOh!' })).toHaveAttribute('href', '/')
-      
-      // Lien vers la page de connexion
       expect(screen.getByRole('link', { name: 'log in to your existing account' }))
         .toHaveAttribute('href', '/login')
-      
-      // Liens vers les conditions
       expect(screen.getByRole('link', { name: 'terms of use' }))
         .toHaveAttribute('href', '/terms')
       expect(screen.getByRole('link', { name: 'privacy policy' }))
@@ -68,8 +69,7 @@ describe('Register Component', () => {
   describe('Form Validation', () => {
     it('should prevent form submission when required fields are empty', async () => {
       render(<Register />)
-      
-      // Check that fields are required
+
       const nameInput = screen.getByLabelText('Full name')
       const emailInput = screen.getByLabelText('Email address')
       const passwordInput = screen.getByLabelText('Password')
@@ -82,51 +82,41 @@ describe('Register Component', () => {
       expect(confirmPasswordInput).toBeRequired()
       expect(termsCheckbox).toBeRequired()
 
-      // Try to click submit - should not call register
       const submitButton = screen.getByRole('button', { name: 'Create my account' })
       await user.click(submitButton)
 
-      // Check that register is not called due to HTML5 validation
       expect(mockRegister).not.toHaveBeenCalled()
     })
 
-    it('should handle form submission with invalid data gracefully', async () => {
+    it('should show validation errors for mismatched passwords', async () => {
       render(<Register />)
 
-      // Fill all fields with invalid data
-      await user.type(screen.getByLabelText('Full name'), 'Test User')
-      await user.type(screen.getByLabelText('Email address'), 'invalid-email')
-      await user.type(screen.getByLabelText('Password'), '123') // Too short
-      await user.type(screen.getByLabelText('Confirm password'), 'different') // Different
+      // Fill with all fields but mismatched passwords
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'differentPassword')
 
-      // Check terms checkbox
       const termsCheckbox = screen.getByLabelText(/I accept the/)
       await user.click(termsCheckbox)
 
       const submitButton = screen.getByRole('button', { name: 'Create my account' })
-
-      // Check that fields have correct values
-      expect(screen.getByLabelText('Full name')).toHaveValue('Test User')
-      expect(screen.getByLabelText('Email address')).toHaveValue('invalid-email')
-      expect(screen.getByLabelText('Password')).toHaveValue('123')
-      expect(screen.getByLabelText('Confirm password')).toHaveValue('different')
-
-      // Form should not be submitted with invalid data
-      // (either by HTML5 validation or JS validation)
       await user.click(submitButton)
 
-      // In any case, register should not be called with invalid data
+      // Should show validation error for password mismatch
+      await waitFor(() => {
+        expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+      })
+
       expect(mockRegister).not.toHaveBeenCalled()
     })
 
     it('should validate email format correctly', async () => {
       render(<Register />)
-      
-      // Test d'un email valide d'abord
+
       const emailInput = screen.getByLabelText('Email address')
       expect(emailInput).toHaveAttribute('type', 'email')
-      
-      // Le type="email" HTML5 fournit la validation de base
+
       await user.type(emailInput, 'valid@email.com')
       expect(emailInput).toHaveValue('valid@email.com')
     })
@@ -136,18 +126,17 @@ describe('Register Component', () => {
   describe('User Interactions', () => {
     it('should allow typing in all form fields', async () => {
       render(<Register />)
-      
-      // Test that all fields accept input
+
       const nameInput = screen.getByLabelText('Full name')
       const emailInput = screen.getByLabelText('Email address')
       const passwordInput = screen.getByLabelText('Password')
       const confirmPasswordInput = screen.getByLabelText('Confirm password')
-      
+
       await user.type(nameInput, 'Jean Dupont')
       await user.type(emailInput, 'jean@example.com')
       await user.type(passwordInput, 'password123')
       await user.type(confirmPasswordInput, 'password123')
-      
+
       expect(nameInput).toHaveValue('Jean Dupont')
       expect(emailInput).toHaveValue('jean@example.com')
       expect(passwordInput).toHaveValue('password123')
@@ -156,49 +145,42 @@ describe('Register Component', () => {
 
     it('should toggle password visibility when eye icon clicked', async () => {
       render(<Register />)
-      
+
       const passwordInput = screen.getByLabelText('Password')
       const confirmPasswordInput = screen.getByLabelText('Confirm password')
 
-      // Initially, fields should be password type
       expect(passwordInput).toHaveAttribute('type', 'password')
       expect(confirmPasswordInput).toHaveAttribute('type', 'password')
-      
-      // Trouver et cliquer sur le bouton œil du mot de passe
+
       const passwordToggleButtons = screen.getAllByRole('button', { name: '' })
-      const passwordToggle = passwordToggleButtons[0] // Premier bouton œil
-      const confirmPasswordToggle = passwordToggleButtons[1] // Deuxième bouton œil
-      
+      const passwordToggle = passwordToggleButtons[0]
+      const confirmPasswordToggle = passwordToggleButtons[1]
+
       await user.click(passwordToggle)
       expect(passwordInput).toHaveAttribute('type', 'text')
-      
+
       await user.click(confirmPasswordToggle)
       expect(confirmPasswordInput).toHaveAttribute('type', 'text')
-      
-      // Click à nouveau pour cacher
+
       await user.click(passwordToggle)
       expect(passwordInput).toHaveAttribute('type', 'password')
     })
 
     it('should call register function on form submission with valid data', async () => {
-      mockRegister.mockResolvedValue(true)
+      mockRegister.mockResolvedValue({ success: true })
       render(<Register />)
-      
-      // Fill le formulaire avec des données valides
+
       await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
       await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
       await user.type(screen.getByLabelText('Password'), 'password123')
       await user.type(screen.getByLabelText('Confirm password'), 'password123')
-      
-      // Check the terms
+
       const termsCheckbox = screen.getByLabelText(/I accept the/)
       await user.click(termsCheckbox)
-      
-      // Soumettre le formulaire
+
       const submitButton = screen.getByRole('button', { name: 'Create my account' })
       await user.click(submitButton)
-      
-      // Check que register est appelé avec les bonnes données
+
       await waitFor(() => {
         expect(mockRegister).toHaveBeenCalledWith({
           name: 'Jean Dupont',
@@ -209,51 +191,205 @@ describe('Register Component', () => {
     })
   })
 
-  // 4. ÉTATS DE L'APPLICATION
+  // 4. ÉCRAN DE SUCCÈS (EMAIL VERIFICATION)
+  describe('Success Screen - Email Verification', () => {
+    it('should display success screen after successful registration', async () => {
+      mockRegister.mockResolvedValue({ success: true })
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+
+      const termsCheckbox = screen.getByLabelText(/I accept the/)
+      await user.click(termsCheckbox)
+
+      const submitButton = screen.getByRole('button', { name: 'Create my account' })
+      await user.click(submitButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('Account Created Successfully!')).toBeInTheDocument()
+      })
+
+      expect(screen.getByText(/We've sent a verification email to:/)).toBeInTheDocument()
+      expect(screen.getByText('jean@example.com')).toBeInTheDocument()
+      expect(screen.getByText(/Please check your inbox and click the verification link/)).toBeInTheDocument()
+    })
+
+    it('should show success icon on registration success', async () => {
+      mockRegister.mockResolvedValue({ success: true })
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+      await user.click(screen.getByLabelText(/I accept the/))
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Account Created Successfully!')).toBeInTheDocument()
+      })
+
+      // Check for checkmark SVG
+      const checkIcon = document.querySelector('svg path[d*="M5 13l4 4L19 7"]')
+      expect(checkIcon).toBeInTheDocument()
+    })
+
+    it('should display spam folder tip on success screen', async () => {
+      mockRegister.mockResolvedValue({ success: true })
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+      await user.click(screen.getByLabelText(/I accept the/))
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/check your spam folder/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should have resend verification button on success screen', async () => {
+      mockRegister.mockResolvedValue({ success: true })
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+      await user.click(screen.getByLabelText(/I accept the/))
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Resend Verification Email' })).toBeInTheDocument()
+      })
+
+      expect(screen.getByText(/Didn't receive the email?/)).toBeInTheDocument()
+    })
+
+    it('should call resendVerification API when clicking resend button', async () => {
+      mockRegister.mockResolvedValue({ success: true })
+      emailApi.resendVerification.mockResolvedValue({ success: true })
+
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+      await user.click(screen.getByLabelText(/I accept the/))
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Resend Verification Email' })).toBeInTheDocument()
+      })
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      await waitFor(() => {
+        expect(emailApi.resendVerification).toHaveBeenCalledWith('jean@example.com')
+      })
+    })
+
+    it('should show loading state when resending verification email', async () => {
+      mockRegister.mockResolvedValue({ success: true })
+      emailApi.resendVerification.mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
+      )
+
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+      await user.click(screen.getByLabelText(/I accept the/))
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Resend Verification Email' })).toBeInTheDocument()
+      })
+
+      const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
+      await user.click(resendButton)
+
+      // Should show loading state
+      expect(screen.getByText('Sending...')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Sending.../ })).toBeDisabled()
+    })
+  })
+
+  // 5. ÉTATS DE L'APPLICATION
   describe('Application States', () => {
     it('should display loading state during registration', () => {
-      vi.mocked(useAuth).mockReturnValue({
+      vi.mocked(useAuthStore).mockReturnValue({
         register: mockRegister,
         isLoading: true,
         error: null
       })
-      
+
       render(<Register />)
-      
-      // Check l'état de chargement
+
       expect(screen.getByText('Creating account...')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Creating account.../ })).toBeDisabled()
-      
-      // Check l'icône de chargement
+
       const loadingSpinner = document.querySelector('.animate-spin')
       expect(loadingSpinner).toBeInTheDocument()
     })
 
     it('should display global error message when registration fails', () => {
       const errorMessage = 'Une erreur est survenue lors de la création du compte'
-      vi.mocked(useAuth).mockReturnValue({
+      vi.mocked(useAuthStore).mockReturnValue({
         register: mockRegister,
         isLoading: false,
         error: errorMessage
       })
-      
+
       render(<Register />)
-      
-      // Check that error is displayed
+
       expect(screen.getByText(errorMessage)).toBeInTheDocument()
 
-      // Verify that error has error styling
       const errorContainer = screen.getByText(errorMessage).closest('div')
       expect(errorContainer).toHaveClass('text-red-700')
     })
+
+    it('should display inline alert for specific field errors', async () => {
+      mockRegister.mockResolvedValue({
+        success: false,
+        error: 'Email is already in use',
+        details: {
+          field: 'email',
+          message: 'This email address is already registered',
+          suggestion: 'Try logging in instead'
+        }
+      })
+
+      render(<Register />)
+
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'existing@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'password123')
+      await user.click(screen.getByLabelText(/I accept the/))
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Email is already in use')).toBeInTheDocument()
+        expect(screen.getByText(/This email address is already registered/)).toBeInTheDocument()
+      })
+    })
   })
 
-  // 5. EDGE CASES
+  // 6. EDGE CASES
   describe('Edge Cases', () => {
     it('should require terms checkbox to be checked', async () => {
       render(<Register />)
 
-      // Fill form without checking terms
       await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
       await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
       await user.type(screen.getByLabelText('Password'), 'password123')
@@ -262,15 +398,40 @@ describe('Register Component', () => {
       const submitButton = screen.getByRole('button', { name: 'Create my account' })
       const termsCheckbox = screen.getByLabelText(/I accept the/)
 
-      // Verify that checkbox is required and not checked
       expect(termsCheckbox).toBeRequired()
       expect(termsCheckbox).not.toBeChecked()
 
-      // Try to submit without checking terms
       await user.click(submitButton)
 
-      // HTML5 validation should prevent submission
       expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('should clear password mismatch error when user fixes it', async () => {
+      render(<Register />)
+
+      // Fill form with mismatched passwords
+      await user.type(screen.getByLabelText('Full name'), 'Jean Dupont')
+      await user.type(screen.getByLabelText('Email address'), 'jean@example.com')
+      await user.type(screen.getByLabelText('Password'), 'password123')
+      await user.type(screen.getByLabelText('Confirm password'), 'wrongPassword')
+
+      const termsCheckbox = screen.getByLabelText(/I accept the/)
+      await user.click(termsCheckbox)
+      await user.click(screen.getByRole('button', { name: 'Create my account' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+      })
+
+      // Fix the password mismatch
+      const confirmInput = screen.getByLabelText('Confirm password')
+      await user.clear(confirmInput)
+      await user.type(confirmInput, 'password123')
+
+      // Error should clear when user types
+      await waitFor(() => {
+        expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument()
+      })
     })
   })
 })
