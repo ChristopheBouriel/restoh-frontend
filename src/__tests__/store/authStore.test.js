@@ -77,7 +77,6 @@ describe('Auth Store', () => {
     // Reset store state
     useAuthStore.setState({
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null
@@ -230,10 +229,12 @@ describe('Auth Store', () => {
         password: 'wrongpassword'
       }
 
-      // Mock API to return error for invalid credentials
+      // Mock API to return error for invalid credentials with code and details
       mockLogin.mockResolvedValue({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS',
+        details: { attempts: 3 }
       })
 
       let loginResult
@@ -246,12 +247,45 @@ describe('Auth Store', () => {
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.error).toBe('Invalid credentials')
       expect(loginResult.success).toBe(false)
+      expect(loginResult.error).toBe('Invalid credentials')
+      expect(loginResult.code).toBe('INVALID_CREDENTIALS')
+      expect(loginResult.details).toEqual({ attempts: 3 })
+    })
+
+    it('should handle unverified email on login', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      const credentials = {
+        email: 'unverified@example.com',
+        password: 'password123'
+      }
+
+      // Mock API to return error for unverified email
+      mockLogin.mockResolvedValue({
+        success: false,
+        error: 'Please verify your email before logging in',
+        code: 'EMAIL_NOT_VERIFIED',
+        details: { email: 'unverified@example.com' }
+      })
+
+      let loginResult
+      await act(async () => {
+        loginResult = await result.current.login(credentials)
+      })
+
+      expect(mockLogin).toHaveBeenCalledWith(credentials)
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(result.current.error).toBe('Please verify your email before logging in')
+      expect(loginResult.success).toBe(false)
+      expect(loginResult.code).toBe('EMAIL_NOT_VERIFIED')
+      expect(loginResult.details).toEqual({ email: 'unverified@example.com' })
     })
   })
 
   // 3. INSCRIPTION
   describe('Registration', () => {
-    it('should register new user successfully', async () => {
+    it('should register new user successfully WITHOUT auto-login (email verification required)', async () => {
       const { result } = renderHook(() => useAuthStore())
 
       const userData = {
@@ -266,15 +300,17 @@ describe('Auth Store', () => {
       })
 
       expect(mockRegister).toHaveBeenCalledWith(userData)
-      expect(result.current.user).toEqual({
-        id: '2',
-        email: 'new@example.com',
-        name: 'New User',
-        role: 'client'
-      })
-      expect(result.current.isAuthenticated).toBe(true)
-      // Token is now stored in HTTP-only cookies, not in state
+
+      // IMPORTANT: Should call logout after registration to clear any session
+      expect(mockLogout).toHaveBeenCalled()
+
+      // User should NOT be logged in (must verify email first)
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+
+      // Should return success with email
       expect(registerResult.success).toBe(true)
+      expect(registerResult.email).toBe('new@example.com')
     })
 
     it('should handle registration errors gracefully', async () => {
@@ -286,10 +322,12 @@ describe('Auth Store', () => {
         password: 'password123'
       }
 
-      // Mock API to return error
+      // Mock API to return error with code and details
       mockRegister.mockResolvedValue({
         success: false,
-        error: 'Email already exists'
+        error: 'Email already exists',
+        code: 'EMAIL_IN_USE',
+        details: { field: 'email' }
       })
 
       let registerResult
@@ -302,6 +340,57 @@ describe('Auth Store', () => {
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.error).toBe('Email already exists')
       expect(registerResult.success).toBe(false)
+      expect(registerResult.error).toBe('Email already exists')
+      expect(registerResult.code).toBe('EMAIL_IN_USE')
+      expect(registerResult.details).toEqual({ field: 'email' })
+    })
+
+    it('should continue with registration cleanup even if logout fails', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      const userData = {
+        name: 'New User',
+        email: 'new@example.com',
+        password: 'password123'
+      }
+
+      // Mock logout to fail
+      mockLogout.mockRejectedValue(new Error('Logout failed'))
+
+      let registerResult
+      await act(async () => {
+        registerResult = await result.current.register(userData)
+      })
+
+      // Registration should still succeed despite logout failure
+      expect(mockRegister).toHaveBeenCalledWith(userData)
+      expect(mockLogout).toHaveBeenCalled()
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(registerResult.success).toBe(true)
+    })
+
+    it('should handle network errors during registration', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      const userData = {
+        name: 'New User',
+        email: 'new@example.com',
+        password: 'password123'
+      }
+
+      // Mock network error
+      mockRegister.mockRejectedValue(new Error('Network error'))
+
+      let registerResult
+      await act(async () => {
+        registerResult = await result.current.register(userData)
+      })
+
+      expect(result.current.error).toBe('Registration error')
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(registerResult.success).toBe(false)
+      expect(registerResult.error).toBe('Registration error')
     })
   })
 
