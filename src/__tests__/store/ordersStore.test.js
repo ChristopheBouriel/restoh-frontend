@@ -120,7 +120,7 @@ describe('ordersStore', () => {
     })
     mockCreateOrder.mockResolvedValue({
       success: true,
-      data: { _id: 'order-123', id: 'order-123', status: 'pending', isPaid: false }
+      data: { id: 'order-123', status: 'pending', isPaid: false }
     })
     mockUpdateOrderStatus.mockResolvedValue({
       success: true,
@@ -173,7 +173,7 @@ describe('ordersStore', () => {
 
   // 2. CREATE ORDERS & BUSINESS LOGIC (3 tests)
   test('should create order successfully and add to store', async () => {
-    const newOrder = { _id: 'order-new', status: 'pending', isPaid: true, totalPrice: 25.50 }
+    const newOrder = { id: 'order-new', status: 'pending', isPaid: true, totalPrice: 25.50 }
     mockCreateOrder.mockResolvedValue({
       success: true,
       data: newOrder
@@ -190,15 +190,13 @@ describe('ordersStore', () => {
     const state = useOrdersStore.getState()
     expect(state.isLoading).toBe(false)
     expect(state.orders).toHaveLength(1)
-    // Check normalized fields (_id should be removed, id should be set)
+    // Check order data is stored correctly
     expect(state.orders[0]).toMatchObject({
       id: 'order-new',
       status: 'pending',
       isPaid: true,
       totalPrice: 25.50
     })
-    // Ensure _id is removed from normalized data
-    expect(state.orders[0]._id).toBeUndefined()
   })
 
   test('should handle order creation errors gracefully', async () => {

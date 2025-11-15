@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import VerifyEmail from '../../../pages/auth/VerifyEmail'
 import * as emailApi from '../../../api/emailApi'
@@ -25,6 +25,11 @@ vi.mock('react-hot-toast', () => ({
 describe('VerifyEmail Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.clearAllTimers()
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
   })
 
   // 1. ÉTAT DE CHARGEMENT

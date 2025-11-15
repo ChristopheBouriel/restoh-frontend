@@ -735,7 +735,7 @@ const UsersManagement = () => {
                     <div className="space-y-2">
                       {userOrders.map((order) => (
                         <div
-                          key={order.id || order._id}
+                          key={order.id}
                           onClick={() => setSelectedOrderDetail(order)}
                           className="bg-white p-3 rounded-lg border border-gray-200 hover:border-blue-400 cursor-pointer transition-colors"
                         >

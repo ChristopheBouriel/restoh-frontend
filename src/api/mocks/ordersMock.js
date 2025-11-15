@@ -15,7 +15,6 @@ const generateMockOrder = (id, daysAgo = 0) => {
   const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)]
 
   return {
-    _id: `mock-order-${id}`,
     id: `mock-order-${id}`,
     orderNumber: 1000 + id,
     userId: daysAgo > 30 ? 'deleted-user' : `user-${Math.floor(Math.random() * 100)}`,
@@ -175,7 +174,7 @@ export const updateOrderStatusMock = async (orderId, newStatus) => {
   await new Promise(resolve => setTimeout(resolve, 200))
 
   // Find and update order in recent
-  let order = mockRecentOrders.find(o => o.id === orderId || o._id === orderId)
+  let order = mockRecentOrders.find(o => o.id === orderId)
   if (order) {
     order.status = newStatus
     order.updatedAt = new Date().toISOString()
@@ -189,7 +188,7 @@ export const updateOrderStatusMock = async (orderId, newStatus) => {
   }
 
   // Find and update order in historical
-  order = mockHistoricalOrders.find(o => o.id === orderId || o._id === orderId)
+  order = mockHistoricalOrders.find(o => o.id === orderId)
   if (order) {
     order.status = newStatus
     order.updatedAt = new Date().toISOString()
