@@ -189,7 +189,7 @@ const useUsersStore = create(
       },
 
       getUnverifiedUsers: () => {
-        return get().users.filter(user => !user.emailVerified)
+        return get().users.filter(user => !user.isEmailVerified)
       },
 
       searchUsers: (query) => {

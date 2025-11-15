@@ -467,7 +467,7 @@ const UsersManagement = () => {
                               }`}
                             />
                           </button>
-                          {user.emailVerified ? (
+                          {user.isEmailVerified ? (
                             <div className="text-xs text-green-600">✓ Email verified</div>
                           ) : (
                             <div className="text-xs text-orange-600">⚠ Not verified</div>
@@ -568,7 +568,7 @@ const UsersManagement = () => {
                       <span>Reservations: {user.totalReservations}</span>
                     </div>
 
-                    {!user.emailVerified && (
+                    {!user.isEmailVerified && (
                       <div className="text-xs text-orange-600">⚠ Email not verified</div>
                     )}
                   </div>
@@ -641,7 +641,7 @@ const UsersManagement = () => {
                     </p>
                     <p>
                       <strong>Email verified:</strong>{' '}
-                      {selectedUser.emailVerified ? (
+                      {selectedUser.isEmailVerified ? (
                         <span className="text-green-600">✓ Yes</span>
                       ) : (
                         <span className="text-red-600">✗ No</span>
