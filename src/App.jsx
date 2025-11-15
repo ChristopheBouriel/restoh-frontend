@@ -6,6 +6,9 @@ import Home from './pages/public/Home'
 import Menu from './pages/menu/Menu'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import VerifyEmail from './pages/auth/VerifyEmail'
+import ResetPassword from './pages/auth/ResetPassword'
 import Profile from './pages/profile/Profile'
 import Orders from './pages/orders/Orders'
 import Reservations from './pages/reservations/Reservations'
@@ -154,6 +157,9 @@ function App() {
         {/* Routes without layout (auth) */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+        <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmail />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
         {/* Dev routes */}
         <Route path="/dev/notifications" element={<NotificationsDemo />} />

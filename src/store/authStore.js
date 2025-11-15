@@ -77,14 +77,22 @@ const useAuthStore = create(
           const result = await authApi.register(userData)
 
           if (result.success) {
+            // IMPORTANT: Do NOT auto-login after registration
+            // User must verify email first, then login manually
+            // Clear any session created by backend
+            try {
+              await authApi.logout()
+            } catch (e) {
+              console.log('Logout after registration (expected):', e)
+            }
+
             set({
-              user: normalizeUser(result.user),
-              // token: result.token, // NO LONGER NEEDED - Cookie is set by server
-              isAuthenticated: true,
+              user: null, // Don't set user
+              isAuthenticated: false, // Keep user logged out
               isLoading: false,
               error: null
             })
-            return { success: true }
+            return { success: true, email: result.user?.email }
           } else {
             set({
               error: result.error,

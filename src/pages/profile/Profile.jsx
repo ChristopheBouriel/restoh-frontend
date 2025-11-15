@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { User, Mail, Phone, MapPin, Lock, Save } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Lock, Save, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
+import { emailApi } from '../../api'
 import DeleteAccountModal from '../../components/profile/DeleteAccountModal'
 
 const Profile = () => {
@@ -9,6 +10,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isResendingVerification, setIsResendingVerification] = useState(false)
 
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -151,6 +153,26 @@ const Profile = () => {
     }
   }
 
+  const handleResendVerification = async () => {
+    if (!user?.email) return
+
+    setIsResendingVerification(true)
+
+    try {
+      const result = await emailApi.resendVerification(user.email)
+
+      if (result.success) {
+        toast.success('Verification email sent! Check your inbox.')
+      } else {
+        toast.error(result.error || 'Failed to resend verification email')
+      }
+    } catch (error) {
+      toast.error('Failed to resend verification email')
+    } finally {
+      setIsResendingVerification(false)
+    }
+  }
+
   const tabs = [
     { id: 'personal', label: 'Personal information', icon: User },
     { id: 'security', label: 'Security', icon: Lock }
@@ -201,6 +223,35 @@ const Profile = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           {activeTab === 'personal' && (
             <div>
+              {/* Email verification banner */}
+              {user && !user.isEmailVerified && (
+                <div className="mb-6 rounded-md bg-amber-50 border border-amber-200 p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 text-amber-400" />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-amber-800">
+                        Email Not Verified
+                      </h3>
+                      <div className="mt-2 text-sm text-amber-700">
+                        <p className="mb-3">
+                          Your email address has not been verified yet. Please check your inbox
+                          for the verification email or request a new one.
+                        </p>
+                        <button
+                          onClick={handleResendVerification}
+                          disabled={isResendingVerification}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-amber-700 bg-amber-100 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+                        >
+                          {isResendingVerification ? 'Sending...' : 'Resend Verification Email'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Personal information

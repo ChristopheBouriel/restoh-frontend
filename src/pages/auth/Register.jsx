@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
+import { toast } from 'react-hot-toast'
+import useAuthStore from '../../store/authStore'
+import { emailApi } from '../../api'
 import { ROUTES } from '../../constants'
 import InlineAlert from '../../components/common/InlineAlert'
 
 const Register = () => {
   const navigate = useNavigate()
-  const { register, isLoading, error } = useAuth()
+  const { register, isLoading, error } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -18,6 +20,9 @@ const Register = () => {
   })
   const [formErrors, setFormErrors] = useState({})
   const [inlineError, setInlineError] = useState(null)
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
+  const [isResending, setIsResending] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -78,7 +83,13 @@ const Register = () => {
       password: formData.password
     })
 
-    if (result && !result.success) {
+    if (result && result.success) {
+      // User is NOT logged in after registration (handled in store)
+      // Just show success screen
+      setRegisteredEmail(formData.email)
+      setRegistrationSuccess(true)
+      toast.success('Account created! Please verify your email.')
+    } else if (result && !result.success) {
       // If backend returns details, show InlineAlert
       if (result.details) {
         setInlineError(result)
@@ -86,6 +97,85 @@ const Register = () => {
       }
       // Simple errors are already handled by toast in the hook
     }
+  }
+
+  const handleResendVerification = async () => {
+    setIsResending(true)
+
+    try {
+      const result = await emailApi.resendVerification(registeredEmail)
+
+      if (result.success) {
+        toast.success('Verification email sent! Check your inbox.')
+      } else {
+        toast.error(result.error || 'Failed to resend email')
+      }
+    } catch (error) {
+      toast.error('Failed to resend email')
+    } finally {
+      setIsResending(false)
+    }
+  }
+
+  // Success screen - show after registration
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <Link to={ROUTES.HOME} className="flex justify-center">
+            <span className="text-4xl font-bold text-primary-600">RestOh!</span>
+          </Link>
+
+          <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Account Created Successfully!
+              </h2>
+
+              <div className="space-y-3 text-sm text-gray-600 mb-6">
+                <p>
+                  We've sent a verification email to:
+                </p>
+                <p className="font-medium text-gray-900 text-base">
+                  {registeredEmail}
+                </p>
+                <p>
+                  Please check your inbox and click the verification link to activate your account.
+                </p>
+                <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                  <p className="text-xs text-blue-800">
+                    💡 <strong>Tip:</strong> The email should arrive within a few minutes. Don't forget to check your spam folder!
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm text-gray-500">
+                  Didn't receive the email?
+                </p>
+                <button
+                  onClick={handleResendVerification}
+                  disabled={isResending}
+                  className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                >
+                  {isResending ? 'Sending...' : 'Resend Verification Email'}
+                </button>
+
+                <p className="text-xs text-gray-500 pt-2">
+                  Once verified, you can log in with your credentials.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

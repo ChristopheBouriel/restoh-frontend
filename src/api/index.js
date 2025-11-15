@@ -10,6 +10,7 @@
  */
 
 import * as authApi from './authApi'
+import * as emailApi from './emailApi'
 import * as menuApi from './menuApi'
 import * as ordersApi from './ordersApi'
 import * as reservationsApi from './reservationsApi'
@@ -18,6 +19,7 @@ import * as tablesApi from './tablesApi'
 
 export {
   authApi,
+  emailApi,
   menuApi,
   ordersApi,
   reservationsApi,
@@ -28,6 +30,7 @@ export {
 // Default export for alternative usage
 export default {
   auth: authApi,
+  email: emailApi,
   menu: menuApi,
   orders: ordersApi,
   reservations: reservationsApi,
