@@ -19,7 +19,6 @@ const generateMockReservation = (id, daysAgo = 0) => {
   const slot = Math.floor(Math.random() * 15) + 1 // Slots 1-15
 
   return {
-    _id: `mock-reservation-${id}`,
     id: `mock-reservation-${id}`,
     reservationNumber: 2000 + id,
     userId: Math.abs(daysAgo) > 30 ? 'deleted-user' : `user-${Math.floor(Math.random() * 100)}`,
@@ -178,7 +177,7 @@ export const updateReservationStatusMock = async (reservationId, newStatus) => {
   await new Promise(resolve => setTimeout(resolve, 200))
 
   // Find and update reservation in recent
-  let reservation = mockRecentReservations.find(r => r.id === reservationId || r._id === reservationId)
+  let reservation = mockRecentReservations.find(r => r.id === reservationId)
   if (reservation) {
     reservation.status = newStatus
     reservation.updatedAt = new Date().toISOString()
@@ -186,7 +185,7 @@ export const updateReservationStatusMock = async (reservationId, newStatus) => {
   }
 
   // Find and update reservation in historical
-  reservation = mockHistoricalReservations.find(r => r.id === reservationId || r._id === reservationId)
+  reservation = mockHistoricalReservations.find(r => r.id === reservationId)
   if (reservation) {
     reservation.status = newStatus
     reservation.updatedAt = new Date().toISOString()

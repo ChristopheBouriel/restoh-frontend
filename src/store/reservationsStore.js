@@ -3,15 +3,6 @@ import { persist } from 'zustand/middleware'
 import * as reservationsApi from '../api/reservationsApi'
 import { getTodayLocalDate, normalizeDateString } from '../utils/dateUtils'
 
-// Normalize reservation ID (_id from MongoDB to id for frontend)
-const normalizeReservation = (reservation) => {
-  if (!reservation) return reservation
-  return {
-    ...reservation,
-    id: reservation._id || reservation.id
-  }
-}
-
 const useReservationsStore = create(
   persist(
     (set, get) => ({
@@ -43,7 +34,7 @@ const useReservationsStore = create(
               const reservationsData = result.data || result.reservations || []
 
               set({
-                reservations: reservationsData.map(normalizeReservation),
+                reservations: reservationsData,
                 isLoading: false,
                 error: null
               })
@@ -79,7 +70,7 @@ const useReservationsStore = create(
 
           if (result.success) {
             set({
-              reservations: (result.data || []).map(normalizeReservation),
+              reservations: result.data || [],
               isLoading: false,
               error: null
             })
@@ -137,7 +128,7 @@ const useReservationsStore = create(
 
           if (result.success) {
             // Add new reservation to state directly
-            const newReservation = normalizeReservation(result.data)
+            const newReservation = result.data
             set({
               reservations: [...get().reservations, newReservation],
               isLoading: false
@@ -235,7 +226,7 @@ const useReservationsStore = create(
 
           if (result.success) {
             // Update the reservation in state
-            const updatedReservation = normalizeReservation(result.data)
+            const updatedReservation = result.data
             set({
               reservations: get().reservations.map(r =>
                 r.id === reservationId ? updatedReservation : r
@@ -275,7 +266,7 @@ const useReservationsStore = create(
 
           if (result.success) {
             // Update the reservation status in state
-            const updatedReservation = normalizeReservation(result.data)
+            const updatedReservation = result.data
             set({
               reservations: get().reservations.map(r =>
                 r.id === reservationId ? updatedReservation : r
@@ -317,7 +308,7 @@ const useReservationsStore = create(
 
       getReservationsByUser: (userId) => {
         return get().reservations.filter(reservation =>
-          reservation.userId === userId || reservation.user?._id === userId
+          reservation.userId === userId || reservation.user?.id === userId
         )
       },
 
