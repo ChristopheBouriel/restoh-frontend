@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Eye, Users, Calendar, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
@@ -38,6 +38,7 @@ const ReservationsManagement = () => {
   // Modal state
   const [selectedReservation, setSelectedReservation] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const modalRef = useRef(null) // Ref for modal content to detect outside clicks
 
   // ========================================
   // FETCH FUNCTIONS
@@ -128,6 +129,23 @@ const ReservationsManagement = () => {
       fetchHistoricalReservationsData(1)
     }
   }, [activeTab, startDate, endDate, statusFilter, searchReservationNumber]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isModalOpen && modalRef.current && !modalRef.current.contains(event.target)) {
+        closeModal()
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isModalOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ========================================
   // HANDLERS
@@ -926,7 +944,7 @@ const ReservationsManagement = () => {
       {/* Reservation Detail Modal */}
       {isModalOpen && selectedReservation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+          <div ref={modalRef} className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -993,16 +1011,6 @@ const ReservationsManagement = () => {
                   <p><strong>Created:</strong> {new Date(selectedReservation.createdAt).toLocaleString('en-US')}</p>
                   <p><strong>Modified:</strong> {new Date(selectedReservation.updatedAt).toLocaleString('en-US')}</p>
                 </div>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-6 flex justify-end space-x-4">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>

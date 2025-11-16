@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Trash2, RefreshCw, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
@@ -41,6 +41,7 @@ const OrdersManagement = () => {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [inlineError, setInlineError] = useState(null)
   const [, setRefreshTick] = useState(0) // Force re-render for "Updated Xs ago"
+  const modalRef = useRef(null) // Ref for modal content to detect outside clicks
 
   // Fetch recent orders
   const fetchRecentOrdersData = useCallback(async (page = 1) => {
@@ -140,6 +141,23 @@ const OrdersManagement = () => {
       fetchHistoricalOrdersData(1)
     }
   }, [activeTab, startDate, endDate, filterStatus, searchOrderNumber]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectedOrder && modalRef.current && !modalRef.current.contains(event.target)) {
+        setSelectedOrder(null)
+      }
+    }
+
+    if (selectedOrder) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [selectedOrder])
 
   // Handle date changes
   const handleStartDateChange = (newStartDate) => {
@@ -758,7 +776,7 @@ const OrdersManagement = () => {
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div ref={modalRef} className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">
