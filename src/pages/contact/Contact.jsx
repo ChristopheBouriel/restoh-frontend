@@ -271,6 +271,7 @@ const Contact = () => {
                     value={formData.contactReason}
                     onChange={(value) => setFormData(prev => ({ ...prev, contactReason: value }))}
                     className="w-full"
+                    size="md"
                   />
                 </div>
 
