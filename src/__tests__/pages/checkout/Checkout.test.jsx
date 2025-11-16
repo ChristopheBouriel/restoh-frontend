@@ -222,7 +222,7 @@ describe('Checkout Component', () => {
         instructions: 'Ring at 2nd'
       },
       phone: '0123456789',
-      specialInstructions: 'Ring at 2nd',
+      specialInstructions: null,
       orderType: 'delivery',
       paymentMethod: 'card',
       paymentStatus: 'paid' // Card payments are automatically paid
