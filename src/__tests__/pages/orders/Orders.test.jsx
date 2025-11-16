@@ -28,7 +28,7 @@ const mockOrders = [
     phone: '0123456789',
     paymentMethod: 'card',
     paymentStatus: 'paid',
-    notes: 'Sonnez au 2ème étage'
+    specialInstructions: 'Sonnez au 2ème étage'
   },
   {
     id: '2',

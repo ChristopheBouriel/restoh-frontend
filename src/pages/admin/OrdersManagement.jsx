@@ -829,9 +829,25 @@ const OrdersManagement = () => {
                 {selectedOrder.orderType === 'delivery' && selectedOrder.deliveryAddress && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Delivery address</h3>
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                       <p>{selectedOrder.deliveryAddress.street}</p>
                       <p>{selectedOrder.deliveryAddress.zipCode} {selectedOrder.deliveryAddress.city}</p>
+                      {selectedOrder.deliveryAddress.instructions && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-sm text-gray-600">Instructions:</p>
+                          <p className="text-sm text-gray-900">{selectedOrder.deliveryAddress.instructions}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Special Instructions */}
+                {selectedOrder.specialInstructions && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Special instructions</h3>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-900">{selectedOrder.specialInstructions}</p>
                     </div>
                   </div>
                 )}

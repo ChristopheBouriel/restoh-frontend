@@ -232,6 +232,11 @@ const Orders = () => {
                                 <p><strong>Address:</strong></p>
                                 <p className="ml-2">{order.deliveryAddress.street}</p>
                                 <p className="ml-2">{order.deliveryAddress.zipCode} {order.deliveryAddress.city}</p>
+                                {order.deliveryAddress.instructions && (
+                                  <p className="ml-2 text-xs text-gray-500 italic">
+                                    {order.deliveryAddress.instructions}
+                                  </p>
+                                )}
                               </div>
                             )}
                             {order.phone && (
@@ -240,8 +245,8 @@ const Orders = () => {
                             {order.paymentMethod && (
                               <p><strong>Payment:</strong> {order.paymentMethod === 'card' ? 'Card' : 'Cash'}</p>
                             )}
-                            {order.notes && (
-                              <p><strong>Notes:</strong> {order.notes}</p>
+                            {order.specialInstructions && (
+                              <p><strong>Special instructions:</strong> {order.specialInstructions}</p>
                             )}
                           </div>
                         </div>
