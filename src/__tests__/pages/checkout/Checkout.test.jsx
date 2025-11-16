@@ -210,11 +210,9 @@ describe('Checkout Component', () => {
 
     expect(mockCreateOrder).toHaveBeenCalledWith({
       userId: mockUser.id,
-      userEmail: mockUser.email,
-      userName: mockUser.name,
       items: [
-        { menuItem: 1, quantity: 2, price: 15.90 },
-        { menuItem: 2, quantity: 1, price: 12.50 }
+        { menuItem: 1, quantity: 2, specialInstructions: null },
+        { menuItem: 2, quantity: 1, specialInstructions: null }
       ],
       totalPrice: 44.30,
       deliveryAddress: {

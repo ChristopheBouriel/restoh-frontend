@@ -92,23 +92,21 @@ const Checkout = () => {
       const formattedItems = availableItems.map(item => ({
         menuItem: item.id,
         quantity: item.quantity,
-        price: item.currentPrice || item.price
+        specialInstructions: item.specialInstructions || null
       }))
 
       const orderData = {
         userId: user.id,
-        userEmail: user.email,
-        userName: user.name,
         items: formattedItems,
         totalPrice: totalPriceAvailable,
         deliveryAddress: formData.type === 'delivery' ? {
           street: formData.street,
           city: formData.city,
           zipCode: formData.zipCode,
-          instructions: formData.instructions || ''
+          instructions: formData.instructions || null
         } : null,
         phone: formData.phone,
-        specialInstructions: formData.instructions || '',
+        specialInstructions: formData.instructions || null,
         paymentMethod: formData.paymentMethod,
         paymentStatus: formData.paymentMethod === 'card' ? 'paid' : 'pending',
         orderType: formData.type
