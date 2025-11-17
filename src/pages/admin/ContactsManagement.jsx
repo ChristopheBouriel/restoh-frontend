@@ -354,7 +354,7 @@ const ContactsManagement = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 flex-1">
-                      <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[message.status]?.color}`}>
+                      <div className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium w-24 ${statusConfig[message.status]?.color}`}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {statusConfig[message.status]?.label}
                       </div>
