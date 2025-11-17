@@ -5,7 +5,6 @@ const useReviewsStore = create((set, get) => ({
   // State
   reviews: {}, // { [menuItemId]: reviews[] }
   stats: {}, // { [menuItemId]: { averageRating, reviewCount } }
-  userReviews: [],
   isLoading: false,
   error: null,
 
@@ -143,24 +142,6 @@ const useReviewsStore = create((set, get) => ({
       await get().fetchMenuItemRatingStats(menuItemId)
 
       return { success: true }
-    } else {
-      set({ error: result.error, isLoading: false })
-      return { success: false, error: result.error }
-    }
-  },
-
-  // Fetch user's own reviews
-  fetchUserReviews: async () => {
-    set({ isLoading: true, error: null })
-
-    const result = await reviewsApi.getUserReviews()
-
-    if (result.success) {
-      set({
-        userReviews: result.data || [],
-        isLoading: false
-      })
-      return { success: true, reviews: result.data }
     } else {
       set({ error: result.error, isLoading: false })
       return { success: false, error: result.error }

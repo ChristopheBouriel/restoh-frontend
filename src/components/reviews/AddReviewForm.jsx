@@ -22,12 +22,15 @@ const AddReviewForm = ({ initialReview, onSubmit, onCancel, isSubmitting = false
       newErrors.rating = 'Please select a rating'
     }
 
-    if (comment.trim().length < 10) {
-      newErrors.comment = 'Comment must be at least 10 characters'
-    }
+    // Comment is optional, but if provided, must meet length requirements
+    if (comment.trim().length > 0) {
+      if (comment.trim().length < 10) {
+        newErrors.comment = 'Comment must be at least 10 characters'
+      }
 
-    if (comment.trim().length > 500) {
-      newErrors.comment = 'Comment must not exceed 500 characters'
+      if (comment.trim().length > 500) {
+        newErrors.comment = 'Comment must not exceed 500 characters'
+      }
     }
 
     setErrors(newErrors)
@@ -41,10 +44,17 @@ const AddReviewForm = ({ initialReview, onSubmit, onCancel, isSubmitting = false
       return
     }
 
-    onSubmit({
+    const reviewData = {
       rating,
       comment: comment.trim()
-    })
+    }
+
+    // Only include comment if it's not empty
+    if (reviewData.comment === '') {
+      reviewData.comment = ''
+    }
+
+    onSubmit(reviewData)
   }
 
   return (
@@ -68,7 +78,7 @@ const AddReviewForm = ({ initialReview, onSubmit, onCancel, isSubmitting = false
       {/* Comment */}
       <div>
         <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-          Your Review *
+          Your Review (optional)
         </label>
         <textarea
           id="comment"

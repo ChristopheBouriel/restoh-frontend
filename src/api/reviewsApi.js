@@ -7,7 +7,7 @@ import apiClient from './apiClient'
  */
 export const getMenuItemReviews = async (menuItemId) => {
   try {
-    const response = await apiClient.get(`/menu-items/${menuItemId}/reviews`)
+    const response = await apiClient.get(`/menu/${menuItemId}/review`)
     return {
       success: true,
       data: response.data.data || response.data
@@ -27,7 +27,7 @@ export const getMenuItemReviews = async (menuItemId) => {
  */
 export const getMenuItemRatingStats = async (menuItemId) => {
   try {
-    const response = await apiClient.get(`/menu-items/${menuItemId}/reviews/stats`)
+    const response = await apiClient.get(`/menu/${menuItemId}/rating`)
     return {
       success: true,
       data: response.data.data || response.data
@@ -48,7 +48,7 @@ export const getMenuItemRatingStats = async (menuItemId) => {
  */
 export const createReview = async (menuItemId, reviewData) => {
   try {
-    const response = await apiClient.post(`/menu-items/${menuItemId}/reviews`, reviewData)
+    const response = await apiClient.post(`/menu/${menuItemId}/review`, reviewData)
     return {
       success: true,
       data: response.data.data || response.data
@@ -71,7 +71,7 @@ export const createReview = async (menuItemId, reviewData) => {
  */
 export const updateReview = async (reviewId, reviewData) => {
   try {
-    const response = await apiClient.put(`/reviews/${reviewId}`, reviewData)
+    const response = await apiClient.put(`/review/${reviewId}`, reviewData)
     return {
       success: true,
       data: response.data.data || response.data
@@ -91,7 +91,7 @@ export const updateReview = async (reviewId, reviewData) => {
  */
 export const deleteReview = async (reviewId) => {
   try {
-    await apiClient.delete(`/reviews/${reviewId}`)
+    await apiClient.delete(`/review/${reviewId}`)
     return {
       success: true
     }
@@ -99,25 +99,6 @@ export const deleteReview = async (reviewId) => {
     return {
       success: false,
       error: error.response?.data?.error || 'Failed to delete review'
-    }
-  }
-}
-
-/**
- * Get user's own reviews
- * @returns {Promise<{success: boolean, data?: Array, error?: string}>}
- */
-export const getUserReviews = async () => {
-  try {
-    const response = await apiClient.get('/reviews/my-reviews')
-    return {
-      success: true,
-      data: response.data.data || response.data
-    }
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.error || 'Failed to fetch user reviews'
     }
   }
 }

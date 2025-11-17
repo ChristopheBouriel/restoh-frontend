@@ -16,6 +16,7 @@ import * as ordersApi from './ordersApi'
 import * as reservationsApi from './reservationsApi'
 import * as contactsApi from './contactsApi'
 import * as tablesApi from './tablesApi'
+import * as reviewsApi from './reviewsApi'
 
 export {
   authApi,
@@ -24,7 +25,8 @@ export {
   ordersApi,
   reservationsApi,
   contactsApi,
-  tablesApi
+  tablesApi,
+  reviewsApi
 }
 
 // Default export for alternative usage
@@ -35,5 +37,6 @@ export default {
   orders: ordersApi,
   reservations: reservationsApi,
   contacts: contactsApi,
-  tables: tablesApi
+  tables: tablesApi,
+  reviews: reviewsApi
 }
