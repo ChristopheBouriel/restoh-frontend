@@ -28,9 +28,15 @@ export const getMenuItemReviews = async (menuItemId) => {
 export const getMenuItemRatingStats = async (menuItemId) => {
   try {
     const response = await apiClient.get(`/menu/${menuItemId}/rating`)
+    const backendData = response.data.data || response.data
+
+    // Map backend format (average, count) to frontend format (averageRating, reviewCount)
     return {
       success: true,
-      data: response.data.data || response.data
+      data: {
+        averageRating: backendData.average || 0,
+        reviewCount: backendData.count || 0
+      }
     }
   } catch (error) {
     return {
