@@ -19,6 +19,10 @@ const ReviewCard = ({ review, canEdit = false, canDelete = false, onEdit, onDele
     })
   }
 
+  const getUserName = () => {
+    return review.user?.name || 'Anonymous User'
+  }
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -28,7 +32,7 @@ const ReviewCard = ({ review, canEdit = false, canDelete = false, onEdit, onDele
           </div>
           <div>
             <p className="font-medium text-gray-900">
-              {review.user?.name || 'Anonymous User'}
+              {getUserName()}
             </p>
             <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
           </div>
