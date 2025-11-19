@@ -25,6 +25,11 @@ const RestaurantReviews = () => {
     getUserReview
   } = useRestaurantReviewsStore()
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   // Fetch initial data
   useEffect(() => {
     fetchReviews(1, 10)
