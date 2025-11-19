@@ -114,9 +114,9 @@ const RestaurantReviews = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content - Reviews List */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Reviews List */}
+          <div className="space-y-6">
             {/* Add Review Button */}
             {user && !hasUserReviewed && !showReviewForm && (
               <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -246,13 +246,6 @@ const RestaurantReviews = () => {
                 )}
               </div>
             )}
-          </div>
-
-          {/* Sidebar - Stats */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <RestaurantStats stats={stats} showLink={false} />
-            </div>
           </div>
         </div>
       </div>
