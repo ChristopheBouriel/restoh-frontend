@@ -218,11 +218,13 @@ const Home = () => {
           </div>
 
           {/* Reviews List */}
-          <div className="space-y-4 mt-12">
+          <div className="mt-12">
             {reviews.length > 0 ? (
-              reviews.slice(0, 3).map((review) => (
-                <RestaurantReviewCard key={review.id} review={review} />
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {reviews.slice(0, 3).map((review) => (
+                  <RestaurantReviewCard key={review.id} review={review} />
+                ))}
+              </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
                 <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
