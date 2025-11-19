@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout'
 import AdminLayout from './components/admin/AdminLayout'
 import Home from './pages/public/Home'
 import Menu from './pages/menu/Menu'
+import RestaurantReviews from './pages/reviews/RestaurantReviews'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
@@ -110,6 +111,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path={ROUTES.MENU} element={<Menu />} />
+          <Route path={ROUTES.REVIEWS} element={<RestaurantReviews />} />
           <Route path={ROUTES.CONTACT} element={<Contact />} />
           <Route path={ROUTES.MY_MESSAGES} element={
             <ProtectedRoute>

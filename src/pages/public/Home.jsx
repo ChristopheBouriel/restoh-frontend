@@ -1,13 +1,24 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ChefHat, Star, Clock, Users } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
 import { useMenu } from '../../hooks/useMenu'
+import useRestaurantReviewsStore from '../../store/restaurantReviewsStore'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import RestaurantStats from '../../components/restaurant-reviews/RestaurantStats'
+import RestaurantReviewCard from '../../components/restaurant-reviews/RestaurantReviewCard'
 import { ROUTES } from '../../constants'
 
 const Home = () => {
   const { addItem } = useCart()
   const { popularItems, isLoading } = useMenu()
+  const { reviews, stats, fetchReviews, fetchStats } = useRestaurantReviewsStore()
+
+  // Fetch restaurant reviews and stats on mount
+  useEffect(() => {
+    fetchReviews(1, 5) // Get first 5 reviews for home page
+    fetchStats()
+  }, [fetchReviews, fetchStats])
 
   const handleAddToCart = (dish) => {
     const cartItem = {
@@ -173,31 +184,52 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Customer Reviews */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              What Our Customers Say
-            </h2>
+          {/* Stats Widget - Narrow & Centered */}
+          <div className="flex justify-center mb-8">
+            <div className="w-full max-w-md">
+              <RestaurantStats stats={stats} showLink={false} compact={false} hideTitle />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: 'Marie Dubois', text: 'Excellent cuisine, perfect service! I highly recommend.', rating: 5 },
-              { name: 'Jean Martin', text: 'An exceptional culinary experience. The flavors are there.', rating: 5 },
-              { name: 'Sophie Laurent', text: 'Warm atmosphere and delicious dishes. Our new favorite restaurant!', rating: 5 },
-            ].map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4 italic">"{testimonial.text}"</p>
-                <p className="font-semibold text-gray-900">- {testimonial.name}</p>
+          {/* Title */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+              What Our Customers Say
+            </h2>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4 max-w-md mx-auto">
+              <Link
+                to={ROUTES.REVIEWS}
+                className="flex-1 px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-medium text-center"
+              >
+                See All Reviews
+              </Link>
+              <Link
+                to={ROUTES.REVIEWS}
+                className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-center"
+              >
+                Write a Review
+              </Link>
+            </div>
+          </div>
+
+          {/* Reviews List */}
+          <div className="space-y-4 mt-12">
+            {reviews.length > 0 ? (
+              reviews.slice(0, 3).map((review) => (
+                <RestaurantReviewCard key={review._id} review={review} />
+              ))
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
+                <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
+                <p className="text-gray-600">Be the first to share your experience!</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
