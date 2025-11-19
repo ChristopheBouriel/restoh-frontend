@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
-import { 
-  TrendingUp, 
-  DollarSign, 
-  ShoppingBag, 
-  Users, 
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  TrendingUp,
+  DollarSign,
+  ShoppingBag,
+  Users,
   Calendar,
   MessageSquare,
   ArrowUpRight,
@@ -11,101 +12,73 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react'
+import useOrdersStore from '../../store/ordersStore'
+import useReservationsStore from '../../store/reservationsStore'
+import useUsersStore from '../../store/usersStore'
 
 const Dashboard = () => {
-  const [stats, setStats] = useState(null)
-  const [recentOrders, setRecentOrders] = useState([])
-  const [recentReservations, setRecentReservations] = useState([])
-  
-  useEffect(() => {
-    // Data loading simulation
-    setTimeout(() => {
-      setStats({
-        revenue: {
-          today: 1250,
-          thisMonth: 28500,
-          growth: 12.5
-        },
-        orders: {
-          today: 25,
-          thisMonth: 634,
-          growth: 8.2
-        },
-        customers: {
-          total: 1248,
-          newThisMonth: 89,
-          growth: 15.3
-        },
-        reservations: {
-          today: 12,
-          thisWeek: 67,
-          growth: -2.1
-        }
-      })
+  const { orders } = useOrdersStore()
+  const { reservations } = useReservationsStore()
+  const { users } = useUsersStore()
 
-      setRecentOrders([
-        {
-          id: '#12387',
-          customer: 'Marie Dubois',
-          total: 42.50,
-          status: 'preparing',
-          time: '14:30',
-          items: 3
-        },
-        {
-          id: '#12386',
-          customer: 'Jean Martin',
-          total: 28.90,
-          status: 'ready',
-          time: '14:25',
-          items: 2
-        },
-        {
-          id: '#12385',
-          customer: 'Sophie Laurent',
-          total: 65.40,
-          status: 'delivered',
-          time: '14:20',
-          items: 5
-        },
-        {
-          id: '#12384',
-          customer: 'Pierre Durand',
-          total: 18.50,
-          status: 'confirmed',
-          time: '14:15',
-          items: 1
-        }
-      ])
+  // Calculate statistics from real data
+  const stats = useMemo(() => {
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const thisWeek = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0]
 
-      setRecentReservations([
-        {
-          id: 1,
-          customer: 'Emma Wilson',
-          date: '2024-01-22',
-          time: '19:30',
-          guests: 4,
-          status: 'confirmed'
-        },
-        {
-          id: 2,
-          customer: 'Lucas Bernard',
-          date: '2024-01-22',
-          time: '20:00',
-          guests: 2,
-          status: 'pending'
-        },
-        {
-          id: 3,
-          customer: 'Camille Moreau',
-          date: '2024-01-23',
-          time: '19:00',
-          guests: 6,
-          status: 'confirmed'
-        }
-      ])
-    }, 800)
-  }, [])
+    // Orders stats
+    const todayOrders = orders.filter(o => o.createdAt?.startsWith(today))
+    const thisMonthOrders = orders.filter(o => o.createdAt?.startsWith(thisMonth))
+
+    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+    const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+
+    // Reservations stats
+    const todayReservations = reservations.filter(r => r.date === today)
+    const thisWeekReservations = reservations.filter(r => r.date >= thisWeek)
+
+    // Users stats
+    const thisMonthUsers = users.filter(u => u.createdAt?.startsWith(thisMonth))
+
+    return {
+      revenue: {
+        today: todayRevenue,
+        thisMonth: thisMonthRevenue,
+        growth: 0 // Could calculate from previous month if needed
+      },
+      orders: {
+        today: todayOrders.length,
+        thisMonth: thisMonthOrders.length,
+        growth: 0
+      },
+      customers: {
+        total: users.length,
+        newThisMonth: thisMonthUsers.length,
+        growth: 0
+      },
+      reservations: {
+        today: todayReservations.length,
+        thisWeek: thisWeekReservations.length,
+        growth: 0
+      }
+    }
+  }, [orders, reservations, users])
+
+  // Get recent orders (last 4)
+  const recentOrders = useMemo(() => {
+    return [...orders]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 4)
+  }, [orders])
+
+  // Get recent reservations (last 3)
+  const recentReservations = useMemo(() => {
+    return [...reservations]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 3)
+  }, [reservations])
 
   const getOrderStatusInfo = (status) => {
     switch (status) {
@@ -133,21 +106,16 @@ const Dashboard = () => {
     }
   }
 
-  if (!stats) {
-    return (
-      <div className="animate-pulse">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  const formatTime = (dateString) => {
+    if (!dateString) return '--:--'
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
   return (
@@ -243,34 +211,43 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
-            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <Link
+              to="/admin/orders"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
               View all
-            </button>
+            </Link>
           </div>
           
           <div className="space-y-4">
-            {recentOrders.map((order) => {
-              const statusInfo = getOrderStatusInfo(order.status)
-              return (
-                <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <p className="font-medium text-gray-900">{order.id}</p>
-                        <p className="text-sm text-gray-600">{order.customer}</p>
+            {recentOrders.length > 0 ? (
+              recentOrders.map((order) => {
+                const statusInfo = getOrderStatusInfo(order.status)
+                return (
+                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <p className="font-medium text-gray-900">#{order.id?.slice(-6) || order.id}</p>
+                          <p className="text-sm text-gray-600">{order.userEmail || 'Guest'}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                        {statusInfo.label}
-                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900">€{(order.totalPrice || 0).toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">
+                        {formatTime(order.createdAt)} - {order.items?.length || 0} items
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900">€{order.total}</p>
-                    <p className="text-sm text-gray-500">{order.time} - {order.items} items</p>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            ) : (
+              <p className="text-center text-gray-500 py-8">No recent orders</p>
+            )}
           </div>
         </div>
 
@@ -278,36 +255,43 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Recent Reservations</h2>
-            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <Link
+              to="/admin/reservations"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
               View all
-            </button>
+            </Link>
           </div>
           
           <div className="space-y-4">
-            {recentReservations.map((reservation) => {
-              const statusInfo = getReservationStatusInfo(reservation.status)
-              const StatusIcon = statusInfo.icon
-              
-              return (
-                <div key={reservation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <StatusIcon className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="font-medium text-gray-900">{reservation.customer}</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date(reservation.date).toLocaleDateString('en-US')} at {reservation.time}
-                      </p>
+            {recentReservations.length > 0 ? (
+              recentReservations.map((reservation) => {
+                const statusInfo = getReservationStatusInfo(reservation.status)
+                const StatusIcon = statusInfo.icon
+
+                return (
+                  <div key={reservation.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <StatusIcon className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="font-medium text-gray-900">{reservation.userEmail || 'Guest'}</p>
+                        <p className="text-sm text-gray-600">
+                          {formatDate(reservation.date)} at {reservation.time}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                      <p className="text-sm text-gray-500 mt-1">{reservation.guests} guests</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                      {statusInfo.label}
-                    </span>
-                    <p className="text-sm text-gray-500 mt-1">{reservation.guests} guests</p>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            ) : (
+              <p className="text-center text-gray-500 py-8">No recent reservations</p>
+            )}
           </div>
         </div>
       </div>
