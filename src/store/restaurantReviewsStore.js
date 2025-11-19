@@ -100,7 +100,7 @@ const useRestaurantReviewsStore = create((set, get) => ({
       // Update the review in the list
       set((state) => ({
         reviews: state.reviews.map((review) =>
-          review._id === reviewId ? result.data : review
+          review.id === reviewId ? result.data : review
         ),
         isLoading: false
       }))
@@ -124,7 +124,7 @@ const useRestaurantReviewsStore = create((set, get) => ({
     if (result.success) {
       // Remove review from the list
       set((state) => ({
-        reviews: state.reviews.filter((review) => review._id !== reviewId),
+        reviews: state.reviews.filter((review) => review.id !== reviewId),
         isLoading: false
       }))
 

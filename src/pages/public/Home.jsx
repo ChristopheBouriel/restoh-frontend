@@ -221,7 +221,7 @@ const Home = () => {
           <div className="space-y-4 mt-12">
             {reviews.length > 0 ? (
               reviews.slice(0, 3).map((review) => (
-                <RestaurantReviewCard key={review._id} review={review} />
+                <RestaurantReviewCard key={review.id} review={review} />
               ))
             ) : (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">

@@ -72,7 +72,7 @@ const RestaurantReviews = () => {
     let result
 
     if (editingReview) {
-      result = await updateReview(editingReview._id, reviewData)
+      result = await updateReview(editingReview.id, reviewData)
     } else {
       result = await createReview(reviewData)
     }
@@ -189,10 +189,10 @@ const RestaurantReviews = () => {
               <>
                 <div className="space-y-4">
                   {reviews
-                    .filter((review) => review._id !== userReview?._id) // Don't show user's review twice
+                    .filter((review) => review.id !== userReview?.id) // Don't show user's review twice
                     .map((review) => (
                       <RestaurantReviewCard
-                        key={review._id}
+                        key={review.id}
                         review={review}
                         canEdit={user && review.user?.id === user.id}
                         canDelete={user && review.user?.id === user.id}

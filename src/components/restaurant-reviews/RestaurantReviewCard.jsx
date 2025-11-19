@@ -53,7 +53,7 @@ const RestaurantReviewCard = ({ review, canEdit = false, canDelete = false, onEd
               )}
               {canDelete && (
                 <button
-                  onClick={() => onDelete(review._id)}
+                  onClick={() => onDelete(review.id)}
                   className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                   title="Delete review"
                 >
