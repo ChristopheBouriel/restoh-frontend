@@ -16,6 +16,7 @@ import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
 import useUsersStore from '../../store/usersStore'
 import { getLabelFromSlot } from '../../services/reservationSlots'
+import { pluralize } from '../../utils/pluralize'
 
 const Dashboard = () => {
   const { orders } = useOrdersStore()
@@ -243,7 +244,7 @@ const Dashboard = () => {
                         {statusInfo.label}
                       </span>
                       <p className="font-bold text-gray-900 mb-1">€{(order.totalPrice || 0).toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">{order.items?.length || 0} items</p>
+                      <p className="text-xs text-gray-500">{pluralize(order.items?.length || 0, 'item')}</p>
                     </div>
                   </div>
                 )
@@ -280,6 +281,13 @@ const Dashboard = () => {
                   return tables
                 }
 
+                // Count tables for pluralization
+                const tableCount = !reservation.tableNumber
+                  ? 0
+                  : Array.isArray(reservation.tableNumber)
+                    ? reservation.tableNumber.length
+                    : 1
+
                 return (
                   <div key={reservation.id} className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-200 transition-colors">
                     {/* Left side */}
@@ -294,8 +302,10 @@ const Dashboard = () => {
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${statusInfo.color}`}>
                         {statusInfo.label}
                       </span>
-                      <p className="font-semibold text-gray-900 mb-1">{reservation.guests} guests</p>
-                      <p className="text-xs text-gray-500">Table {formatTables(reservation.tableNumber)}</p>
+                      <p className="font-semibold text-gray-900 mb-1">{pluralize(reservation.guests, 'guest')}</p>
+                      <p className="text-xs text-gray-500">
+                        {tableCount > 0 ? `Table${tableCount > 1 ? 's' : ''} ${formatTables(reservation.tableNumber)}` : 'Table TBD'}
+                      </p>
                     </div>
                   </div>
                 )
