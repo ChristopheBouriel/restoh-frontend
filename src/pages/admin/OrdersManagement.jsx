@@ -10,6 +10,7 @@ import {
   getHistoricalOrders,
   updateOrderStatusEnhanced
 } from '../../api/ordersApi'
+import { pluralizeWord } from '../../utils/pluralize'
 
 const OrdersManagement = () => {
   // Tab state: 'recent' or 'history'
@@ -599,7 +600,8 @@ const OrdersManagement = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm text-gray-900">
-                              {order.items?.length || 0} item(s)
+                              <div className="font-semibold">{order.items?.length || 0}</div>
+                              <div className="text-xs text-gray-500">{pluralizeWord(order.items?.length || 0, 'item')}</div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -673,8 +675,11 @@ const OrdersManagement = () => {
                         <p className="text-xs text-gray-500">{order.userEmail}</p>
                       </div>
 
-                      <div className="flex justify-between items-center mb-3 text-xs text-gray-500">
-                        <span>{order.items?.length || 0} item(s)</span>
+                      <div className="flex justify-between items-start mb-3 text-xs text-gray-500">
+                        <div>
+                          <div className="font-semibold text-gray-900 text-sm">{order.items?.length || 0}</div>
+                          <div className="text-xs text-gray-500">{pluralizeWord(order.items?.length || 0, 'item')}</div>
+                        </div>
                         <span>{formatDate(order.createdAt)}</span>
                       </div>
 
