@@ -229,23 +229,21 @@ const Dashboard = () => {
               recentOrders.map((order) => {
                 const statusInfo = getOrderStatusInfo(order.status)
                 return (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={order.id} className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-200 transition-colors">
+                    {/* Left side */}
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <div>
-                          <p className="font-medium text-gray-900">#{order.orderNumber || order.id}</p>
-                          <p className="text-sm text-gray-600">{order.userEmail || 'Guest'}</p>
-                        </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
+                      <p className="font-semibold text-gray-900 mb-1">#{order.orderNumber || order.id}</p>
+                      <p className="text-sm text-gray-600 mb-1">{order.userEmail || 'Guest'}</p>
+                      <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
                     </div>
+
+                    {/* Right side */}
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">€{(order.totalPrice || 0).toFixed(2)}</p>
-                      <p className="text-sm text-gray-500">
-                        {formatTime(order.createdAt)} - {order.items?.length || 0} items
-                      </p>
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                      <p className="font-bold text-gray-900 mb-1">€{(order.totalPrice || 0).toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">{order.items?.length || 0} items</p>
                     </div>
                   </div>
                 )
@@ -272,24 +270,32 @@ const Dashboard = () => {
             {recentReservations.length > 0 ? (
               recentReservations.map((reservation) => {
                 const statusInfo = getReservationStatusInfo(reservation.status)
-                const StatusIcon = statusInfo.icon
+
+                // Format tables (handle array or single value)
+                const formatTables = (tables) => {
+                  if (!tables) return 'TBD'
+                  if (Array.isArray(tables)) {
+                    return tables.length > 0 ? tables.join(', ') : 'TBD'
+                  }
+                  return tables
+                }
 
                 return (
-                  <div key={reservation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <StatusIcon className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium text-gray-900">{reservation.userEmail || 'Guest'}</p>
-                        <p className="text-sm text-gray-600">
-                          {formatDate(reservation.date)} • {getLabelFromSlot(reservation.slot)}
-                        </p>
-                      </div>
+                  <div key={reservation.id} className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-200 transition-colors">
+                    {/* Left side */}
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 mb-1">#{reservation.reservationNumber || reservation.id?.slice(-8)}</p>
+                      <p className="text-sm text-gray-600 mb-1">{reservation.userEmail || 'Guest'}</p>
+                      <p className="text-xs text-gray-500">{formatDate(reservation.date)} • {getLabelFromSlot(reservation.slot)}</p>
                     </div>
+
+                    {/* Right side */}
                     <div className="text-right">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${statusInfo.color}`}>
                         {statusInfo.label}
                       </span>
-                      <p className="text-sm text-gray-500 mt-1">{reservation.guests} guests</p>
+                      <p className="font-semibold text-gray-900 mb-1">{reservation.guests} guests</p>
+                      <p className="text-xs text-gray-500">Table {formatTables(reservation.tableNumber)}</p>
                     </div>
                   </div>
                 )
