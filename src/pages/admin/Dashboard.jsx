@@ -68,18 +68,18 @@ const Dashboard = () => {
     }
   }, [orders, reservations, users])
 
-  // Get recent orders (last 4)
+  // Get recent orders (last 10)
   const recentOrders = useMemo(() => {
     return [...orders]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 4)
+      .slice(0, 10)
   }, [orders])
 
-  // Get recent reservations (last 3)
+  // Get recent reservations (last 10)
   const recentReservations = useMemo(() => {
     return [...reservations]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 3)
+      .slice(0, 10)
   }, [reservations])
 
   const getOrderStatusInfo = (status) => {
