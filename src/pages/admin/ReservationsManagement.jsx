@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Eye, Users, Calendar, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
@@ -11,6 +12,8 @@ import {
 } from '../../api/reservationsApi'
 
 const ReservationsManagement = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+
   // Active tab state
   const [activeTab, setActiveTab] = useState('recent')
 
@@ -121,6 +124,20 @@ const ReservationsManagement = () => {
       return () => clearInterval(interval)
     }
   }, [activeTab, lastRefresh])
+
+  // Auto-open modal when reservationId is in URL (from Dashboard)
+  useEffect(() => {
+    const reservationId = searchParams.get('reservationId')
+    if (reservationId && recentReservations.length > 0) {
+      const reservation = recentReservations.find(r => r.id === reservationId)
+      if (reservation) {
+        setSelectedReservation(reservation)
+        setIsModalOpen(true)
+        // Clean up the query param
+        setSearchParams({})
+      }
+    }
+  }, [searchParams, recentReservations, setSearchParams])
 
   // Load historical when dates change
   useEffect(() => {

@@ -230,7 +230,11 @@ const Dashboard = () => {
               recentOrders.map((order) => {
                 const statusInfo = getOrderStatusInfo(order.status)
                 return (
-                  <div key={order.id} className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-200 transition-colors">
+                  <Link
+                    key={order.id}
+                    to={`/admin/orders?orderId=${order.id}`}
+                    className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                  >
                     {/* Left side */}
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 mb-1">#{order.orderNumber || order.id}</p>
@@ -246,7 +250,7 @@ const Dashboard = () => {
                       <p className="font-bold text-gray-900 mb-1">€{(order.totalPrice || 0).toFixed(2)}</p>
                       <p className="text-xs text-gray-500">{pluralize(order.items?.length || 0, 'item')}</p>
                     </div>
-                  </div>
+                  </Link>
                 )
               })
             ) : (
@@ -289,7 +293,11 @@ const Dashboard = () => {
                     : 1
 
                 return (
-                  <div key={reservation.id} className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-200 transition-colors">
+                  <Link
+                    key={reservation.id}
+                    to={`/admin/reservations?reservationId=${reservation.id}`}
+                    className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                  >
                     {/* Left side */}
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 mb-1">#{reservation.reservationNumber || reservation.id?.slice(-8)}</p>
@@ -307,7 +315,7 @@ const Dashboard = () => {
                         {tableCount > 0 ? `Table${tableCount > 1 ? 's' : ''} ${formatTables(reservation.tableNumber)}` : 'Table TBD'}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 )
               })
             ) : (

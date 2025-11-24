@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Trash2, RefreshCw, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
@@ -13,6 +14,8 @@ import {
 import { pluralizeWord } from '../../utils/pluralize'
 
 const OrdersManagement = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+
   // Tab state: 'recent' or 'history'
   const [activeTab, setActiveTab] = useState('recent')
 
@@ -134,6 +137,19 @@ const OrdersManagement = () => {
       return () => clearInterval(interval)
     }
   }, [activeTab, lastRefresh])
+
+  // Auto-open modal when orderId is in URL (from Dashboard)
+  useEffect(() => {
+    const orderId = searchParams.get('orderId')
+    if (orderId && recentOrders.length > 0) {
+      const order = recentOrders.find(o => o.id === orderId)
+      if (order) {
+        setSelectedOrder(order)
+        // Clean up the query param
+        setSearchParams({})
+      }
+    }
+  }, [searchParams, recentOrders, setSearchParams])
 
   // Load historical when dates change
   useEffect(() => {
