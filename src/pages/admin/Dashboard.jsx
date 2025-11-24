@@ -15,6 +15,7 @@ import {
 import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
 import useUsersStore from '../../store/usersStore'
+import { getLabelFromSlot } from '../../services/reservationSlots'
 
 const Dashboard = () => {
   const { orders } = useOrdersStore()
@@ -82,14 +83,18 @@ const Dashboard = () => {
 
   const getOrderStatusInfo = (status) => {
     switch (status) {
+      case 'pending':
+        return { label: 'Pending', color: 'bg-yellow-100 text-yellow-800' }
+      case 'confirmed':
+        return { label: 'Confirmed', color: 'bg-blue-100 text-blue-800' }
       case 'preparing':
-        return { label: 'Preparing', color: 'bg-yellow-100 text-yellow-800' }
+        return { label: 'Preparing', color: 'bg-orange-100 text-orange-800' }
       case 'ready':
-        return { label: 'Ready', color: 'bg-blue-100 text-blue-800' }
+        return { label: 'Ready', color: 'bg-purple-100 text-purple-800' }
       case 'delivered':
         return { label: 'Delivered', color: 'bg-green-100 text-green-800' }
-      case 'confirmed':
-        return { label: 'Confirmed', color: 'bg-gray-100 text-gray-800' }
+      case 'cancelled':
+        return { label: 'Cancelled', color: 'bg-red-100 text-red-800' }
       default:
         return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' }
     }
@@ -228,7 +233,7 @@ const Dashboard = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
                         <div>
-                          <p className="font-medium text-gray-900">#{order.id?.slice(-6) || order.id}</p>
+                          <p className="font-medium text-gray-900">#{order.orderNumber || order.id}</p>
                           <p className="text-sm text-gray-600">{order.userEmail || 'Guest'}</p>
                         </div>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
@@ -276,7 +281,7 @@ const Dashboard = () => {
                       <div>
                         <p className="font-medium text-gray-900">{reservation.userEmail || 'Guest'}</p>
                         <p className="text-sm text-gray-600">
-                          {formatDate(reservation.date)} at {reservation.time}
+                          {formatDate(reservation.date)} • {getLabelFromSlot(reservation.slot)}
                         </p>
                       </div>
                     </div>

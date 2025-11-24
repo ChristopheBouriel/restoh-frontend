@@ -58,15 +58,29 @@ function App() {
     if (authStorage) {
       try {
         const data = JSON.parse(authStorage)
+
+        // Clean old JWT token
         if (data.state && data.state.token) {
           delete data.state.token
           localStorage.setItem('auth-storage', JSON.stringify(data))
           console.log('✅ Cleaned up old JWT token from localStorage')
         }
+
+        // Clear admin cache if user is admin
+        if (data.state?.user?.role === 'admin') {
+          localStorage.removeItem('orders-storage-v2')
+          localStorage.removeItem('reservations-storage-v2')
+          console.log('✅ Cleared admin cache')
+        }
       } catch (error) {
         console.error('Error cleaning old auth data:', error)
       }
     }
+
+    // Clear old cached orders and reservations (migration to recent/historical split)
+    localStorage.removeItem('orders-storage')
+    localStorage.removeItem('reservations-storage')
+    console.log('✅ Cleared old orders and reservations cache')
   }, [])
 
   useEffect(() => {
@@ -82,7 +96,7 @@ function App() {
         if (isAdmin) {
           // Admin: load all data
           await fetchOrders(true)
-          await fetchReservations(true)
+          await fetchReservations(true, true) // forceRefresh = true to bypass cache
           await fetchMessages()
           initializeUsers() // usersStore not yet migrated
         } else {

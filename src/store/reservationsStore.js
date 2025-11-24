@@ -22,11 +22,12 @@ const useReservationsStore = create(
       fetchReservations: async (isAdmin = false, forceRefresh = false) => {
         // If admin mode and not forcing refresh, always fetch from API (don't use cache)
         if (isAdmin || forceRefresh) {
-          set({ isLoading: true, error: null })
+          // Clear state first to avoid showing stale data
+          set({ reservations: [], isLoading: true, error: null })
 
           try {
             const result = isAdmin
-              ? await reservationsApi.getAllReservations()
+              ? await reservationsApi.getRecentReservations({ limit: 1000 })
               : await reservationsApi.getUserReservations()
 
             if (result.success) {
@@ -361,11 +362,9 @@ const useReservationsStore = create(
       }
     }),
     {
-      name: 'reservations-storage',
-      partialize: () => ({
-        // Don't persist reservations to avoid stale data
-        // Always fetch from API for fresh data
-        reservations: []
+      name: 'reservations-storage-v2', // Changed name to force fresh cache
+      partialize: (state) => ({
+        reservations: state.reservations // Persist user's reservations only
       }),
     }
   )

@@ -24,12 +24,49 @@ const useOrdersStore = create(
 
       // Fetch orders based on role
       fetchOrders: async (isAdmin = false) => {
+        // Admin always fetches fresh data, never use cache
+        if (isAdmin) {
+          // Clear state first to avoid showing stale data
+          set({ orders: [], isLoading: true, error: null })
+
+          try {
+            const result = await ordersApi.getRecentOrders({ limit: 1000 })
+
+            if (result.success) {
+              set({
+                orders: result.data || [],
+                isLoading: false,
+                error: null
+              })
+              return { success: true }
+            } else {
+              set({
+                error: result.error,
+                isLoading: false
+              })
+              return { success: false, error: result.error }
+            }
+          } catch (error) {
+            const errorMessage = error.error || 'Error loading orders'
+            set({
+              error: errorMessage,
+              isLoading: false
+            })
+            return { success: false, error: errorMessage }
+          }
+        }
+
+        // For non-admin users, check cache first
+        const cachedOrders = get().orders
+        if (cachedOrders.length > 0) {
+          return { success: true }
+        }
+
+        // No cache, fetch from API
         set({ isLoading: true, error: null })
 
         try {
-          const result = isAdmin
-            ? await ordersApi.getAllOrders()
-            : await ordersApi.getUserOrders()
+          const result = await ordersApi.getUserOrders()
 
           if (result.success) {
             set({
@@ -213,9 +250,9 @@ const useOrdersStore = create(
       }
     }),
     {
-      name: 'orders-storage',
+      name: 'orders-storage-v2', // Changed name to force fresh cache
       partialize: (state) => ({
-        orders: state.orders
+        orders: state.orders // Persist user's orders only
       }),
     }
   )
