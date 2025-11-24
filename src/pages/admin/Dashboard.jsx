@@ -10,7 +10,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  CheckCircle
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
 import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
@@ -104,9 +105,15 @@ const Dashboard = () => {
   const getReservationStatusInfo = (status) => {
     switch (status) {
       case 'confirmed':
-        return { label: 'Confirmed', color: 'bg-green-100 text-green-800', icon: CheckCircle }
-      case 'pending':
-        return { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock }
+        return { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle }
+      case 'seated':
+        return { label: 'Seated', color: 'bg-purple-100 text-purple-800', icon: Users }
+      case 'completed':
+        return { label: 'Completed', color: 'bg-green-100 text-green-800', icon: CheckCircle }
+      case 'cancelled':
+        return { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle }
+      case 'no-show':
+        return { label: 'No-show', color: 'bg-orange-100 text-orange-800', icon: XCircle }
       default:
         return { label: 'Unknown', color: 'bg-gray-100 text-gray-800', icon: Clock }
     }
