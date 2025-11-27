@@ -16,7 +16,7 @@ import {
 import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
 import useUsersStore from '../../store/usersStore'
-import { getLabelFromSlot } from '../../services/reservationSlots'
+import { getLabelFromSlot } from '../../utils/reservationSlots'
 import { pluralize } from '../../utils/pluralize'
 
 const Dashboard = () => {

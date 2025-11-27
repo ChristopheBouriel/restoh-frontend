@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Eye, Users, Calendar, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
-import { isReservationTimePassed, getLabelFromSlot } from '../../services/reservationSlots'
+import { isReservationTimePassed, getLabelFromSlot } from '../../utils/reservationSlots'
 import { getTodayLocalDate, normalizeDateString } from '../../utils/dateUtils'
 import {
   getRecentReservations,
