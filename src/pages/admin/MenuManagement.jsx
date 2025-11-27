@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
+import { useState, useEffect, useMemo } from 'react'
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
   Eye,
   EyeOff,
   Filter,
@@ -12,17 +12,17 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useMenu } from '../../hooks/useMenu'
+import { MenuService } from '../../services/menu'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import ImageUpload from '../../components/common/ImageUpload'
 
 const MenuManagement = () => {
-  const [filteredItems, setFilteredItems] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
-  
+
   // Use centralized menu hook
   const {
     items: menuItems,
@@ -60,26 +60,20 @@ const MenuManagement = () => {
     { value: 'continental', label: 'Continental' }
   ]
 
-  useEffect(() => {
-    filterItems()
-  }, [menuItems, searchTerm, selectedCategory])
+  // Use MenuService for filtering logic
+  const filteredItems = useMemo(() => {
+    // First filter by category if needed
+    let filtered = selectedCategory !== 'all'
+      ? MenuService.filter(menuItems, { category: selectedCategory })
+      : menuItems
 
-  const filterItems = () => {
-    let filtered = menuItems
-
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.category === selectedCategory)
-    }
-
+    // Then search if there's a search term
     if (searchTerm) {
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = MenuService.search(filtered, searchTerm)
     }
 
-    setFilteredItems(filtered)
-  }
+    return filtered
+  }, [menuItems, searchTerm, selectedCategory])
 
   const resetForm = () => {
     setFormData({

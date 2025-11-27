@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { Search, Filter, X } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
 import { useMenu } from '../../hooks/useMenu'
+import { MenuService } from '../../services/menu'
 import useReviewsStore from '../../store/reviewsStore'
 import useAuthStore from '../../store/authStore'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
@@ -160,45 +161,42 @@ const Menu = () => {
     { id: 'continental', name: 'Continental' }
   ]
 
-  // Filter and sort menu items (show all items, including unavailable)
+  // Filter and sort menu items using MenuService (show all items, including unavailable)
   const filteredItems = useMemo(() => {
-    let filtered = allMenuItems
-
-    // Filter by cuisine type
+    // Build filters object
+    const filters = {}
     if (selectedCuisine !== 'all') {
-      filtered = filtered.filter(item => item.cuisine === selectedCuisine)
+      filters.cuisine = selectedCuisine
     }
-
-    // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.category === selectedCategory)
+      filters.category = selectedCategory
     }
 
-    // Filter by search term
+    // Apply filters using MenuService
+    let filtered = MenuService.filter(allMenuItems, filters)
+
+    // Apply search using MenuService
     if (searchTerm) {
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = MenuService.search(filtered, searchTerm)
     }
 
-    // Sort - prioritize available items first, then by selected sort
+    // Sort using MenuService based on sortBy option
+    const sortMapping = {
+      'price-asc': { sortBy: 'price', direction: 'asc' },
+      'price-desc': { sortBy: 'price', direction: 'desc' },
+      'name': { sortBy: 'name', direction: 'asc' }
+    }
+    const sortConfig = sortMapping[sortBy] || sortMapping['name']
+    filtered = MenuService.sort(filtered, sortConfig.sortBy, sortConfig.direction)
+
+    // Additional sort: prioritize available items first (custom business logic for public menu)
     filtered.sort((a, b) => {
       // First sort by availability (available items first)
       if (a.isAvailable !== b.isAvailable) {
         return b.isAvailable ? 1 : -1
       }
-
-      // Then by selected sort option
-      switch (sortBy) {
-        case 'price-asc':
-          return a.price - b.price
-        case 'price-desc':
-          return b.price - a.price
-        case 'name':
-        default:
-          return a.name.localeCompare(b.name)
-      }
+      // Already sorted by price/name from MenuService, so return 0 to preserve that order
+      return 0
     })
 
     return filtered

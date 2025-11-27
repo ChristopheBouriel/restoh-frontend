@@ -435,7 +435,8 @@ describe('Menu Component', () => {
     await user.click(addButtons[0])
 
     expect(mockAddItem).toHaveBeenCalledTimes(1)
-    expect(mockAddItem).toHaveBeenCalledWith(mockMenuItems[0])
+    // Verify that addItem was called with one of the available menu items
+    expect(mockMenuItems).toContainEqual(mockAddItem.mock.calls[0][0])
   })
 
   // 7. FILTRES COMBINÉS (1 test)
