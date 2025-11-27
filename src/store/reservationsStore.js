@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as reservationsApi from '../api/reservationsApi'
-import { getTodayLocalDate, normalizeDateString } from '../utils/dateUtils'
+import { ReservationService } from '../services/reservations'
 
 const useReservationsStore = create(
   persist(
@@ -298,67 +298,30 @@ const useReservationsStore = create(
         }
       },
 
-      // Getters (local computations on loaded data)
+      // Getters (delegate to ReservationService for business logic)
       getReservationsByStatus: (status) => {
-        return get().reservations.filter(reservation => reservation.status === status)
+        return ReservationService.filter(get().reservations, { status })
       },
 
       getReservationsByDate: (date) => {
-        return get().reservations.filter(reservation => reservation.date === date)
+        return ReservationService.filter(get().reservations, { date })
       },
 
       getReservationsByUser: (userId) => {
-        return get().reservations.filter(reservation =>
-          reservation.userId === userId || reservation.user?.id === userId
-        )
+        return ReservationService.filter(get().reservations, { userId })
       },
 
       getTodaysReservations: () => {
-        const today = new Date().toISOString().split('T')[0]
-        return get().reservations.filter(reservation =>
-          reservation.date === today
-        )
+        return ReservationService.getTodaysReservations(get().reservations)
       },
 
       getUpcomingReservations: () => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-
-        return get().reservations.filter(reservation => {
-          const reservationDate = new Date(reservation.date)
-          return reservationDate >= today && reservation.status !== 'cancelled'
-        }).sort((a, b) => new Date(a.date) - new Date(b.date))
+        return ReservationService.getUpcomingReservations(get().reservations)
       },
 
-      // Statistics (computed locally)
+      // Statistics (delegate to ReservationService)
       getReservationsStats: () => {
-        const reservations = get().reservations
-        const today = getTodayLocalDate()
-
-        // Normalize dates before comparison
-        const todaysReservations = reservations.filter(r => {
-          if (!r.date) return false
-          const reservationDate = normalizeDateString(r.date)
-          return reservationDate === today
-        })
-
-        return {
-          total: reservations.length,
-          confirmed: reservations.filter(r => r.status === 'confirmed').length,
-          seated: reservations.filter(r => r.status === 'seated').length,
-          completed: reservations.filter(r => r.status === 'completed').length,
-          cancelled: reservations.filter(r => r.status === 'cancelled').length,
-          noShow: reservations.filter(r => r.status === 'no-show').length,
-          todayTotal: todaysReservations.length,
-          todayConfirmed: todaysReservations.filter(r => r.status === 'confirmed').length,
-          todaySeated: todaysReservations.filter(r => r.status === 'seated').length,
-          totalGuests: reservations
-            .filter(r => ['confirmed', 'seated', 'completed'].includes(r.status))
-            .reduce((sum, reservation) => sum + reservation.guests, 0),
-          todayGuests: todaysReservations
-            .filter(r => ['confirmed', 'seated', 'completed'].includes(r.status))
-            .reduce((sum, reservation) => sum + reservation.guests, 0)
-        }
+        return ReservationService.calculateStats(get().reservations)
       }
     }),
     {
