@@ -375,9 +375,9 @@ describe('ordersStore', () => {
   test('should calculate order statistics correctly', () => {
     useOrdersStore.setState({ orders: mockExistingOrders })
     const store = useOrdersStore.getState()
-    
+
     const stats = store.getOrdersStats()
-    
+
     expect(stats).toEqual({
       total: 3,
       pending: 0,
@@ -386,7 +386,11 @@ describe('ordersStore', () => {
       ready: 0,
       delivered: 1, // order-001
       cancelled: 1, // order-003
-      totalRevenue: 15.00 // Only delivered orders count (order-001)
+      totalRevenue: 15.00, // Only delivered orders count (order-001)
+      paidOrders: 2, // order-001 (paid), order-003 (paid)
+      unpaidOrders: 1, // order-002 (pending)
+      deliveryOrders: 0, // No orderType specified in mock
+      pickupOrders: 0 // No orderType specified in mock
     })
   })
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as ordersApi from '../api/ordersApi'
+import { OrderService } from '../services/orders'
 
 const useOrdersStore = create(
   persist(
@@ -216,37 +217,20 @@ const useOrdersStore = create(
 
       // Getters (local computations on loaded data)
       getOrdersByStatus: (status) => {
-        return get().orders.filter(order => order.status === status)
+        return OrderService.filterByStatus(get().orders, status)
       },
 
       getOrdersByUser: (userId) => {
-        return get().orders.filter(order =>
-          order.userId === userId || order.user?.id === userId
-        )
+        return OrderService.filterByUser(get().orders, userId)
       },
 
       getTodaysOrders: () => {
-        const today = new Date().toISOString().split('T')[0]
-        return get().orders.filter(order =>
-          order.createdAt.startsWith(today)
-        )
+        return OrderService.getTodaysOrders(get().orders)
       },
 
       // Statistics (computed locally)
       getOrdersStats: () => {
-        const orders = get().orders
-        return {
-          total: orders.length,
-          pending: orders.filter(o => o.status === 'pending').length,
-          confirmed: orders.filter(o => o.status === 'confirmed').length,
-          preparing: orders.filter(o => o.status === 'preparing').length,
-          ready: orders.filter(o => o.status === 'ready').length,
-          delivered: orders.filter(o => o.status === 'delivered').length,
-          cancelled: orders.filter(o => o.status === 'cancelled').length,
-          totalRevenue: orders
-            .filter(o => ['delivered'].includes(o.status) && o.paymentStatus === 'paid')
-            .reduce((sum, order) => sum + order.totalPrice, 0)
-        }
+        return OrderService.calculateStats(get().orders)
       }
     }),
     {
