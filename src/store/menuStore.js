@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import * as menuApi from '../api/menuApi'
+import { MenuService } from '../services/menu'
 
 const useMenuStore = create((set, get) => ({
       // State
@@ -25,19 +26,11 @@ const useMenuStore = create((set, get) => ({
           if (result.success) {
             const rawItems = result.data || []
 
-            // Normalize items to ensure all required fields exist
-            const items = rawItems.map(item => ({
-              ...item,
-              allergens: item.allergens || [],
-              ingredients: item.ingredients || [],
-              preparationTime: item.preparationTime || 0,
-              cuisine: item.cuisine || 'continental', // Default to continental
-              // Ensure isAvailable is a proper boolean
-              isAvailable: Boolean(item.isAvailable)
-            }))
+            // Normalize items using MenuService
+            const items = MenuService.normalizeItems(rawItems)
 
-            // Automatically extract unique categories from items
-            const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))]
+            // Extract unique categories using MenuService
+            const uniqueCategories = MenuService.extractCategories(items)
             const categoriesWithLabels = uniqueCategories.map(cat => ({
               id: cat,
               name: cat.charAt(0).toUpperCase() + cat.slice(1), // Capitalize
@@ -74,7 +67,7 @@ const useMenuStore = create((set, get) => ({
         // This function is kept for compatibility but no longer makes API calls
         const items = get().items
         if (items.length > 0) {
-          const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))]
+          const uniqueCategories = MenuService.extractCategories(items)
           const categoriesWithLabels = uniqueCategories.map(cat => ({
             id: cat,
             name: cat.charAt(0).toUpperCase() + cat.slice(1),
@@ -86,21 +79,21 @@ const useMenuStore = create((set, get) => ({
         return { success: true }
       },
 
-      // Getters (local computations on data)
+      // Getters (delegate to MenuService for business logic)
       getAvailableItems: () => {
-        return get().items.filter(item => item.isAvailable !== false)
+        return MenuService.getAvailable(get().items)
       },
 
       getPopularItems: () => {
-        return get().items.filter(item => item.isAvailable && item.isPopular)
+        return MenuService.getPopular(get().items)
       },
 
       getItemsByCategory: (category) => {
-        return get().items.filter(item => item.isAvailable && item.category === category)
+        return MenuService.getByCategory(get().items, category)
       },
 
       getItemById: (id) => {
-        return get().items.find(item => item.id === id)
+        return MenuService.getById(get().items, id)
       },
 
       // CRUD Actions (for admin) - API Calls

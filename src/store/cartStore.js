@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import useMenuStore from './menuStore'
+import { MenuService } from '../services/menu'
 
 const useCartStore = create(
   persist(
@@ -145,26 +146,15 @@ const useCartStore = create(
         const cartItems = cart.items
         const menuItems = useMenuStore.getState().items
 
-        return cartItems.map(cartItem => {
-          const menuItem = menuItems.find(menu => menu.id === cartItem.id)
-
-          // If menu is not loaded (empty), optimistically assume available
-          // If menu is loaded and item not found, it's deleted
-          const menuIsLoaded = menuItems.length > 0
-          const stillExists = menuItem ? true : (menuIsLoaded ? false : true)
-          const isAvailable = menuItem ? menuItem.isAvailable : (menuIsLoaded ? false : true)
-
-          return {
-            ...cartItem,
-            isAvailable,
-            currentPrice: menuItem ? menuItem.price : cartItem.price,
-            stillExists
-          }
-        })
+        // Use MenuService for cart enrichment logic
+        return MenuService.enrichCartItems(cartItems, menuItems)
       },
 
       getAvailableItems: () => {
-        return get().getEnrichedItems().filter(item => item.isAvailable && item.stillExists)
+        const cart = get().getCurrentUserCart()
+        const menuItems = useMenuStore.getState().items
+        // Use MenuService for filtering available cart items
+        return MenuService.getAvailableCartItems(cart.items, menuItems)
       },
 
       getUnavailableItems: () => {
@@ -172,7 +162,10 @@ const useCartStore = create(
       },
 
       getTotalPriceAvailable: () => {
-        return get().getAvailableItems().reduce((total, item) => total + (item.currentPrice * item.quantity), 0)
+        const cart = get().getCurrentUserCart()
+        const menuItems = useMenuStore.getState().items
+        // Use MenuService for calculating cart total (available items only)
+        return MenuService.calculateCartTotal(cart.items, menuItems, true)
       },
 
       getTotalItemsAvailable: () => {
