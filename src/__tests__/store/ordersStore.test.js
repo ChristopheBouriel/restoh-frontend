@@ -4,7 +4,7 @@ import useOrdersStore from '../../store/ordersStore'
 // Mock ordersApi
 vi.mock('../../api/ordersApi', () => ({
   getUserOrders: vi.fn(),
-  getAllOrders: vi.fn(),
+  getRecentOrders: vi.fn(),
   getOrderById: vi.fn(),
   createOrder: vi.fn(),
   updateOrderStatus: vi.fn(),
@@ -12,12 +12,12 @@ vi.mock('../../api/ordersApi', () => ({
 }))
 
 // Get mocked functions via dynamic import
-let mockGetUserOrders, mockGetAllOrders, mockGetOrderById, mockCreateOrder, mockUpdateOrderStatus, mockDeleteOrder
+let mockGetUserOrders, mockGetRecentOrders, mockGetOrderById, mockCreateOrder, mockUpdateOrderStatus, mockDeleteOrder
 
 beforeAll(async () => {
   const ordersApi = await import('../../api/ordersApi')
   mockGetUserOrders = ordersApi.getUserOrders
-  mockGetAllOrders = ordersApi.getAllOrders
+  mockGetRecentOrders = ordersApi.getRecentOrders
   mockGetOrderById = ordersApi.getOrderById
   mockCreateOrder = ordersApi.createOrder
   mockUpdateOrderStatus = ordersApi.updateOrderStatus
@@ -110,7 +110,7 @@ describe('ordersStore', () => {
       success: true,
       data: []
     })
-    mockGetAllOrders.mockResolvedValue({
+    mockGetRecentOrders.mockResolvedValue({
       success: true,
       data: mockExistingOrders
     })
@@ -165,7 +165,7 @@ describe('ordersStore', () => {
     const result = await store.fetchOrders(true) // true = admin
 
     const state = useOrdersStore.getState()
-    expect(mockGetAllOrders).toHaveBeenCalled()
+    expect(mockGetRecentOrders).toHaveBeenCalled()
     expect(result.success).toBe(true)
     expect(state.orders).toHaveLength(3)
     expect(state.orders).toEqual(mockExistingOrders)
@@ -239,7 +239,7 @@ describe('ordersStore', () => {
     })
 
     // Mock fetchOrders to return updated orders
-    mockGetAllOrders.mockResolvedValue({
+    mockGetRecentOrders.mockResolvedValue({
       success: true,
       data: mockExistingOrders.map(o =>
         o.id === 'order-002' ? { ...o, status: 'ready' } : o
@@ -250,7 +250,7 @@ describe('ordersStore', () => {
     const result = await store.updateOrderStatus('order-002', 'ready')
 
     expect(mockUpdateOrderStatus).toHaveBeenCalledWith('order-002', 'ready')
-    expect(mockGetAllOrders).toHaveBeenCalled() // fetchOrders(true) called after update
+    expect(mockGetRecentOrders).toHaveBeenCalled() // fetchOrders(true) called after update
     expect(result.success).toBe(true)
 
     const state = useOrdersStore.getState()

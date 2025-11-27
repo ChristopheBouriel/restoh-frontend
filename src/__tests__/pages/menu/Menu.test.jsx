@@ -1,11 +1,54 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { vi, describe, test, expect, beforeEach } from 'vitest'
+import { vi, describe, test, expect, beforeEach, beforeAll } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import Menu from '../../../pages/menu/Menu'
 import { useMenu } from '../../../hooks/useMenu'
 import { useCart } from '../../../hooks/useCart'
+
+// Mock menuApi to prevent real API calls
+vi.mock('../../../api/menuApi', () => ({
+  getMenuItems: vi.fn(),
+  getCategories: vi.fn(),
+  createMenuItem: vi.fn(),
+  updateMenuItem: vi.fn(),
+  deleteMenuItem: vi.fn()
+}))
+
+// Mock reviewsApi to prevent real API calls for rating stats
+vi.mock('../../../api/reviewsApi', () => ({
+  getMenuItemRatingStats: vi.fn(),
+  getMenuItemReviews: vi.fn(),
+  createReview: vi.fn(),
+  updateReview: vi.fn(),
+  deleteReview: vi.fn()
+}))
+
+// Mock authStore to provide user state
+vi.mock('../../../store/authStore', () => ({
+  default: vi.fn(() => ({
+    user: null,
+    isAuthenticated: false
+  }))
+}))
+
+// Get mocked API functions
+let mockGetMenuItems, mockGetCategories, mockGetMenuItemRatingStats, mockGetMenuItemReviews, mockCreateReview, mockUpdateReview, mockDeleteReview, mockUseAuthStore
+beforeAll(async () => {
+  const menuApi = await import('../../../api/menuApi')
+  const reviewsApi = await import('../../../api/reviewsApi')
+  const authStore = await import('../../../store/authStore')
+
+  mockGetMenuItems = menuApi.getMenuItems
+  mockGetCategories = menuApi.getCategories
+  mockGetMenuItemRatingStats = reviewsApi.getMenuItemRatingStats
+  mockGetMenuItemReviews = reviewsApi.getMenuItemReviews
+  mockCreateReview = reviewsApi.createReview
+  mockUpdateReview = reviewsApi.updateReview
+  mockDeleteReview = reviewsApi.deleteReview
+  mockUseAuthStore = authStore.default
+})
 
 // Mock data
 const mockMenuItems = [
@@ -128,14 +171,40 @@ const MenuWrapper = () => (
 describe('Menu Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
+    // Mock API responses to prevent real backend calls
+    mockGetMenuItems.mockResolvedValue({
+      success: true,
+      data: mockMenuItems
+    })
+
+    mockGetCategories.mockResolvedValue({
+      success: true,
+      data: mockCategories
+    })
+
+    // Mock reviews API to prevent backend calls
+    mockGetMenuItemRatingStats.mockResolvedValue({
+      success: true,
+      data: {
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+      }
+    })
+
+    mockGetMenuItemReviews.mockResolvedValue({
+      success: true,
+      data: []
+    })
+
     // Default mock setup
     vi.mocked(useMenu).mockReturnValue({
       items: mockMenuItems,
       categories: mockCategories,
       isLoading: false
     })
-    
+
     vi.mocked(useCart).mockReturnValue({
       addItem: mockAddItem
     })
@@ -454,11 +523,247 @@ describe('Menu Component', () => {
   // 8. CONTENU INFORMATIONNEL (1 test)
   test('should display information section with delivery and allergy info', () => {
     render(<MenuWrapper />)
-    
+
     expect(screen.getByText('Important information')).toBeInTheDocument()
     expect(screen.getByText(/Delivery:/)).toBeInTheDocument()
     expect(screen.getByText(/Free from 25€/)).toBeInTheDocument()
     expect(screen.getByText(/Allergies:/)).toBeInTheDocument()
     expect(screen.getByText(/Inform us of your allergies/)).toBeInTheDocument()
+  })
+
+  // 9. REVIEWS FUNCTIONALITY (New tests for review system)
+  describe('Reviews Functionality', () => {
+    test('should display rating stats on menu item cards', async () => {
+      // Mock rating stats for first item
+      mockGetMenuItemRatingStats.mockImplementation((itemId) => {
+        if (itemId === '1') {
+          return Promise.resolve({
+            success: true,
+            data: {
+              averageRating: 4.5,
+              reviewCount: 10,
+              ratingDistribution: { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4 }
+            }
+          })
+        }
+        return Promise.resolve({
+          success: true,
+          data: {
+            averageRating: 0,
+            reviewCount: 0,
+            ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+          }
+        })
+      })
+
+      render(<MenuWrapper />)
+
+      // Wait for rating stats to load
+      await waitFor(() => {
+        // Check for reviews text in format "(10 reviews)"
+        expect(screen.getByText(/\(10 reviews\)/)).toBeInTheDocument()
+      })
+    })
+
+    test('should display "No reviews yet" for items without reviews', async () => {
+      render(<MenuWrapper />)
+
+      await waitFor(() => {
+        // At least one item should show "No reviews yet"
+        const noReviewsElements = screen.getAllByText('No reviews yet')
+        expect(noReviewsElements.length).toBeGreaterThan(0)
+      })
+    })
+
+    test('should open modal when clicking on menu item image', async () => {
+      const user = userEvent.setup()
+      render(<MenuWrapper />)
+
+      // Find the first menu item card by looking for the item name
+      const pizzaMargheritaElements = screen.getAllByText('Pizza Margherita')
+      const pizzaMargherita = pizzaMargheritaElements[0]
+      const card = pizzaMargherita.closest('.bg-white')
+
+      // Find the image container (has cursor-pointer class) within the card
+      const imageContainer = card.querySelector('.cursor-pointer')
+
+      // Click the image to open modal
+      await user.click(imageContainer)
+
+      // Modal should be visible with item details
+      await waitFor(() => {
+        const allPizzaTitles = screen.getAllByText('Pizza Margherita')
+        expect(allPizzaTitles.length).toBeGreaterThan(1) // Card + modal header
+      })
+    })
+
+    test('should display reviews in modal when item is selected', async () => {
+      const user = userEvent.setup()
+
+      const mockReviews = [
+        {
+          id: 'review-1',
+          userId: 'user-1',
+          userName: 'John Doe',
+          rating: 5,
+          comment: 'Excellent pizza!',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'review-2',
+          userId: 'user-2',
+          userName: 'Jane Smith',
+          rating: 4,
+          comment: 'Very good!',
+          createdAt: new Date().toISOString()
+        }
+      ]
+
+      // Mock reviews for selected item
+      mockGetMenuItemReviews.mockResolvedValue({
+        success: true,
+        data: mockReviews
+      })
+
+      render(<MenuWrapper />)
+
+      // Click on first menu item to open modal
+      const pizzaMargheritaElements = screen.getAllByText('Pizza Margherita')
+      const pizzaMargherita = pizzaMargheritaElements[0]
+      const card = pizzaMargherita.closest('.bg-white')
+      const imageContainer = card.querySelector('.cursor-pointer')
+      await user.click(imageContainer)
+
+      // Wait for reviews to load in modal
+      await waitFor(() => {
+        expect(screen.getByText('Customer Reviews')).toBeInTheDocument()
+        expect(screen.getByText('Excellent pizza!')).toBeInTheDocument()
+        expect(screen.getByText('Very good!')).toBeInTheDocument()
+      })
+    })
+
+    test('should display "No reviews yet" message in modal when no reviews', async () => {
+      const user = userEvent.setup()
+
+      // Mock empty reviews
+      mockGetMenuItemReviews.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      render(<MenuWrapper />)
+
+      // Click on menu item
+      const pizzaMargheritaElements = screen.getAllByText('Pizza Margherita')
+      const pizzaMargherita = pizzaMargheritaElements[0]
+      const card = pizzaMargherita.closest('.bg-white')
+      const imageContainer = card.querySelector('.cursor-pointer')
+      await user.click(imageContainer)
+
+      // Should show empty state message
+      await waitFor(() => {
+        expect(screen.getAllByText('No reviews yet').length).toBeGreaterThan(0)
+        expect(screen.getByText('Be the first to review this dish!')).toBeInTheDocument()
+      })
+    })
+
+    test('should show "Write a Review" button for authenticated users', async () => {
+      const user = userEvent.setup()
+
+      // Mock authenticated user
+      mockUseAuthStore.mockReturnValue({
+        user: { id: 'user-123', email: 'test@example.com', name: 'Test User' },
+        isAuthenticated: true
+      })
+
+      mockGetMenuItemReviews.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      render(<MenuWrapper />)
+
+      // Open modal
+      const pizzaMargheritaElements = screen.getAllByText('Pizza Margherita')
+      const pizzaMargherita = pizzaMargheritaElements[0]
+      const card = pizzaMargherita.closest('.bg-white')
+      const imageContainer = card.querySelector('.cursor-pointer')
+      await user.click(imageContainer)
+
+      // Should show "Write a Review" button
+      await waitFor(() => {
+        expect(screen.getByText('Write a Review')).toBeInTheDocument()
+      })
+    })
+
+    test('should show login message for non-authenticated users', async () => {
+      const user = userEvent.setup()
+
+      // Mock non-authenticated user (default)
+      mockUseAuthStore.mockReturnValue({
+        user: null,
+        isAuthenticated: false
+      })
+
+      mockGetMenuItemReviews.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      render(<MenuWrapper />)
+
+      // Open modal
+      const pizzaMargheritaElements = screen.getAllByText('Pizza Margherita')
+      const pizzaMargherita = pizzaMargheritaElements[0]
+      const card = pizzaMargherita.closest('.bg-white')
+      const imageContainer = card.querySelector('.cursor-pointer')
+      await user.click(imageContainer)
+
+      // Should show login message instead of review button
+      await waitFor(() => {
+        expect(screen.getByText('Please login to write a review')).toBeInTheDocument()
+        expect(screen.queryByText('Write a Review')).not.toBeInTheDocument()
+      })
+    })
+
+    test('should close modal when clicking close button', async () => {
+      const user = userEvent.setup()
+
+      mockGetMenuItemReviews.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      render(<MenuWrapper />)
+
+      // Open modal
+      const pizzaMargheritaElements = screen.getAllByText('Pizza Margherita')
+      const pizzaMargherita = pizzaMargheritaElements[0]
+      const card = pizzaMargherita.closest('.bg-white')
+      const imageContainer = card.querySelector('.cursor-pointer')
+      await user.click(imageContainer)
+
+      // Modal should be open - verify modal content exists
+      await waitFor(() => {
+        expect(screen.getAllByText('Pizza Margherita').length).toBeGreaterThan(1)
+      })
+
+      // Find close button by looking for X icon in modal
+      const closeButtons = Array.from(document.querySelectorAll('button'))
+      const xButton = closeButtons.find(btn => {
+        const svg = btn.querySelector('svg')
+        return svg && btn.className.includes('text-gray-400')
+      })
+
+      expect(xButton).toBeTruthy()
+      await user.click(xButton)
+
+      // Modal should be closed - check that modal-specific content is gone
+      await waitFor(() => {
+        // Modal has specific text "No reviews yet" in modal body, cards also have it
+        // But modal has "Be the first to review this dish!" which is unique to modal
+        expect(screen.queryByText('Be the first to review this dish!')).not.toBeInTheDocument()
+      })
+    })
   })
 })
