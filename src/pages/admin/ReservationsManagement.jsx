@@ -10,6 +10,7 @@ import {
   getHistoricalReservations,
   updateReservationStatusEnhanced
 } from '../../api/reservationsApi'
+import { ReservationService } from '../../services/reservations'
 
 const ReservationsManagement = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -212,45 +213,29 @@ const ReservationsManagement = () => {
   }
 
   // ========================================
-  // STATS CALCULATION
+  // STATS CALCULATION (Using ReservationService)
   // ========================================
 
   const stats = useMemo(() => {
     const allReservations = activeTab === 'recent' ? recentReservations : historicalReservations
-
-    const today = getTodayLocalDate()
-
-    const todayReservations = allReservations.filter(r => {
-      const reservationDateStr = normalizeDateString(r.date)
-      return reservationDateStr === today
-    })
-
-    return {
-      total: allReservations.length,
-      todayTotal: todayReservations.length,
-      totalGuests: allReservations.reduce((sum, r) => sum + (r.guests || 0), 0),
-      todayGuests: todayReservations.reduce((sum, r) => sum + (r.guests || 0), 0),
-      confirmed: allReservations.filter(r => r.status === 'confirmed').length,
-      seated: allReservations.filter(r => r.status === 'seated').length,
-      completed: allReservations.filter(r => r.status === 'completed').length,
-      cancelled: allReservations.filter(r => r.status === 'cancelled').length,
-      noShow: allReservations.filter(r => r.status === 'no-show').length
-    }
+    // Use ReservationService for stats calculation
+    return ReservationService.calculateStats(allReservations)
   }, [recentReservations, historicalReservations, activeTab])
 
   // ========================================
-  // FILTERING
+  // FILTERING (Using ReservationService + custom admin filters)
   // ========================================
 
   const displayedReservations = useMemo(() => {
-    const reservations = activeTab === 'recent' ? recentReservations : historicalReservations
+    let reservations = activeTab === 'recent' ? recentReservations : historicalReservations
 
+    // Use ReservationService for status filtering
+    if (statusFilter !== 'all') {
+      reservations = ReservationService.filter(reservations, { status: statusFilter })
+    }
+
+    // Admin-specific filters
     return reservations.filter(reservation => {
-      // Status filter
-      if (statusFilter !== 'all' && reservation.status !== statusFilter) {
-        return false
-      }
-
       // Search by reservation number (only for recent tab)
       if (activeTab === 'recent' && searchReservationNumber) {
         const matches = reservation.reservationNumber &&
@@ -258,11 +243,10 @@ const ReservationsManagement = () => {
         if (!matches) return false
       }
 
-      // Today filter (only for recent tab)
+      // Today filter (only for recent tab) - Use ReservationService
       if (activeTab === 'recent' && showTodayOnly) {
-        const reservationDateStr = normalizeDateString(reservation.date)
-        const todayStr = getTodayLocalDate()
-        if (reservationDateStr !== todayStr) {
+        const todayReservations = ReservationService.getTodaysReservations([reservation])
+        if (todayReservations.length === 0) {
           return false
         }
       }

@@ -10,6 +10,7 @@ import { LUNCH_SLOTS, DINNER_SLOTS, getLabelFromSlot } from '../../utils/reserva
 import { getAvailableTables } from '../../api/tablesApi'
 import { calculateTotalCapacity, getTableCapacity } from '../../utils/tablesConfig'
 import { RESTAURANT_INFO } from '../../constants'
+import { ReservationService } from '../../services/reservations'
 
 const Reservations = () => {
   const { user } = useAuthStore()
@@ -84,8 +85,7 @@ const Reservations = () => {
     reservations,
     createReservation,
     updateReservation,
-    cancelReservation,
-    validateReservationData
+    cancelReservation
   } = useReservations()
 
   const getStatusInfo = (status) => {
@@ -154,10 +154,10 @@ const Reservations = () => {
       tableNumber: selectedTables // Send selected tables array
     }
 
-    // Validation
-    const errors = validateReservationData(reservationData)
-    if (errors.length > 0) {
-      toast.error(errors[0])
+    // Validation using ReservationService
+    const validation = ReservationService.validate(reservationData)
+    if (!validation.valid) {
+      toast.error(validation.errors[0])
       return
     }
 
@@ -250,10 +250,10 @@ const Reservations = () => {
     console.log('Update reservation data being sent:', reservationData)
     console.log('contactPhone value:', contactPhone)
 
-    // Validation
-    const errors = validateReservationData(reservationData)
-    if (errors.length > 0) {
-      toast.error(errors[0])
+    // Validation using ReservationService
+    const validation = ReservationService.validate(reservationData)
+    if (!validation.valid) {
+      toast.error(validation.errors[0])
       return
     }
 
