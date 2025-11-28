@@ -1,12 +1,10 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  TrendingUp,
   DollarSign,
   ShoppingBag,
   Users,
   Calendar,
-  MessageSquare,
   ArrowUpRight,
   ArrowDownRight,
   Clock,
@@ -16,6 +14,7 @@ import {
 import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
 import useUsersStore from '../../store/usersStore'
+import { OrderService } from '../../services/orders'
 import { getLabelFromSlot } from '../../utils/reservationSlots'
 import { pluralize } from '../../utils/pluralize'
 
@@ -24,15 +23,15 @@ const Dashboard = () => {
   const { reservations } = useReservationsStore()
   const { users } = useUsersStore()
 
-  // Calculate statistics from real data
+  // Calculate statistics from real data using OrderService
   const stats = useMemo(() => {
     const now = new Date()
     const today = now.toISOString().split('T')[0]
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
     const thisWeek = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0]
 
-    // Orders stats
-    const todayOrders = orders.filter(o => o.createdAt?.startsWith(today))
+    // Orders stats using OrderService
+    const todayOrders = OrderService.getTodaysOrders(orders)
     const thisMonthOrders = orders.filter(o => o.createdAt?.startsWith(thisMonth))
 
     const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
@@ -69,11 +68,9 @@ const Dashboard = () => {
     }
   }, [orders, reservations, users])
 
-  // Get recent orders (last 10)
+  // Get recent orders (last 10) using OrderService
   const recentOrders = useMemo(() => {
-    return [...orders]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 10)
+    return OrderService.getRecentOrders(orders, 10)
   }, [orders])
 
   // Get recent reservations (last 10)
@@ -83,22 +80,25 @@ const Dashboard = () => {
       .slice(0, 10)
   }, [reservations])
 
+  // Order status info using OrderService
   const getOrderStatusInfo = (status) => {
-    switch (status) {
-      case 'pending':
-        return { label: 'Pending', color: 'bg-yellow-100 text-yellow-800' }
-      case 'confirmed':
-        return { label: 'Confirmed', color: 'bg-blue-100 text-blue-800' }
-      case 'preparing':
-        return { label: 'Preparing', color: 'bg-orange-100 text-orange-800' }
-      case 'ready':
-        return { label: 'Ready', color: 'bg-purple-100 text-purple-800' }
-      case 'delivered':
-        return { label: 'Delivered', color: 'bg-green-100 text-green-800' }
-      case 'cancelled':
-        return { label: 'Cancelled', color: 'bg-red-100 text-red-800' }
-      default:
-        return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' }
+    const baseInfo = OrderService.getStatusDisplayInfo(status)
+    const colorMap = {
+      yellow: 'bg-yellow-100 text-yellow-800',
+      blue: 'bg-blue-100 text-blue-800',
+      purple: 'bg-orange-100 text-orange-800', // preparing
+      green: 'bg-purple-100 text-purple-800', // ready (Dashboard uses purple for ready)
+      gray: 'bg-green-100 text-green-800', // delivered (Dashboard uses green)
+      red: 'bg-red-100 text-red-800'
+    }
+    // Custom mapping to preserve Dashboard's original colors
+    const effectiveColor = status === 'delivered' ? 'bg-green-100 text-green-800'
+      : status === 'ready' ? 'bg-purple-100 text-purple-800'
+      : colorMap[baseInfo.color] || 'bg-gray-100 text-gray-800'
+
+    return {
+      label: baseInfo.label,
+      color: effectiveColor
     }
   }
 
@@ -117,12 +117,6 @@ const Dashboard = () => {
       default:
         return { label: 'Unknown', color: 'bg-gray-100 text-gray-800', icon: Clock }
     }
-  }
-
-  const formatTime = (dateString) => {
-    if (!dateString) return '--:--'
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
   }
 
   const formatDate = (dateString) => {

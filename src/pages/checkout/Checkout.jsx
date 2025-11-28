@@ -4,6 +4,7 @@ import { CreditCard, MapPin, User, ShoppingBag, Check, MessageSquare } from 'luc
 import { useCart } from '../../hooks/useCart'
 import { useAuth } from '../../hooks/useAuth'
 import useOrdersStore from '../../store/ordersStore'
+import { OrderService } from '../../services/orders'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
 import InlineAlert from '../../components/common/InlineAlert'
 import { toast } from 'react-hot-toast'
@@ -111,6 +112,15 @@ const Checkout = () => {
         paymentMethod: formData.paymentMethod,
         paymentStatus: formData.paymentMethod === 'card' ? 'paid' : 'pending',
         orderType: formData.type
+      }
+
+      // Validate order data before sending to API
+      const validation = OrderService.validateOrderData(orderData)
+      if (!validation.valid) {
+        const firstError = Object.values(validation.errors)[0]
+        toast.error(firstError || 'Invalid order data')
+        setIsProcessing(false)
+        return
       }
 
       const result = await createOrder(orderData)

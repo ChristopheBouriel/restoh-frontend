@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Package, Eye, Clock, CheckCircle, Truck, XCircle, Trash2, RefreshCw, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Package, Eye, Clock, CheckCircle, Truck, XCircle, RefreshCw, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
@@ -11,6 +11,7 @@ import {
   getHistoricalOrders,
   updateOrderStatusEnhanced
 } from '../../api/ordersApi'
+import { OrderService } from '../../services/orders'
 import { pluralizeWord } from '../../utils/pluralize'
 
 const OrdersManagement = () => {
@@ -215,22 +216,9 @@ const OrdersManagement = () => {
     }
   }
 
-  // Calculate stats from current orders
-  const calculateStats = () => {
-    const orders = activeTab === 'recent' ? recentOrders : historicalOrders
-
-    return {
-      total: orders.length,
-      pending: orders.filter(o => o.status === 'pending').length,
-      confirmed: orders.filter(o => o.status === 'confirmed').length,
-      preparing: orders.filter(o => o.status === 'preparing').length,
-      ready: orders.filter(o => o.status === 'ready').length,
-      delivered: orders.filter(o => o.status === 'delivered').length,
-      cancelled: orders.filter(o => o.status === 'cancelled').length
-    }
-  }
-
-  const stats = calculateStats()
+  // Calculate stats from current orders using OrderService
+  const currentOrdersForStats = activeTab === 'recent' ? recentOrders : historicalOrders
+  const stats = OrderService.calculateStats(currentOrdersForStats)
 
   // Get current orders
   const currentOrders = activeTab === 'recent' ? recentOrders : historicalOrders
@@ -278,14 +266,30 @@ const OrdersManagement = () => {
     }
   }
 
-  // Status configuration
-  const statusConfig = {
-    pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-    preparing: { label: 'Preparing', color: 'bg-orange-100 text-orange-800', icon: Package },
-    ready: { label: 'Ready', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-    delivered: { label: 'Delivered', color: 'bg-gray-100 text-gray-800', icon: Truck },
-    cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle }
+  // Status configuration using OrderService + local icon/CSS mapping
+  const getStatusConfig = (status) => {
+    const baseInfo = OrderService.getStatusDisplayInfo(status)
+    const iconMap = {
+      pending: Clock,
+      confirmed: CheckCircle,
+      preparing: Package,
+      ready: CheckCircle,
+      delivered: Truck,
+      cancelled: XCircle
+    }
+    const colorMap = {
+      yellow: 'bg-yellow-100 text-yellow-800',
+      blue: 'bg-blue-100 text-blue-800',
+      purple: 'bg-orange-100 text-orange-800', // preparing uses orange in this component
+      green: 'bg-green-100 text-green-800',
+      gray: 'bg-gray-100 text-gray-800',
+      red: 'bg-red-100 text-red-800'
+    }
+    return {
+      label: baseInfo.label,
+      color: colorMap[baseInfo.color] || 'bg-gray-100 text-gray-800',
+      icon: iconMap[status] || Package
+    }
   }
 
   const formatPrice = (price) => {
@@ -564,7 +568,7 @@ const OrdersManagement = () => {
               <p className="text-gray-500">
                 {filterStatus === 'all'
                   ? 'No orders found for the selected period.'
-                  : `No orders with status "${statusConfig[filterStatus]?.label.toLowerCase()}".`
+                  : `No orders with status "${getStatusConfig(filterStatus).label.toLowerCase()}".`
                 }
               </p>
             </div>
@@ -600,7 +604,8 @@ const OrdersManagement = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredOrders.map((order) => {
-                      const StatusIcon = statusConfig[order.status]?.icon || Package
+                      const statusInfo = getStatusConfig(order.status)
+                      const StatusIcon = statusInfo.icon
                       return (
                         <tr key={order.id} className={getDeletedUserRowClass(order)}>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -626,9 +631,9 @@ const OrdersManagement = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
                               <StatusIcon className="h-3 w-3 mr-1" />
-                              {statusConfig[order.status]?.label}
+                              {statusInfo.label}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -670,15 +675,16 @@ const OrdersManagement = () => {
               {/* Mobile Cards View */}
               <div className="lg:hidden divide-y divide-gray-200">
                 {filteredOrders.map((order) => {
-                  const StatusIcon = statusConfig[order.status]?.icon || Package
+                  const statusInfo = getStatusConfig(order.status)
+                  const StatusIcon = statusInfo.icon
                   return (
                     <div key={order.id} className={`p-4 ${getDeletedUserRowClass(order)}`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           <span className="text-sm font-medium text-gray-900">#{order.orderNumber}</span>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig[order.status]?.color}`}>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
                             <StatusIcon className="h-3 w-3 mr-1" />
-                            {statusConfig[order.status]?.label}
+                            {statusInfo.label}
                           </span>
                         </div>
                         <span className="text-sm font-bold text-orange-600">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Clock, Package, CheckCircle, XCircle, Eye } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import useOrdersStore from '../../store/ordersStore'
+import { OrderService } from '../../services/orders'
 import InlineAlert from '../../components/common/InlineAlert'
 
 const Orders = () => {
@@ -17,9 +18,10 @@ const Orders = () => {
     fetchOrders(false) // false = user (not admin)
   }, [fetchOrders])
 
-  const filteredOrders = orders.filter(order => 
-    filter === 'all' || order.status === filter
-  )
+  // Use OrderService for filtering
+  const filteredOrders = filter === 'all'
+    ? orders
+    : OrderService.filterByStatus(orders, filter)
 
   const handleCancelOrder = async (orderId) => {
     // Clear any previous inline error
@@ -38,50 +40,34 @@ const Orders = () => {
     }
   }
 
+  // Status info using OrderService + local icon/CSS mapping
   const getStatusInfo = (status) => {
-    switch (status) {
-      case 'delivered':
-        return {
-          label: 'Delivered',
-          color: 'text-green-600 bg-green-50',
-          icon: CheckCircle
-        }
-      case 'preparing':
-        return {
-          label: 'Preparing',
-          color: 'text-yellow-600 bg-yellow-50',
-          icon: Clock
-        }
-      case 'ready':
-        return {
-          label: 'Ready',
-          color: 'text-blue-600 bg-blue-50',
-          icon: Package
-        }
-      case 'confirmed':
-        return {
-          label: 'Confirmed',
-          color: 'text-indigo-600 bg-indigo-50',
-          icon: CheckCircle
-        }
-      case 'pending':
-        return {
-          label: 'Pending',
-          color: 'text-orange-600 bg-orange-50',
-          icon: Clock
-        }
-      case 'cancelled':
-        return {
-          label: 'Cancelled',
-          color: 'text-red-600 bg-red-50',
-          icon: XCircle
-        }
-      default:
-        return {
-          label: 'In progress',
-          color: 'text-blue-600 bg-blue-50',
-          icon: Package
-        }
+    const baseInfo = OrderService.getStatusDisplayInfo(status)
+    const iconMap = {
+      pending: Clock,
+      confirmed: CheckCircle,
+      preparing: Clock,
+      ready: Package,
+      delivered: CheckCircle,
+      cancelled: XCircle
+    }
+    const colorMap = {
+      yellow: 'text-orange-600 bg-orange-50', // pending
+      blue: 'text-indigo-600 bg-indigo-50', // confirmed
+      purple: 'text-yellow-600 bg-yellow-50', // preparing
+      green: 'text-blue-600 bg-blue-50', // ready (original had blue for ready)
+      gray: 'text-green-600 bg-green-50', // delivered (original had green)
+      red: 'text-red-600 bg-red-50' // cancelled
+    }
+    // Map delivered to green (override gray from service)
+    const effectiveColor = status === 'delivered' ? 'text-green-600 bg-green-50'
+      : status === 'ready' ? 'text-blue-600 bg-blue-50'
+      : colorMap[baseInfo.color] || 'text-blue-600 bg-blue-50'
+
+    return {
+      label: baseInfo.label,
+      color: effectiveColor,
+      icon: iconMap[status] || Package
     }
   }
 
