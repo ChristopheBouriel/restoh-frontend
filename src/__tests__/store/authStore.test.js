@@ -460,7 +460,7 @@ describe('Auth Store', () => {
         deleteResult = await result.current.deleteAccount('password123')
       })
 
-      expect(mockDeleteAccount).toHaveBeenCalledWith({ password: 'password123' })
+      expect(mockDeleteAccount).toHaveBeenCalledWith('password123')
       expect(result.current.user).toBeNull()
       // Token is now stored in HTTP-only cookies, not in state
       expect(result.current.isAuthenticated).toBe(false)
@@ -490,7 +490,7 @@ describe('Auth Store', () => {
         deleteResult = await result.current.deleteAccount('wrongpassword')
       })
 
-      expect(mockDeleteAccount).toHaveBeenCalledWith({ password: 'wrongpassword' })
+      expect(mockDeleteAccount).toHaveBeenCalledWith('wrongpassword')
       expect(result.current.error).toBe('Invalid password')
       expect(deleteResult.success).toBe(false)
     })

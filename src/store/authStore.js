@@ -188,7 +188,7 @@ const useAuthStore = create(
         set({ isLoading: true, error: null })
 
         try {
-          const result = await authApi.deleteAccount({ password })
+          const result = await authApi.deleteAccount(password)
 
           if (result.success) {
             // Logout user after account deletion
