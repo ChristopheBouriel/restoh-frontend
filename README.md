@@ -2,16 +2,18 @@
 
 Application React de gestion de restaurant moderne avec système de commandes en ligne, réservations et panel d'administration.
 
-## 🚀 Technologies
+## Technologies
 
 - **React 18** - Bibliothèque UI
 - **Vite** - Build tool ultra-rapide
 - **Zustand** - Gestion d'état avec persistance
 - **React Router** - Navigation
 - **Tailwind CSS** - Styling utility-first
-- **Axios** - Client HTTP
+- **Axios** - Client HTTP (cookies HTTP-only)
 - **React Hot Toast** - Notifications
 - **Lucide React** - Icônes modernes
+- **Vitest** - Tests unitaires et d'intégration
+- **React Testing Library** - Tests de composants
 
 ## 📋 Prérequis
 
@@ -49,17 +51,20 @@ npm run dev
 
 L'application sera accessible sur `http://localhost:5173`
 
-## 📦 Scripts disponibles
+## Scripts disponibles
 
 ```bash
 npm run dev          # Lancer le serveur de développement
 npm run build        # Build de production
 npm run preview      # Preview du build de production
 npm run lint         # Linter le code avec ESLint
-npm test             # Lancer les tests (à implémenter)
+npm test             # Lancer les tests (1200+ tests)
+npm run test:ui      # Interface Vitest UI
+npm run test:watch   # Mode watch
+npm run test:coverage # Couverture de code
 ```
 
-## 🏗️ Structure du projet
+## Structure du projet
 
 ```
 restoh-frontend/
@@ -70,7 +75,15 @@ restoh-frontend/
 │   │   ├── ordersApi.js
 │   │   ├── reservationsApi.js
 │   │   ├── menuApi.js
-│   │   └── contactsApi.js
+│   │   ├── contactsApi.js
+│   │   ├── emailApi.js
+│   │   ├── reviewsApi.js
+│   │   └── restaurantReviewsApi.js
+│   ├── services/         # Couche Service (logique métier)
+│   │   ├── menu/         # MenuService
+│   │   ├── reservations/ # ReservationService
+│   │   ├── orders/       # OrderService
+│   │   └── auth/         # AuthService
 │   ├── components/       # Composants réutilisables
 │   ├── constants/        # Constantes et enums
 │   ├── contexts/         # React Contexts
@@ -78,6 +91,7 @@ restoh-frontend/
 │   ├── pages/            # Pages/Routes
 │   ├── store/            # Zustand stores
 │   ├── utils/            # Fonctions utilitaires
+│   ├── __tests__/        # Tests unitaires et d'intégration
 │   ├── App.jsx
 │   └── main.jsx
 ├── public/               # Ressources statiques
@@ -105,13 +119,14 @@ restoh-frontend/
 - ✅ Messagerie contact
 - ✅ Gestion des utilisateurs
 
-## 🔐 Authentification
+## Authentification
 
-L'application utilise JWT (JSON Web Tokens) pour l'authentification :
+L'application utilise des cookies HTTP-only pour l'authentification :
 
-- **Access Token** : Stocké dans localStorage via Zustand
-- **Refresh Token** : Géré automatiquement par l'intercepteur Axios
-- **Expiration** : Redirection automatique vers `/login` si token expiré
+- **Session** : Gérée par cookies HTTP-only côté backend (sécurisé)
+- **État local** : `user` et `isAuthenticated` persistés dans localStorage
+- **Auto-logout** : Redirection vers `/login` si session expirée
+- **Pages publiques** : Login, register, reset-password ne déclenchent pas de redirection
 
 ## 🎨 Personnalisation
 
@@ -121,12 +136,18 @@ Modifier `tailwind.config.js` pour personnaliser les couleurs, fonts, etc.
 ### Constantes
 Éditer `src/constants/index.js` pour modifier les routes, statuts, etc.
 
-## 🧪 Tests
+## Tests
+
+Le projet dispose de plus de 1200 tests couvrant :
+- **Stores** : authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore
+- **Services** : MenuService, ReservationService, OrderService, AuthService
+- **Composants** : Pages, formulaires, navigation
 
 ```bash
-npm test              # Tests unitaires (à implémenter)
-npm run test:ui       # Interface de tests (à implémenter)
-npm run test:coverage # Couverture de code (à implémenter)
+npm test              # Tous les tests
+npm run test:ui       # Interface Vitest
+npm run test:coverage # Couverture de code
+npm run test:watch    # Mode watch
 ```
 
 ## 📡 Intégration Backend
@@ -204,9 +225,10 @@ Pour toute question ou problème :
 - Consulter la documentation `API_ENDPOINTS.md`
 - Voir les instructions dans `CLAUDE.md` pour le développement
 
-## 🎯 Roadmap
+## Roadmap
 
-- [ ] Tests unitaires et E2E
+- [x] Tests unitaires complets (1200+ tests)
+- [ ] Tests E2E avec Playwright/Cypress
 - [ ] PWA (Progressive Web App)
 - [ ] Internationalisation (i18n)
 - [ ] Mode sombre
