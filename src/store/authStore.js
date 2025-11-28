@@ -159,7 +159,7 @@ const useAuthStore = create(
         set({ isLoading: true, error: null })
 
         try {
-          const result = await authApi.changePassword({ currentPassword, newPassword })
+          const result = await authApi.changePassword(currentPassword, newPassword)
 
           if (result.success) {
             set({

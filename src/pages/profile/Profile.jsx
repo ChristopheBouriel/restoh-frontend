@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { User, Mail, Phone, MapPin, Lock, Save, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
+import { AuthService } from '../../services/auth'
 import { emailApi } from '../../api'
 import DeleteAccountModal from '../../components/profile/DeleteAccountModal'
 
@@ -98,33 +99,30 @@ const Profile = () => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
-    
-    // Validation
-    if (!passwordData.currentPassword) {
-      toast.error('Current password is required')
+
+    // Validation using AuthService
+    const validation = AuthService.validatePasswordChange(
+      passwordData.currentPassword,
+      passwordData.newPassword
+    )
+
+    if (!validation.valid) {
+      const firstError = Object.values(validation.errors)[0]
+      toast.error(firstError)
       return
     }
-    
-    if (!passwordData.newPassword) {
-      toast.error('New password is required')
+
+    // Check password confirmation match
+    const matchValidation = AuthService.validatePasswordMatch(
+      passwordData.newPassword,
+      passwordData.confirmPassword
+    )
+
+    if (!matchValidation.valid) {
+      toast.error(matchValidation.error)
       return
     }
-    
-    if (passwordData.newPassword.length < 6) {
-      toast.error('New password must be at least 6 characters')
-      return
-    }
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('Passwords do not match')
-      return
-    }
-    
-    if (passwordData.currentPassword === passwordData.newPassword) {
-      toast.error('New password must be different from the old one')
-      return
-    }
-    
+
     try {
       const { success, error } = await changePassword(
         passwordData.currentPassword,

@@ -511,7 +511,7 @@ describe('Auth Store', () => {
         changeResult = await result.current.changePassword('oldPassword', 'newPassword')
       })
 
-      expect(mockChangePassword).toHaveBeenCalledWith({ currentPassword: 'oldPassword', newPassword: 'newPassword' })
+      expect(mockChangePassword).toHaveBeenCalledWith('oldPassword', 'newPassword')
       expect(changeResult.success).toBe(true)
     })
 
@@ -534,7 +534,7 @@ describe('Auth Store', () => {
         changeResult = await result.current.changePassword('wrongPassword', 'newPassword')
       })
 
-      expect(mockChangePassword).toHaveBeenCalledWith({ currentPassword: 'wrongPassword', newPassword: 'newPassword' })
+      expect(mockChangePassword).toHaveBeenCalledWith('wrongPassword', 'newPassword')
       expect(result.current.error).toBe('Current password is incorrect')
       expect(changeResult.success).toBe(false)
       expect(changeResult.error).toBe('Current password is incorrect')

@@ -51,8 +51,11 @@ apiClient.interceptors.response.use(
           // Clear localStorage and redirect to login
           localStorage.removeItem('auth-storage')
 
-          // Toast only if not already on login page
-          if (!window.location.pathname.includes('/login')) {
+          // Don't redirect on public auth pages (login, register, reset-password, etc.)
+          const publicAuthPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email']
+          const isPublicAuthPage = publicAuthPaths.some(path => window.location.pathname.includes(path))
+
+          if (!isPublicAuthPage) {
             toast.error('Session expired. Please log in again.')
             window.location.href = '/login'
           }

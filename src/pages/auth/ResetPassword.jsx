@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { emailApi } from '../../api'
+import { AuthService } from '../../services/auth'
 import { ROUTES } from '../../constants'
 
 const ResetPassword = () => {
@@ -20,14 +21,16 @@ const ResetPassword = () => {
     e.preventDefault()
     setError('')
 
-    // Validation
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validation using AuthService
+    const passwordValidation = AuthService.validatePassword(password)
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error)
       return
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    const matchValidation = AuthService.validatePasswordMatch(password, confirmPassword)
+    if (!matchValidation.valid) {
+      setError(matchValidation.error)
       return
     }
 

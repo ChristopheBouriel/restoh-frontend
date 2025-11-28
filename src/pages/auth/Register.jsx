@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useAuthStore from '../../store/authStore'
+import { AuthService } from '../../services/auth'
 import { emailApi } from '../../api'
 import { ROUTES } from '../../constants'
 import InlineAlert from '../../components/common/InlineAlert'
@@ -40,33 +41,11 @@ const Register = () => {
     }
   }
 
+  // Validate form using AuthService
   const validateForm = () => {
-    const errors = {}
-    
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required'
-    }
-
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Invalid email'
-    }
-
-    if (!formData.password) {
-      errors.password = 'Password is required'
-    } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters'
-    }
-
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password'
-    } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match'
-    }
-    
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
+    const validation = AuthService.validateRegistrationData(formData)
+    setFormErrors(validation.errors)
+    return validation.valid
   }
 
   const handleSubmit = async (e) => {

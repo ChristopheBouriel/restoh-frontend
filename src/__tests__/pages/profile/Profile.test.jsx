@@ -565,19 +565,19 @@ describe('Profile Component', () => {
       fireEvent.submit(form)
       
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('New password is required')
+        expect(toast.error).toHaveBeenCalledWith('Password is required')
       })
-      
+
       // Test 3: New mot de passe trop court
       vi.clearAllMocks()
       const newPasswordInput = document.querySelector('input[name="newPassword"]')
       await user.type(newPasswordInput, '123')
       fireEvent.submit(form)
-      
+
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('New password must be at least 6 characters')
+        expect(toast.error).toHaveBeenCalledWith('Password must be at least 6 characters')
       })
-      
+
       // Test 4: Mots de passe ne correspondent pas
       vi.clearAllMocks()
       await user.clear(newPasswordInput)
@@ -585,11 +585,11 @@ describe('Profile Component', () => {
       const confirmPasswordInput = document.querySelector('input[name="confirmPassword"]')
       await user.type(confirmPasswordInput, 'different123')
       fireEvent.submit(form)
-      
+
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith('Passwords do not match')
       })
-      
+
       // Test 5: New mot de passe identique à l'ancien
       vi.clearAllMocks()
       await user.clear(confirmPasswordInput)
@@ -597,9 +597,9 @@ describe('Profile Component', () => {
       await user.clear(newPasswordInput)
       await user.type(newPasswordInput, 'current123')
       fireEvent.submit(form)
-      
+
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('New password must be different from the old one')
+        expect(toast.error).toHaveBeenCalledWith('New password must be different from current password')
       })
     })
 
