@@ -10,7 +10,6 @@ export {
   validateReservationDate,
   validateGuests,
   validateTimeSlot,
-  validatePhone,
   canModifyReservation,
   canCancelReservation
 } from './reservationValidator'

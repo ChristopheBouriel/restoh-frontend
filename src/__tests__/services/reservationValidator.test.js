@@ -3,7 +3,6 @@ import {
   validateReservationDate,
   validateGuests,
   validateTimeSlot,
-  validatePhone,
   validateReservationData,
   canModifyReservation,
   canCancelReservation
@@ -13,7 +12,7 @@ describe('reservationValidator', () => {
   describe('validateReservationDate', () => {
     it('should reject missing date', () => {
       const result = validateReservationDate(null)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('Date is required')
     })
 
@@ -23,14 +22,15 @@ describe('reservationValidator', () => {
       const dateStr = pastDate.toISOString().split('T')[0]
 
       const result = validateReservationDate(dateStr)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('Cannot book in the past')
     })
 
     it('should accept today', () => {
       const today = new Date().toISOString().split('T')[0]
       const result = validateReservationDate(today)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should accept future date within 3 months', () => {
@@ -39,7 +39,8 @@ describe('reservationValidator', () => {
       const dateStr = futureDate.toISOString().split('T')[0]
 
       const result = validateReservationDate(dateStr)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should reject date more than 3 months in the future', () => {
@@ -48,7 +49,7 @@ describe('reservationValidator', () => {
       const dateStr = farFutureDate.toISOString().split('T')[0]
 
       const result = validateReservationDate(dateStr)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('Cannot book more than 3 months in advance')
     })
   })
@@ -56,34 +57,37 @@ describe('reservationValidator', () => {
   describe('validateGuests', () => {
     it('should reject zero guests', () => {
       const result = validateGuests(0)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('At least 1 guest is required')
     })
 
     it('should reject negative guests', () => {
       const result = validateGuests(-1)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('At least 1 guest is required')
     })
 
     it('should accept 1 guest', () => {
       const result = validateGuests(1)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should accept valid number of guests', () => {
       const result = validateGuests(4)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should accept maximum number of guests (12)', () => {
       const result = validateGuests(12)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should reject more than maximum guests', () => {
       const result = validateGuests(15)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toContain('Maximum')
     })
   })
@@ -91,73 +95,37 @@ describe('reservationValidator', () => {
   describe('validateTimeSlot', () => {
     it('should reject missing slot', () => {
       const result = validateTimeSlot(null)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('Time slot is required')
     })
 
     it('should reject slot 0', () => {
       const result = validateTimeSlot(0)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
     })
 
     it('should accept slot 1 (lunch)', () => {
       const result = validateTimeSlot(1)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should accept slot 7 (dinner)', () => {
       const result = validateTimeSlot(7)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should accept slot 15 (last dinner slot)', () => {
       const result = validateTimeSlot(15)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+      expect(result.error).toBeNull()
     })
 
     it('should reject slot 16 (out of range)', () => {
       const result = validateTimeSlot(16)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBe('Invalid time slot')
-    })
-  })
-
-  describe('validatePhone', () => {
-    it('should reject missing phone', () => {
-      const result = validatePhone(null)
-      expect(result.valid).toBe(false)
-      expect(result.error).toBe('Phone number is required')
-    })
-
-    it('should reject empty phone', () => {
-      const result = validatePhone('')
-      expect(result.valid).toBe(false)
-    })
-
-    it('should accept valid French mobile phone with spaces', () => {
-      const result = validatePhone('06 12 34 56 78')
-      expect(result.valid).toBe(true)
-    })
-
-    it('should accept valid French mobile phone without spaces', () => {
-      const result = validatePhone('0612345678')
-      expect(result.valid).toBe(true)
-    })
-
-    it('should accept valid French landline', () => {
-      const result = validatePhone('01 23 45 67 89')
-      expect(result.valid).toBe(true)
-    })
-
-    it('should reject invalid phone format', () => {
-      const result = validatePhone('123456')
-      expect(result.valid).toBe(false)
-      expect(result.error).toContain('Invalid phone format')
-    })
-
-    it('should reject phone with invalid first digit', () => {
-      const result = validatePhone('10 12 34 56 78')
-      expect(result.valid).toBe(false)
     })
   })
 
@@ -172,7 +140,7 @@ describe('reservationValidator', () => {
 
     it('should validate complete valid data', () => {
       const result = validateReservationData(validData)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
@@ -180,12 +148,18 @@ describe('reservationValidator', () => {
       const dataWithPhone = { ...validData, phone: '06 12 34 56 78' }
       delete dataWithPhone.contactPhone
       const result = validateReservationData(dataWithPhone)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should accept contactPhone field', () => {
       const result = validateReservationData(validData)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
+    })
+
+    it('should accept international phone format', () => {
+      const dataWithIntlPhone = { ...validData, contactPhone: '+33 6 12 34 56 78' }
+      const result = validateReservationData(dataWithIntlPhone)
+      expect(result.isValid).toBe(true)
     })
 
     it('should collect multiple errors', () => {
@@ -197,42 +171,42 @@ describe('reservationValidator', () => {
       }
 
       const result = validateReservationData(invalidData)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.length).toBeGreaterThan(1)
     })
 
     it('should reject missing date', () => {
       const data = { ...validData, date: null }
       const result = validateReservationData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Date is required')
     })
 
     it('should reject invalid guests', () => {
       const data = { ...validData, guests: 0 }
       const result = validateReservationData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.some(e => e.includes('guest'))).toBe(true)
     })
 
     it('should reject invalid slot', () => {
       const data = { ...validData, slot: null }
       const result = validateReservationData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Time slot is required')
     })
 
     it('should reject invalid phone', () => {
       const data = { ...validData, contactPhone: '123' }
       const result = validateReservationData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.some(e => e.includes('phone'))).toBe(true)
     })
 
     it('should reject empty tableNumber array', () => {
       const data = { ...validData, tableNumber: [] }
       const result = validateReservationData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors).toContain('At least one table must be selected')
     })
 
@@ -240,7 +214,7 @@ describe('reservationValidator', () => {
       const data = { ...validData }
       delete data.tableNumber
       const result = validateReservationData(data)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
   })
 
@@ -298,6 +272,7 @@ describe('reservationValidator', () => {
       }
       const result = canModifyReservation(reservation)
       expect(result.canModify).toBe(true)
+      expect(result.reason).toBeNull()
     })
 
     it('should allow modifying seated reservation', () => {
@@ -308,6 +283,7 @@ describe('reservationValidator', () => {
       }
       const result = canModifyReservation(reservation)
       expect(result.canModify).toBe(true)
+      expect(result.reason).toBeNull()
     })
   })
 
@@ -365,6 +341,7 @@ describe('reservationValidator', () => {
       }
       const result = canCancelReservation(reservation)
       expect(result.canCancel).toBe(true)
+      expect(result.reason).toBeNull()
     })
 
     it('should allow cancelling seated reservation', () => {
@@ -375,6 +352,7 @@ describe('reservationValidator', () => {
       }
       const result = canCancelReservation(reservation)
       expect(result.canCancel).toBe(true)
+      expect(result.reason).toBeNull()
     })
   })
 })
