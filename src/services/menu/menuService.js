@@ -184,12 +184,12 @@ class MenuService {
    *
    * @param {Array} cartItems - Items in cart
    * @param {Array} menuItems - Current menu items
-   * @returns {Object} Validation result
+   * @returns {{ isValid: boolean, error: string|null, unavailableItems: Array, missingItems: Array }}
    */
   validateCartForCheckout(cartItems, menuItems) {
     if (!cartItems || cartItems.length === 0) {
       return {
-        valid: false,
+        isValid: false,
         error: 'Cart is empty',
         unavailableItems: [],
         missingItems: []
@@ -200,11 +200,11 @@ class MenuService {
     const unavailableItems = enriched.filter(item => !item.isAvailable && item.stillExists)
     const missingItems = enriched.filter(item => !item.stillExists)
 
-    const valid = unavailableItems.length === 0 && missingItems.length === 0
+    const isValid = unavailableItems.length === 0 && missingItems.length === 0
 
     return {
-      valid,
-      error: valid ? null : 'Some items are unavailable or no longer exist',
+      isValid,
+      error: isValid ? null : 'Some items are unavailable or no longer exist',
       unavailableItems: unavailableItems.map(i => ({ id: i.id, name: i.name })),
       missingItems: missingItems.map(i => ({ id: i.id, name: i.name })),
       availableCount: enriched.filter(i => i.isAvailable && i.stillExists).length,

@@ -22,7 +22,7 @@ describe('menuValidator', () => {
 
     it('should validate a complete valid item', () => {
       const result = validateMenuItem(validItem)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
       expect(result.errors).toEqual({})
     })
 
@@ -30,21 +30,21 @@ describe('menuValidator', () => {
       it('should require name', () => {
         const item = { ...validItem, name: '' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.name).toBeDefined()
       })
 
       it('should require name to be at least 2 characters', () => {
         const item = { ...validItem, name: 'A' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.name).toContain('at least 2 characters')
       })
 
       it('should limit name to 100 characters', () => {
         const item = { ...validItem, name: 'A'.repeat(101) }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.name).toContain('not exceed 100 characters')
       })
 
@@ -59,7 +59,7 @@ describe('menuValidator', () => {
       it('should require category', () => {
         const item = { ...validItem, category: '' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.category).toBeDefined()
       })
 
@@ -75,28 +75,28 @@ describe('menuValidator', () => {
         const item = { ...validItem }
         delete item.price
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.price).toBeDefined()
       })
 
       it('should reject negative price', () => {
         const item = { ...validItem, price: -5 }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.price).toContain('cannot be negative')
       })
 
       it('should reject non-numeric price', () => {
         const item = { ...validItem, price: 'invalid' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.price).toContain('valid number')
       })
 
       it('should reject unreasonably high price', () => {
         const item = { ...validItem, price: 10001 }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.price).toContain('unreasonably high')
       })
 
@@ -117,7 +117,7 @@ describe('menuValidator', () => {
       it('should limit description to 500 characters', () => {
         const item = { ...validItem, description: 'A'.repeat(501) }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.description).toContain('not exceed 500 characters')
       })
 
@@ -138,21 +138,21 @@ describe('menuValidator', () => {
       it('should reject negative preparation time', () => {
         const item = { ...validItem, preparationTime: -5 }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.preparationTime).toContain('cannot be negative')
       })
 
       it('should reject non-numeric preparation time', () => {
         const item = { ...validItem, preparationTime: 'invalid' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.preparationTime).toContain('valid number')
       })
 
       it('should reject unreasonably long preparation time', () => {
         const item = { ...validItem, preparationTime: 241 }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.preparationTime).toContain('too long')
       })
 
@@ -167,14 +167,14 @@ describe('menuValidator', () => {
       it('should require ingredients to be array', () => {
         const item = { ...validItem, ingredients: 'not-array' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.ingredients).toContain('must be an array')
       })
 
       it('should require allergens to be array', () => {
         const item = { ...validItem, allergens: 'not-array' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.allergens).toContain('must be an array')
       })
 
@@ -208,7 +208,7 @@ describe('menuValidator', () => {
       it('should reject invalid cuisine', () => {
         const item = { ...validItem, cuisine: 'invalid-cuisine' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.cuisine).toContain('must be one of')
       })
     })
@@ -217,14 +217,14 @@ describe('menuValidator', () => {
       it('should require isAvailable to be boolean if provided', () => {
         const item = { ...validItem, isAvailable: 'yes' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.isAvailable).toContain('must be a boolean')
       })
 
       it('should require isPopular to be boolean if provided', () => {
         const item = { ...validItem, isPopular: 'yes' }
         const result = validateMenuItem(item)
-        expect(result.valid).toBe(false)
+        expect(result.isValid).toBe(false)
         expect(result.errors.isPopular).toContain('must be a boolean')
       })
 
@@ -241,48 +241,48 @@ describe('menuValidator', () => {
     it('should allow partial updates', () => {
       const update = { price: 15.99 }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
       expect(result.errors).toEqual({})
     })
 
     it('should validate provided fields', () => {
       const update = { price: -5 }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.price).toBeDefined()
     })
 
     it('should not require all fields', () => {
       const update = { name: 'New Name' }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should reject empty name if provided', () => {
       const update = { name: '' }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.name).toBeDefined()
     })
 
     it('should validate name length if provided', () => {
       const update = { name: 'A' }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.name).toContain('at least 2 characters')
     })
 
     it('should validate price if provided', () => {
       const update = { price: 'invalid' }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.price).toBeDefined()
     })
 
     it('should validate cuisine if provided', () => {
       const update = { cuisine: 'invalid' }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.cuisine).toBeDefined()
     })
 
@@ -293,7 +293,7 @@ describe('menuValidator', () => {
         isAvailable: false
       }
       const result = validateMenuItemUpdate(update)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
   })
 

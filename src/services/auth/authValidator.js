@@ -1,6 +1,9 @@
 /**
  * Auth Validator - Validation functions for authentication
  * Pure functions for validating user credentials and registration data
+ *
+ * Convention: All validators return { isValid: boolean, error: string|null }
+ * For multiple errors: { isValid: boolean, errors: Object }
  */
 
 // ============ Constants ============
@@ -13,26 +16,26 @@ export const NAME_MIN_LENGTH = 1
 /**
  * Validate email format
  * @param {string} email - Email to validate
- * @returns {Object} { valid: boolean, error?: string }
+ * @returns {{ isValid: boolean, error: string|null }}
  */
 export const validateEmail = (email) => {
   if (!email || typeof email !== 'string') {
-    return { valid: false, error: 'Email is required' }
+    return { isValid: false, error: 'Email is required' }
   }
 
   const trimmedEmail = email.trim()
 
   if (!trimmedEmail) {
-    return { valid: false, error: 'Email is required' }
+    return { isValid: false, error: 'Email is required' }
   }
 
   // Simple but effective email regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(trimmedEmail)) {
-    return { valid: false, error: 'Invalid email format' }
+    return { isValid: false, error: 'Invalid email format' }
   }
 
-  return { valid: true }
+  return { isValid: true, error: null }
 }
 
 // ============ Password Validation ============
@@ -40,43 +43,43 @@ export const validateEmail = (email) => {
 /**
  * Validate password strength
  * @param {string} password - Password to validate
- * @returns {Object} { valid: boolean, error?: string }
+ * @returns {{ isValid: boolean, error: string|null }}
  */
 export const validatePassword = (password) => {
   if (!password) {
-    return { valid: false, error: 'Password is required' }
+    return { isValid: false, error: 'Password is required' }
   }
 
   if (password.length < PASSWORD_MIN_LENGTH) {
-    return { valid: false, error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` }
+    return { isValid: false, error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` }
   }
 
-  return { valid: true }
+  return { isValid: true, error: null }
 }
 
 /**
  * Validate password confirmation matches
  * @param {string} password - Original password
  * @param {string} confirmPassword - Confirmation password
- * @returns {Object} { valid: boolean, error?: string }
+ * @returns {{ isValid: boolean, error: string|null }}
  */
 export const validatePasswordMatch = (password, confirmPassword) => {
   if (!confirmPassword) {
-    return { valid: false, error: 'Please confirm your password' }
+    return { isValid: false, error: 'Please confirm your password' }
   }
 
   if (password !== confirmPassword) {
-    return { valid: false, error: 'Passwords do not match' }
+    return { isValid: false, error: 'Passwords do not match' }
   }
 
-  return { valid: true }
+  return { isValid: true, error: null }
 }
 
 /**
  * Validate password for change operation
  * @param {string} currentPassword - Current password
  * @param {string} newPassword - New password
- * @returns {Object} { valid: boolean, errors: {} }
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validatePasswordChange = (currentPassword, newPassword) => {
   const errors = {}
@@ -86,7 +89,7 @@ export const validatePasswordChange = (currentPassword, newPassword) => {
   }
 
   const newPasswordValidation = validatePassword(newPassword)
-  if (!newPasswordValidation.valid) {
+  if (!newPasswordValidation.isValid) {
     errors.newPassword = newPasswordValidation.error
   }
 
@@ -95,7 +98,7 @@ export const validatePasswordChange = (currentPassword, newPassword) => {
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }
@@ -105,24 +108,24 @@ export const validatePasswordChange = (currentPassword, newPassword) => {
 /**
  * Validate user name
  * @param {string} name - Name to validate
- * @returns {Object} { valid: boolean, error?: string }
+ * @returns {{ isValid: boolean, error: string|null }}
  */
 export const validateName = (name) => {
   if (!name || typeof name !== 'string') {
-    return { valid: false, error: 'Name is required' }
+    return { isValid: false, error: 'Name is required' }
   }
 
   const trimmedName = name.trim()
 
   if (!trimmedName) {
-    return { valid: false, error: 'Name is required' }
+    return { isValid: false, error: 'Name is required' }
   }
 
   if (trimmedName.length < NAME_MIN_LENGTH) {
-    return { valid: false, error: 'Name is too short' }
+    return { isValid: false, error: 'Name is too short' }
   }
 
-  return { valid: true }
+  return { isValid: true, error: null }
 }
 
 // ============ Registration Validation ============
@@ -130,37 +133,37 @@ export const validateName = (name) => {
 /**
  * Validate complete registration data
  * @param {Object} data - Registration data { name, email, password, confirmPassword }
- * @returns {Object} { valid: boolean, errors: {} }
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validateRegistrationData = (data) => {
   const errors = {}
 
   // Validate name
   const nameValidation = validateName(data.name)
-  if (!nameValidation.valid) {
+  if (!nameValidation.isValid) {
     errors.name = nameValidation.error
   }
 
   // Validate email
   const emailValidation = validateEmail(data.email)
-  if (!emailValidation.valid) {
+  if (!emailValidation.isValid) {
     errors.email = emailValidation.error
   }
 
   // Validate password
   const passwordValidation = validatePassword(data.password)
-  if (!passwordValidation.valid) {
+  if (!passwordValidation.isValid) {
     errors.password = passwordValidation.error
   }
 
   // Validate password confirmation
   const matchValidation = validatePasswordMatch(data.password, data.confirmPassword)
-  if (!matchValidation.valid) {
+  if (!matchValidation.isValid) {
     errors.confirmPassword = matchValidation.error
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }
@@ -170,14 +173,14 @@ export const validateRegistrationData = (data) => {
 /**
  * Validate login credentials
  * @param {Object} credentials - Login data { email, password }
- * @returns {Object} { valid: boolean, errors: {} }
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validateLoginData = (credentials) => {
   const errors = {}
 
   // Validate email
   const emailValidation = validateEmail(credentials.email)
-  if (!emailValidation.valid) {
+  if (!emailValidation.isValid) {
     errors.email = emailValidation.error
   }
 
@@ -187,7 +190,7 @@ export const validateLoginData = (credentials) => {
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }
@@ -197,7 +200,7 @@ export const validateLoginData = (credentials) => {
 /**
  * Validate profile update data
  * @param {Object} data - Profile data { name, phone?, address? }
- * @returns {Object} { valid: boolean, errors: {} }
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validateProfileData = (data) => {
   const errors = {}
@@ -205,7 +208,7 @@ export const validateProfileData = (data) => {
   // Validate name if provided
   if (data.name !== undefined) {
     const nameValidation = validateName(data.name)
-    if (!nameValidation.valid) {
+    if (!nameValidation.isValid) {
       errors.name = nameValidation.error
     }
   }
@@ -219,7 +222,7 @@ export const validateProfileData = (data) => {
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }

@@ -1,12 +1,15 @@
 /**
  * Menu Item Validator
  * Validation logic for menu items (used for admin CRUD operations)
+ *
+ * Convention: All validators return { isValid: boolean, error: string|null }
+ * For multiple errors: { isValid: boolean, errors: Object }
  */
 
 /**
  * Validate menu item data
  * @param {Object} itemData - Menu item data to validate
- * @returns {Object} Validation result {valid, errors}
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validateMenuItem = (itemData) => {
   const errors = {}
@@ -92,7 +95,7 @@ export const validateMenuItem = (itemData) => {
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }
@@ -101,7 +104,7 @@ export const validateMenuItem = (itemData) => {
  * Validate menu item update data
  * Same as create but allows partial updates
  * @param {Object} itemData - Menu item data to validate
- * @returns {Object} Validation result {valid, errors}
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validateMenuItemUpdate = (itemData) => {
   const errors = {}
@@ -185,7 +188,7 @@ export const validateMenuItemUpdate = (itemData) => {
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }

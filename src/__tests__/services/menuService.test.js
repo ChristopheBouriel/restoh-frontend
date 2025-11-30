@@ -248,7 +248,7 @@ describe('MenuService', () => {
         { id: '2', quantity: 1, price: 8.99, name: 'Salad' }
       ]
       const result = MenuService.validateCartForCheckout(cartItems, mockMenuItems)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
       expect(result.error).toBeNull()
       expect(result.unavailableItems).toHaveLength(0)
       expect(result.missingItems).toHaveLength(0)
@@ -260,7 +260,7 @@ describe('MenuService', () => {
         { id: '3', quantity: 1, price: 14.99, name: 'Burger' } // Unavailable
       ]
       const result = MenuService.validateCartForCheckout(cartItems, mockMenuItems)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBeDefined()
       expect(result.unavailableItems).toHaveLength(1)
       expect(result.unavailableItems[0].id).toBe('3')
@@ -272,20 +272,20 @@ describe('MenuService', () => {
         { id: '999', quantity: 1, price: 9.99, name: 'Deleted Item' }
       ]
       const result = MenuService.validateCartForCheckout(cartItems, mockMenuItems)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.missingItems).toHaveLength(1)
       expect(result.missingItems[0].id).toBe('999')
     })
 
     it('should invalidate empty cart', () => {
       const result = MenuService.validateCartForCheckout([], mockMenuItems)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toContain('empty')
     })
 
     it('should invalidate null cart', () => {
       const result = MenuService.validateCartForCheckout(null, mockMenuItems)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toContain('empty')
     })
 

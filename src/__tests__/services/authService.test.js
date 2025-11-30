@@ -5,18 +5,18 @@ describe('AuthService', () => {
   // ============ Validation Delegation ============
   describe('validation methods', () => {
     it('should validate email', () => {
-      expect(AuthService.validateEmail('test@example.com').valid).toBe(true)
-      expect(AuthService.validateEmail('invalid').valid).toBe(false)
+      expect(AuthService.validateEmail('test@example.com').isValid).toBe(true)
+      expect(AuthService.validateEmail('invalid').isValid).toBe(false)
     })
 
     it('should validate password', () => {
-      expect(AuthService.validatePassword('password123').valid).toBe(true)
-      expect(AuthService.validatePassword('123').valid).toBe(false)
+      expect(AuthService.validatePassword('password123').isValid).toBe(true)
+      expect(AuthService.validatePassword('123').isValid).toBe(false)
     })
 
     it('should validate name', () => {
-      expect(AuthService.validateName('John').valid).toBe(true)
-      expect(AuthService.validateName('').valid).toBe(false)
+      expect(AuthService.validateName('John').isValid).toBe(true)
+      expect(AuthService.validateName('').isValid).toBe(false)
     })
 
     it('should validate registration data', () => {
@@ -26,7 +26,7 @@ describe('AuthService', () => {
         password: 'password123',
         confirmPassword: 'password123'
       })
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should validate login data', () => {
@@ -34,7 +34,7 @@ describe('AuthService', () => {
         email: 'john@test.com',
         password: 'password123'
       })
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
   })
 
