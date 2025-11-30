@@ -3,6 +3,7 @@ import { Calendar, Clock, Users, Plus, Edit, Trash2, CheckCircle, AlertCircle } 
 import { toast } from 'react-hot-toast'
 import { useReservations } from '../../hooks/useReservations'
 import useAuthStore from '../../store/authStore'
+import useReservationsStore from '../../store/reservationsStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
 import InlineAlert from '../../components/common/InlineAlert'
@@ -14,6 +15,7 @@ import { ReservationService } from '../../services/reservations'
 
 const Reservations = () => {
   const { user } = useAuthStore()
+  const { fetchReservations } = useReservationsStore()
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedSlotId, setSelectedSlotId] = useState(null)
   const [partySize, setPartySize] = useState(2)
@@ -27,6 +29,12 @@ const Reservations = () => {
   const [editingId, setEditingId] = useState(null)
   const [filterStatus, setFilterStatus] = useState('upcoming') // 'all', 'upcoming', 'past'
   const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
+
+  // Load user's reservations on mount (not admin data)
+  useEffect(() => {
+    // Always fetch user's own reservations for this page
+    fetchReservations(false)
+  }, [fetchReservations])
 
   // Pre-fill phone from user profile
   useEffect(() => {

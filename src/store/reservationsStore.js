@@ -8,6 +8,7 @@ const useReservationsStore = create(
     (set, get) => ({
       // State
       reservations: [],
+      isAdminData: false, // Track if current data is admin data (should not be persisted)
       isLoading: false,
       error: null,
 
@@ -19,16 +20,14 @@ const useReservationsStore = create(
       clearError: () => set({ error: null }),
 
       // Fetch reservations based on role
-      fetchReservations: async (isAdmin = false, forceRefresh = false) => {
-        // If admin mode and not forcing refresh, always fetch from API (don't use cache)
-        if (isAdmin || forceRefresh) {
+      fetchReservations: async (isAdmin = false) => {
+        // If admin mode, always fetch from API (don't use cache)
+        if (isAdmin) {
           // Clear state first to avoid showing stale data
-          set({ reservations: [], isLoading: true, error: null })
+          set({ reservations: [], isAdminData: true, isLoading: true, error: null })
 
           try {
-            const result = isAdmin
-              ? await reservationsApi.getRecentReservations({ limit: 1000 })
-              : await reservationsApi.getUserReservations()
+            const result = await reservationsApi.getRecentReservations({ limit: 1000 })
 
             if (result.success) {
               // Handle multiple possible response structures
@@ -36,6 +35,7 @@ const useReservationsStore = create(
 
               set({
                 reservations: reservationsData,
+                isAdminData: true, // Mark as admin data (won't be persisted)
                 isLoading: false,
                 error: null
               })
@@ -57,14 +57,9 @@ const useReservationsStore = create(
           }
         }
 
-        // For non-admin, use cached data if available
-        const cachedReservations = get().reservations
-        if (cachedReservations.length > 0) {
-          return { success: true }
-        }
-
-        // If no cache, fetch from API
-        set({ isLoading: true, error: null })
+        // For non-admin users: always fetch fresh data
+        // Clear any admin data first to avoid showing other users' data
+        set({ reservations: [], isAdminData: false, isLoading: true, error: null })
 
         try {
           const result = await reservationsApi.getUserReservations()
@@ -72,6 +67,7 @@ const useReservationsStore = create(
           if (result.success) {
             set({
               reservations: result.data || [],
+              isAdminData: false, // Mark as user data (can be persisted)
               isLoading: false,
               error: null
             })
@@ -325,9 +321,11 @@ const useReservationsStore = create(
       }
     }),
     {
-      name: 'reservations-storage-v2', // Changed name to force fresh cache
+      name: 'reservations-storage-v3',
       partialize: (state) => ({
-        reservations: state.reservations // Persist user's reservations only
+        // Only persist user data, never admin data (security)
+        reservations: state.isAdminData ? [] : state.reservations,
+        isAdminData: false // Always reset to false on persist
       }),
     }
   )

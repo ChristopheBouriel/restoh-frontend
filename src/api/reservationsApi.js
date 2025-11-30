@@ -14,9 +14,13 @@ import {
 const MOCK_MODE = import.meta.env.VITE_MOCK_API === 'true'
 
 // Get current user's reservations
-export const getUserReservations = async () => {
+export const getUserReservations = async (params = {}) => {
   try {
-    const response = await apiClient.get('/reservations')
+    const queryParams = {
+      limit: params.limit || 30, // Default to 30 reservations
+      page: params.page || 1
+    }
+    const response = await apiClient.get('/reservations', { params: queryParams })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching reservations' }

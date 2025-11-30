@@ -96,7 +96,7 @@ function App() {
         if (isAdmin) {
           // Admin: load all data
           await fetchOrders(true)
-          await fetchReservations(true, true) // forceRefresh = true to bypass cache
+          await fetchReservations(true) // admin always fetches fresh
           await fetchMessages()
           initializeUsers() // usersStore not yet migrated
         } else {

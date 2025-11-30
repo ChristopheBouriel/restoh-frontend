@@ -40,6 +40,11 @@ vi.mock('../../../hooks/useReservations')
 vi.mock('../../../store/authStore', () => ({
   default: vi.fn()
 }))
+vi.mock('../../../store/reservationsStore', () => ({
+  default: vi.fn(() => ({
+    fetchReservations: vi.fn()
+  }))
+}))
 vi.mock('../../../api/tablesApi', () => ({
   getAvailableTables: vi.fn()
 }))

@@ -2,6 +2,14 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as authApi from '../api/authApi'
 
+// Helper to clear other stores' localStorage on logout
+const clearAllStoresCache = () => {
+  // Clear orders and reservations cache for security
+  localStorage.removeItem('orders-storage-v2')
+  localStorage.removeItem('reservations-storage-v3')
+  localStorage.removeItem('contacts-storage')
+}
+
 const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -115,6 +123,9 @@ const useAuthStore = create(
           console.error('Logout error:', error)
           // Continue with client-side logout anyway
         } finally {
+          // Clear all cached data for security (orders, reservations, contacts)
+          clearAllStoresCache()
+
           // Always clear local state
           set({
             user: null,

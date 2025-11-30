@@ -8,6 +8,7 @@ const useOrdersStore = create(
     (set, get) => ({
       // State
       orders: [],
+      isAdminData: false, // Track if current data is admin data (should not be persisted)
       isLoading: false,
       error: null,
 
@@ -28,7 +29,7 @@ const useOrdersStore = create(
         // Admin always fetches fresh data, never use cache
         if (isAdmin) {
           // Clear state first to avoid showing stale data
-          set({ orders: [], isLoading: true, error: null })
+          set({ orders: [], isAdminData: true, isLoading: true, error: null })
 
           try {
             const result = await ordersApi.getRecentOrders({ limit: 1000 })
@@ -36,6 +37,7 @@ const useOrdersStore = create(
             if (result.success) {
               set({
                 orders: result.data || [],
+                isAdminData: true, // Mark as admin data (won't be persisted)
                 isLoading: false,
                 error: null
               })
@@ -57,14 +59,9 @@ const useOrdersStore = create(
           }
         }
 
-        // For non-admin users, check cache first
-        const cachedOrders = get().orders
-        if (cachedOrders.length > 0) {
-          return { success: true }
-        }
-
-        // No cache, fetch from API
-        set({ isLoading: true, error: null })
+        // For non-admin users: always fetch fresh data
+        // Cache is only used to avoid flash on page refresh, not to skip fetching
+        set({ isAdminData: false, isLoading: true, error: null })
 
         try {
           const result = await ordersApi.getUserOrders()
@@ -72,6 +69,7 @@ const useOrdersStore = create(
           if (result.success) {
             set({
               orders: result.data || [],
+              isAdminData: false, // Mark as user data (can be persisted)
               isLoading: false,
               error: null
             })
@@ -234,9 +232,11 @@ const useOrdersStore = create(
       }
     }),
     {
-      name: 'orders-storage-v2', // Changed name to force fresh cache
+      name: 'orders-storage-v2',
       partialize: (state) => ({
-        orders: state.orders // Persist user's orders only
+        // Only persist user data, never admin data (security)
+        orders: state.isAdminData ? [] : state.orders,
+        isAdminData: false // Always reset to false on persist
       }),
     }
   )
