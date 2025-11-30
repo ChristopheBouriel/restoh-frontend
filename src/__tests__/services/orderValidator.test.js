@@ -29,21 +29,21 @@ describe('orderValidator', () => {
   describe('validateOrderData', () => {
     it('should validate complete valid order', () => {
       const result = validateOrderData(validOrderData)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
       expect(result.errors).toEqual({})
     })
 
     it('should require userId', () => {
       const data = { ...validOrderData, userId: '' }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.userId).toBeDefined()
     })
 
     it('should require items array', () => {
       const data = { ...validOrderData, items: [] }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.items).toBeDefined()
     })
 
@@ -53,7 +53,7 @@ describe('orderValidator', () => {
         items: [{ menuItem: 'item1' }] // Missing quantity
       }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.itemValidation).toBeDefined()
     })
 
@@ -61,35 +61,35 @@ describe('orderValidator', () => {
       const data = { ...validOrderData }
       delete data.totalPrice
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.totalPrice).toBeDefined()
     })
 
     it('should reject negative totalPrice', () => {
       const data = { ...validOrderData, totalPrice: -10 }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.totalPrice).toContain('negative')
     })
 
     it('should require phone', () => {
       const data = { ...validOrderData, phone: '' }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.phone).toBeDefined()
     })
 
     it('should validate paymentMethod', () => {
       const data = { ...validOrderData, paymentMethod: 'invalid' }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.paymentMethod).toBeDefined()
     })
 
     it('should validate orderType', () => {
       const data = { ...validOrderData, orderType: 'invalid' }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.orderType).toBeDefined()
     })
 
@@ -97,7 +97,7 @@ describe('orderValidator', () => {
       const data = { ...validOrderData }
       delete data.deliveryAddress
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.deliveryAddress).toBeDefined()
     })
 
@@ -107,7 +107,7 @@ describe('orderValidator', () => {
         deliveryAddress: { street: '', city: '', zipCode: '' }
       }
       const result = validateOrderData(data)
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.errors.addressValidation).toBeDefined()
     })
 
@@ -118,52 +118,52 @@ describe('orderValidator', () => {
       }
       delete data.deliveryAddress
       const result = validateOrderData(data)
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
   })
 
   describe('validateStatusTransition', () => {
     it('should allow pending -> confirmed', () => {
       const result = validateStatusTransition('pending', 'confirmed')
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should allow confirmed -> preparing', () => {
       const result = validateStatusTransition('confirmed', 'preparing')
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should allow preparing -> ready', () => {
       const result = validateStatusTransition('preparing', 'ready')
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should allow ready -> delivered', () => {
       const result = validateStatusTransition('ready', 'delivered')
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should allow any -> cancelled', () => {
-      expect(validateStatusTransition('pending', 'cancelled').valid).toBe(true)
-      expect(validateStatusTransition('confirmed', 'cancelled').valid).toBe(true)
-      expect(validateStatusTransition('preparing', 'cancelled').valid).toBe(true)
+      expect(validateStatusTransition('pending', 'cancelled').isValid).toBe(true)
+      expect(validateStatusTransition('confirmed', 'cancelled').isValid).toBe(true)
+      expect(validateStatusTransition('preparing', 'cancelled').isValid).toBe(true)
     })
 
     it('should reject invalid transition', () => {
       const result = validateStatusTransition('pending', 'delivered')
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toBeDefined()
     })
 
     it('should reject transition from delivered', () => {
       const result = validateStatusTransition('delivered', 'confirmed')
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toContain('terminal')
     })
 
     it('should reject transition from cancelled', () => {
       const result = validateStatusTransition('cancelled', 'confirmed')
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.error).toContain('terminal')
     })
   })
@@ -224,24 +224,24 @@ describe('orderValidator', () => {
     it('should allow pending -> paid', () => {
       const order = { paymentStatus: 'pending' }
       const result = validatePaymentStatusUpdate(order, 'paid')
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should not allow paid -> pending', () => {
       const order = { paymentStatus: 'paid' }
       const result = validatePaymentStatusUpdate(order, 'pending')
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
     })
 
     it('should reject invalid payment status', () => {
       const order = { paymentStatus: 'pending' }
       const result = validatePaymentStatusUpdate(order, 'invalid')
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
     })
 
     it('should handle null order', () => {
       const result = validatePaymentStatusUpdate(null, 'paid')
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
     })
   })
 

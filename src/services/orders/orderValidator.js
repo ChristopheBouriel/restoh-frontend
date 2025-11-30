@@ -1,12 +1,15 @@
 /**
  * Order validation logic
  * Pure functions for validating order data and status transitions
+ *
+ * Convention: All validators return { isValid: boolean, error: string|null }
+ * For multiple errors: { isValid: boolean, errors: string[] }
  */
 
 /**
  * Validate order creation data
  * @param {Object} orderData - Order data to validate
- * @returns {Object} Validation result {valid, errors}
+ * @returns {{ isValid: boolean, errors: Object }}
  */
 export const validateOrderData = (orderData) => {
   const errors = {}
@@ -97,7 +100,7 @@ export const validateOrderData = (orderData) => {
   }
 
   return {
-    valid: Object.keys(errors).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors
   }
 }
@@ -106,7 +109,7 @@ export const validateOrderData = (orderData) => {
  * Validate status transition
  * @param {string} currentStatus - Current order status
  * @param {string} newStatus - New status to transition to
- * @returns {Object} Validation result {valid, error}
+ * @returns {{ isValid: boolean, error: string|null }}
  */
 export const validateStatusTransition = (currentStatus, newStatus) => {
   // Define valid status transitions
@@ -120,46 +123,28 @@ export const validateStatusTransition = (currentStatus, newStatus) => {
   }
 
   if (!currentStatus) {
-    return {
-      valid: false,
-      error: 'Current status is required'
-    }
+    return { isValid: false, error: 'Current status is required' }
   }
 
   if (!newStatus) {
-    return {
-      valid: false,
-      error: 'New status is required'
-    }
+    return { isValid: false, error: 'New status is required' }
   }
 
   if (!validTransitions[currentStatus]) {
-    return {
-      valid: false,
-      error: `Invalid current status: ${currentStatus}`
-    }
+    return { isValid: false, error: `Invalid current status: ${currentStatus}` }
   }
 
   const allowedTransitions = validTransitions[currentStatus]
 
   if (allowedTransitions.length === 0) {
-    return {
-      valid: false,
-      error: `Cannot transition from terminal status: ${currentStatus}`
-    }
+    return { isValid: false, error: `Cannot transition from terminal status: ${currentStatus}` }
   }
 
   if (!allowedTransitions.includes(newStatus)) {
-    return {
-      valid: false,
-      error: `Invalid transition from ${currentStatus} to ${newStatus}. Allowed: ${allowedTransitions.join(', ')}`
-    }
+    return { isValid: false, error: `Invalid transition from ${currentStatus} to ${newStatus}. Allowed: ${allowedTransitions.join(', ')}` }
   }
 
-  return {
-    valid: true,
-    error: null
-  }
+  return { isValid: true, error: null }
 }
 
 /**
@@ -228,36 +213,24 @@ export const canModifyOrder = (order) => {
  * Validate payment status update
  * @param {Object} order - Order object
  * @param {string} newPaymentStatus - New payment status
- * @returns {Object} Validation result {valid, error}
+ * @returns {{ isValid: boolean, error: string|null }}
  */
 export const validatePaymentStatusUpdate = (order, newPaymentStatus) => {
   if (!order) {
-    return {
-      valid: false,
-      error: 'Order not found'
-    }
+    return { isValid: false, error: 'Order not found' }
   }
 
   const validPaymentStatuses = ['paid', 'pending']
   if (!validPaymentStatuses.includes(newPaymentStatus)) {
-    return {
-      valid: false,
-      error: `Invalid payment status: ${newPaymentStatus}`
-    }
+    return { isValid: false, error: `Invalid payment status: ${newPaymentStatus}` }
   }
 
   // Cannot change payment status to pending if already paid
   if (order.paymentStatus === 'paid' && newPaymentStatus === 'pending') {
-    return {
-      valid: false,
-      error: 'Cannot change payment status from paid to pending'
-    }
+    return { isValid: false, error: 'Cannot change payment status from paid to pending' }
   }
 
-  return {
-    valid: true,
-    error: null
-  }
+  return { isValid: true, error: null }
 }
 
 /**
