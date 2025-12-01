@@ -1,6 +1,13 @@
 import apiClient from './apiClient'
 
 /**
+ * Round a number to the nearest 0.5
+ * @param {number} value - Number to round
+ * @returns {number} Rounded value (e.g., 4.3 → 4.5, 4.2 → 4.0)
+ */
+const roundToHalf = (value) => Math.round(value * 2) / 2
+
+/**
  * Get restaurant reviews with pagination
  * @param {number} page - Page number (default: 1)
  * @param {number} limit - Number of reviews per page (default: 10)
@@ -36,11 +43,12 @@ export const getRestaurantRating = async () => {
     const backendData = response.data || {}
 
     // Map backend format to frontend format
+    // Round overallRating to nearest 0.5 for half-star display
     return {
       success: true,
       data: {
         totalReviews: backendData.totalReviews || 0,
-        overallRating: backendData.ratings?.overall?.average || 0,
+        overallRating: roundToHalf(backendData.ratings?.overall?.average || 0),
         overallCount: backendData.ratings?.overall?.count || 0,
         // Keep full ratings object for future Phase 2
         ratings: backendData.ratings || {}

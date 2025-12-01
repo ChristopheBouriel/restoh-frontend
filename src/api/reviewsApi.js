@@ -1,6 +1,13 @@
 import apiClient from './apiClient'
 
 /**
+ * Round a number to the nearest 0.5
+ * @param {number} value - Number to round
+ * @returns {number} Rounded value (e.g., 4.3 → 4.5, 4.2 → 4.0)
+ */
+const roundToHalf = (value) => Math.round(value * 2) / 2
+
+/**
  * Get all reviews for a specific menu item
  * @param {string} menuItemId - Menu item ID
  * @returns {Promise<{success: boolean, data?: Array, error?: string}>}
@@ -31,10 +38,11 @@ export const getMenuItemRatingStats = async (menuItemId) => {
     const backendData = response.data.data || response.data
 
     // Map backend format (average, count) to frontend format (averageRating, reviewCount)
+    // Round averageRating to nearest 0.5 for half-star display
     return {
       success: true,
       data: {
-        averageRating: backendData.average || 0,
+        averageRating: roundToHalf(backendData.average || 0),
         reviewCount: backendData.count || 0
       }
     }
