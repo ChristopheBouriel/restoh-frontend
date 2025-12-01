@@ -124,8 +124,8 @@ const Menu = () => {
 
     if (result.success) {
       toast.success(editingReview ? 'Review updated successfully' : 'Review added successfully')
-      setShowReviewForm(false)
-      setEditingReview(null)
+      // Close the entire modal after successful review submission
+      closeModal()
     } else {
       if (result.code === 'DUPLICATE_REVIEW') {
         toast.error('You have already reviewed this item')
