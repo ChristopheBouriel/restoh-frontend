@@ -23,13 +23,13 @@ const ResetPassword = () => {
 
     // Validation using AuthService
     const passwordValidation = AuthService.validatePassword(password)
-    if (!passwordValidation.valid) {
+    if (!passwordValidation.isValid) {
       setError(passwordValidation.error)
       return
     }
 
     const matchValidation = AuthService.validatePasswordMatch(password, confirmPassword)
-    if (!matchValidation.valid) {
+    if (!matchValidation.isValid) {
       setError(matchValidation.error)
       return
     }

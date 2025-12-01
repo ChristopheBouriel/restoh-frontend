@@ -164,7 +164,7 @@ const Reservations = () => {
 
     // Validation using ReservationService
     const validation = ReservationService.validate(reservationData)
-    if (!validation.valid) {
+    if (!validation.isValid) {
       toast.error(validation.errors[0])
       return
     }
@@ -260,7 +260,7 @@ const Reservations = () => {
 
     // Validation using ReservationService
     const validation = ReservationService.validate(reservationData)
-    if (!validation.valid) {
+    if (!validation.isValid) {
       toast.error(validation.errors[0])
       return
     }

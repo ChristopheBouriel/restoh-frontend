@@ -45,7 +45,7 @@ const Register = () => {
   const validateForm = () => {
     const validation = AuthService.validateRegistrationData(formData)
     setFormErrors(validation.errors)
-    return validation.valid
+    return validation.isValid
   }
 
   const handleSubmit = async (e) => {

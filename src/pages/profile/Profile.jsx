@@ -106,7 +106,7 @@ const Profile = () => {
       passwordData.newPassword
     )
 
-    if (!validation.valid) {
+    if (!validation.isValid) {
       const firstError = Object.values(validation.errors)[0]
       toast.error(firstError)
       return
@@ -118,7 +118,7 @@ const Profile = () => {
       passwordData.confirmPassword
     )
 
-    if (!matchValidation.valid) {
+    if (!matchValidation.isValid) {
       toast.error(matchValidation.error)
       return
     }

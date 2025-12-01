@@ -12,18 +12,18 @@ const ImageUpload = ({ value, onChange, className = '' }) => {
 
   const validateFile = (file) => {
     if (!acceptedFormats.includes(file.type)) {
-      return { valid: false, error: 'Format not accepted. Use JPEG, PNG or WebP.' }
+      return { isValid: false, error: 'Format not accepted. Use JPEG, PNG or WebP.' }
     }
     if (file.size > maxSizeInBytes) {
-      return { valid: false, error: `File too large. Maximum ${maxSizeInMB}MB.` }
+      return { isValid: false, error: `File too large. Maximum ${maxSizeInMB}MB.` }
     }
-    return { valid: true }
+    return { isValid: true, error: null }
   }
 
   const handleFile = (file) => {
     const validation = validateFile(file)
 
-    if (!validation.valid) {
+    if (!validation.isValid) {
       alert(validation.error)
       return
     }

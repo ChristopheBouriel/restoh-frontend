@@ -31,7 +31,7 @@ export class ReservationService {
   /**
    * Validate reservation before creation
    * @param {Object} data - Reservation data
-   * @returns {{ valid: boolean, errors?: string[] }}
+   * @returns {{ isValid: boolean, errors: string[] }}
    */
   static validate(data) {
     return validateReservationData(data)
@@ -96,19 +96,19 @@ export class ReservationService {
    * Check if a status transition is valid
    * @param {string} currentStatus - Current status
    * @param {string} newStatus - Desired new status
-   * @returns {{ valid: boolean, error?: string }}
+   * @returns {{ isValid: boolean, error: string|null }}
    */
   static isValidStatusTransition(currentStatus, newStatus) {
     const allowedTransitions = this.getAvailableStatusTransitions(currentStatus)
 
     if (!allowedTransitions.includes(newStatus)) {
       return {
-        valid: false,
+        isValid: false,
         error: `Cannot change status from ${currentStatus} to ${newStatus}`
       }
     }
 
-    return { valid: true }
+    return { isValid: true, error: null }
   }
 
   /**

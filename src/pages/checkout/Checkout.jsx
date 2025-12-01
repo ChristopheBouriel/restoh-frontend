@@ -116,7 +116,7 @@ const Checkout = () => {
 
       // Validate order data before sending to API
       const validation = OrderService.validateOrderData(orderData)
-      if (!validation.valid) {
+      if (!validation.isValid) {
         const firstError = Object.values(validation.errors)[0]
         toast.error(firstError || 'Invalid order data')
         setIsProcessing(false)
