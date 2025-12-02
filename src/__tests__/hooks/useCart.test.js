@@ -4,18 +4,23 @@ import { toast } from 'react-hot-toast'
 import { useCart } from '../../hooks/useCart'
 import useCartStore from '../../store/cartStore'
 import useAuthStore from '../../store/authStore'
+import useMenuStore from '../../store/menuStore'
 import { useCartUI } from '../../contexts/CartUIContext'
 
-// Mock dependencies
+// Mock external dependencies (toast and CartUI context are side effects)
 vi.mock('react-hot-toast')
-vi.mock('../../store/cartStore')
-vi.mock('../../store/authStore')
 vi.mock('../../contexts/CartUIContext')
 
 // Mock console.log to avoid noise in tests
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})
 
 // Mock data
+const mockMenuItems = [
+  { id: '1', name: 'Pizza Margherita', price: 12.50, isAvailable: true, image: 'pizza.jpg' },
+  { id: '2', name: 'Spaghetti', price: 14.00, isAvailable: true, image: 'spaghetti.jpg' },
+  { id: '3', name: 'Tiramisu', price: 8.00, isAvailable: false, image: 'tiramisu.jpg' }
+]
+
 const mockProduct = {
   id: '1',
   name: 'Pizza Margherita',
@@ -23,35 +28,7 @@ const mockProduct = {
   image: 'pizza.jpg'
 }
 
-const mockCartItems = [
-  { id: '1', name: 'Pizza Margherita', quantity: 2, price: 12.50 },
-  { id: '2', name: 'Spaghetti', quantity: 1, price: 14.00 }
-]
-
-const mockEnrichedItems = [
-  { 
-    id: '1', 
-    name: 'Pizza Margherita', 
-    quantity: 2, 
-    currentPrice: 12.50, 
-    isAvailable: true, 
-    stillExists: true 
-  }
-]
-
-const mockAvailableItems = mockEnrichedItems
-const mockUnavailableItems = []
-
-// Mock functions
-const mockAddItem = vi.fn()
-const mockRemoveItem = vi.fn()
-const mockUpdateQuantity = vi.fn()
-const mockIncreaseQuantity = vi.fn()
-const mockDecreaseQuantity = vi.fn()
-const mockClearCart = vi.fn()
-const mockSyncWithMenu = vi.fn()
-const mockIsItemInCart = vi.fn()
-const mockGetItemQuantity = vi.fn()
+// Mock CartUI functions
 const mockOpenCart = vi.fn()
 const mockCloseCart = vi.fn()
 const mockToggleCart = vi.fn()
@@ -60,33 +37,34 @@ describe('useCart Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    
-    // Default auth store mock - authenticated user
-    vi.mocked(useAuthStore.getState).mockReturnValue({
-      isAuthenticated: true
+
+    // Setup real stores with initial state
+    act(() => {
+      // Reset cart store
+      useCartStore.setState({
+        userCarts: {},
+        currentUserId: 'user-123'
+      })
+
+      // Set current user cart
+      useCartStore.getState().setCurrentUser('user-123')
+
+      // Reset menu store with mock items
+      useMenuStore.setState({
+        items: mockMenuItems
+      })
+
+      // Reset auth store - authenticated
+      useAuthStore.setState({
+        user: { id: 'user-123', name: 'Test User', role: 'user' },
+        isAuthenticated: true
+      })
     })
-    
-    // Default cart store mock
-    vi.mocked(useCartStore).mockReturnValue({
-      getCurrentUserCart: vi.fn().mockReturnValue({ items: mockCartItems }),
-      getTotalItems: vi.fn().mockReturnValue(3),
-      getTotalPrice: vi.fn().mockReturnValue(39.00),
-      getEnrichedItems: vi.fn().mockReturnValue(mockEnrichedItems),
-      getAvailableItems: vi.fn().mockReturnValue(mockAvailableItems),
-      getUnavailableItems: vi.fn().mockReturnValue(mockUnavailableItems),
-      getTotalPriceAvailable: vi.fn().mockReturnValue(25.00),
-      getTotalItemsAvailable: vi.fn().mockReturnValue(2),
-      addItem: mockAddItem,
-      removeItem: mockRemoveItem,
-      updateQuantity: mockUpdateQuantity,
-      increaseQuantity: mockIncreaseQuantity,
-      decreaseQuantity: mockDecreaseQuantity,
-      clearCart: mockClearCart,
-      isItemInCart: mockIsItemInCart,
-      getItemQuantity: mockGetItemQuantity,
-      syncWithMenu: mockSyncWithMenu
-    })
-    
+
+    // Mock toast
+    vi.mocked(toast.success).mockImplementation(() => {})
+    vi.mocked(toast.error).mockImplementation(() => {})
+
     // Default cart UI context mock
     vi.mocked(useCartUI).mockReturnValue({
       isCartOpen: false,
@@ -101,212 +79,319 @@ describe('useCart Hook', () => {
     mockConsoleLog.mockClear()
   })
 
-  // 1. CART STATE AND DATA (3 tests)
-  test('should return correct cart state from stores', () => {
-    const { result } = renderHook(() => useCart())
-    
-    expect(result.current.items).toEqual(mockCartItems)
-    expect(result.current.totalItems).toBe(3)
-    expect(result.current.totalPrice).toBe(39.00)
-    expect(result.current.enrichedItems).toEqual(mockEnrichedItems)
-    expect(result.current.availableItems).toEqual(mockAvailableItems)
-    expect(result.current.unavailableItems).toEqual(mockUnavailableItems)
-    expect(result.current.totalItemsAvailable).toBe(2)
-    expect(result.current.totalPriceAvailable).toBe(25.00)
-    expect(result.current.hasUnavailableItems).toBe(false)
+  // 1. CART STATE AND DATA
+  describe('Cart State and Data', () => {
+    test('should return correct cart state with empty cart', () => {
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.items).toEqual([])
+      expect(result.current.totalItems).toBe(0)
+      expect(result.current.totalPrice).toBe(0)
+      expect(result.current.isEmpty).toBe(true)
+    })
+
+    test('should return correct cart state with items', () => {
+      // Add items to cart
+      act(() => {
+        useCartStore.getState().addItem(mockProduct)
+        useCartStore.getState().addItem(mockProduct) // Add same item twice
+        useCartStore.getState().addItem({ id: '2', name: 'Spaghetti', price: 14.00 })
+      })
+
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.items).toHaveLength(2)
+      expect(result.current.totalItems).toBe(3) // 2 pizzas + 1 spaghetti
+      expect(result.current.totalPrice).toBe(39.00) // 2*12.50 + 14.00
+      expect(result.current.isEmpty).toBe(false)
+    })
+
+    test('should format prices correctly in French format', () => {
+      act(() => {
+        useCartStore.getState().addItem(mockProduct)
+      })
+
+      const { result } = renderHook(() => useCart())
+
+      // Test French currency formatting (using regex to handle different space characters)
+      expect(result.current.formattedTotalPrice).toMatch(/12,50\s€/)
+      expect(result.current.formatPrice(25.99)).toMatch(/25,99\s€/)
+      expect(result.current.formatPrice(0)).toMatch(/0,00\s€/)
+    })
+
+    test('should provide enriched items with menu data', () => {
+      act(() => {
+        useCartStore.getState().addItem(mockProduct)
+      })
+
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.enrichedItems).toHaveLength(1)
+      expect(result.current.enrichedItems[0].currentPrice).toBe(12.50)
+      expect(result.current.enrichedItems[0].isAvailable).toBe(true)
+      expect(result.current.enrichedItems[0].stillExists).toBe(true)
+    })
+
+    test('should identify unavailable items', () => {
+      // Add an unavailable item directly to cart
+      act(() => {
+        useCartStore.getState().addItem({ id: '3', name: 'Tiramisu', price: 8.00 })
+      })
+
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.hasUnavailableItems).toBe(true)
+      expect(result.current.unavailableItems).toHaveLength(1)
+      expect(result.current.unavailableItems[0].id).toBe('3')
+    })
   })
 
-  test('should calculate isEmpty correctly', () => {
-    // Test with items
-    const { result } = renderHook(() => useCart())
-    expect(result.current.isEmpty).toBe(false)
-    
-    // Test with empty cart
-    vi.mocked(useCartStore).mockReturnValue({
-      ...vi.mocked(useCartStore)(),
-      getCurrentUserCart: vi.fn().mockReturnValue({ items: [] }),
+  // 2. ADD ITEM FUNCTIONALITY
+  describe('Add Item', () => {
+    test('should prevent unauthenticated users from adding items', () => {
+      // Set unauthenticated state
+      act(() => {
+        useAuthStore.setState({
+          user: null,
+          isAuthenticated: false
+        })
+      })
+
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.addItem(mockProduct)
+      })
+
+      expect(toast.error).toHaveBeenCalledWith('Please log in before adding items to your cart')
+      expect(result.current.items).toEqual([])
     })
-    
-    const { result: emptyResult } = renderHook(() => useCart())
-    expect(emptyResult.current.isEmpty).toBe(true)
+
+    test('should add item successfully when authenticated', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.addItem(mockProduct)
+      })
+
+      expect(result.current.items).toHaveLength(1)
+      expect(result.current.items[0].name).toBe('Pizza Margherita')
+      expect(toast.success).toHaveBeenCalledWith('Pizza Margherita added to cart')
+    })
+
+    test('should increase quantity when adding existing item', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.addItem(mockProduct)
+      })
+
+      act(() => {
+        result.current.addItem(mockProduct)
+      })
+
+      expect(result.current.items).toHaveLength(1)
+      expect(result.current.items[0].quantity).toBe(2)
+      expect(result.current.totalItems).toBe(2)
+    })
+
+    test('should open cart briefly after adding item', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.addItem(mockProduct)
+      })
+
+      // Fast-forward first timeout (100ms)
+      act(() => {
+        vi.advanceTimersByTime(100)
+      })
+
+      expect(mockOpenCart).toHaveBeenCalled()
+
+      // Fast-forward second timeout (2000ms)
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
+      expect(mockCloseCart).toHaveBeenCalled()
+    })
   })
 
-  test('should format prices correctly', () => {
-    const { result } = renderHook(() => useCart())
-    
-    // Test French currency formatting (using regex to handle different space characters)
-    expect(result.current.formattedTotalPrice).toMatch(/39,00\s€/)
-    expect(result.current.formattedTotalPriceAvailable).toMatch(/25,00\s€/)
-    expect(result.current.formatPrice(12.50)).toMatch(/12,50\s€/)
-    expect(result.current.formatPrice(0)).toMatch(/0,00\s€/)
+  // 3. CART MODIFICATION ACTIONS
+  describe('Cart Modifications', () => {
+    beforeEach(() => {
+      // Add items before each test
+      act(() => {
+        useCartStore.getState().addItem(mockProduct)
+        useCartStore.getState().addItem({ id: '2', name: 'Spaghetti', price: 14.00 })
+      })
+    })
+
+    test('should remove items with confirmation toast', () => {
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.items).toHaveLength(2)
+
+      act(() => {
+        result.current.removeItem('1', 'Pizza Margherita')
+      })
+
+      expect(result.current.items).toHaveLength(1)
+      expect(result.current.items[0].id).toBe('2')
+      expect(toast.success).toHaveBeenCalledWith('Pizza Margherita removed from cart')
+    })
+
+    test('should update quantity correctly', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.updateQuantity('1', 5)
+      })
+
+      expect(result.current.items.find(i => i.id === '1').quantity).toBe(5)
+      expect(result.current.totalItems).toBe(6) // 5 pizzas + 1 spaghetti
+    })
+
+    test('should remove item when quantity set to zero', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.updateQuantity('1', 0)
+      })
+
+      expect(result.current.items).toHaveLength(1)
+      expect(result.current.items[0].id).toBe('2')
+      expect(toast.success).toHaveBeenCalledWith('Pizza Margherita removed from cart')
+    })
+
+    test('should increase and decrease quantity', () => {
+      const { result } = renderHook(() => useCart())
+
+      // Increase quantity
+      act(() => {
+        result.current.increaseQuantity('1')
+      })
+      expect(result.current.items.find(i => i.id === '1').quantity).toBe(2)
+
+      // Decrease quantity
+      act(() => {
+        result.current.decreaseQuantity('1')
+      })
+      expect(result.current.items.find(i => i.id === '1').quantity).toBe(1)
+    })
+
+    test('should remove item when decreasing quantity from 1', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.decreaseQuantity('1') // quantity 1 -> remove
+      })
+
+      expect(result.current.items).toHaveLength(1)
+      expect(result.current.items[0].id).toBe('2')
+    })
+
+    test('should clear entire cart with feedback', () => {
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.items).toHaveLength(2)
+
+      act(() => {
+        result.current.clearCart()
+      })
+
+      expect(result.current.items).toHaveLength(0)
+      expect(result.current.isEmpty).toBe(true)
+      expect(toast.success).toHaveBeenCalledWith('Cart cleared')
+      expect(mockCloseCart).toHaveBeenCalled()
+    })
   })
 
-  // 2. ADD ITEM FUNCTIONALITY (3 tests)
-  test('should prevent unauthenticated users from adding items', () => {
-    // Mock unauthenticated user
-    vi.mocked(useAuthStore.getState).mockReturnValue({
-      isAuthenticated: false
+  // 4. UTILITY FUNCTIONS
+  describe('Utility Functions', () => {
+    test('should check if item is in cart', () => {
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.isItemInCart('1')).toBe(false)
+
+      act(() => {
+        result.current.addItem(mockProduct)
+      })
+
+      expect(result.current.isItemInCart('1')).toBe(true)
+      expect(result.current.isItemInCart('999')).toBe(false)
     })
-    
-    const { result } = renderHook(() => useCart())
-    
-    act(() => {
-      result.current.addItem(mockProduct)
+
+    test('should get item quantity', () => {
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.getItemQuantity('1')).toBe(0)
+
+      act(() => {
+        result.current.addItem(mockProduct)
+        result.current.addItem(mockProduct)
+      })
+
+      expect(result.current.getItemQuantity('1')).toBe(2)
     })
-    
-    expect(toast.error).toHaveBeenCalledWith('Please log in before adding items to your cart')
-    expect(mockAddItem).not.toHaveBeenCalled()
+
+    test('should sync with menu and log confirmation', () => {
+      const { result } = renderHook(() => useCart())
+
+      act(() => {
+        result.current.syncWithMenu()
+      })
+
+      expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Cart synced with menu')
+    })
   })
 
-  test('should add item successfully when authenticated', () => {
-    const { result } = renderHook(() => useCart())
-    
-    act(() => {
-      result.current.addItem(mockProduct)
+  // 5. CART UI INTEGRATION
+  describe('Cart UI Integration', () => {
+    test('should expose cart UI state and controls', () => {
+      vi.mocked(useCartUI).mockReturnValue({
+        isCartOpen: true,
+        openCart: mockOpenCart,
+        closeCart: mockCloseCart,
+        toggleCart: mockToggleCart
+      })
+
+      const { result } = renderHook(() => useCart())
+
+      expect(result.current.isOpen).toBe(true)
+      expect(result.current.openCart).toBe(mockOpenCart)
+      expect(result.current.closeCart).toBe(mockCloseCart)
+      expect(result.current.toggleCart).toBe(mockToggleCart)
     })
-    
-    expect(mockAddItem).toHaveBeenCalledWith(mockProduct)
-    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita added to cart')
   })
 
-  test('should open cart briefly after adding item', () => {
-    vi.mocked(useCartUI).mockReturnValue({
-      isCartOpen: false,
-      openCart: mockOpenCart,
-      closeCart: mockCloseCart,
-      toggleCart: mockToggleCart
-    })
-    
-    const { result } = renderHook(() => useCart())
-    
-    act(() => {
-      result.current.addItem(mockProduct)
-    })
-    
-    // Fast-forward first timeout (100ms)
-    act(() => {
-      vi.advanceTimersByTime(100)
-    })
-    
-    expect(mockOpenCart).toHaveBeenCalled()
-    
-    // Fast-forward second timeout (2000ms)
-    act(() => {
-      vi.advanceTimersByTime(2000)
-    })
-    
-    expect(mockCloseCart).toHaveBeenCalled()
-  })
+  // 6. MULTI-USER CART ISOLATION
+  describe('Multi-User Cart Isolation', () => {
+    test('should keep carts separate per user', () => {
+      // Add items for user-123
+      act(() => {
+        useCartStore.getState().addItem(mockProduct)
+      })
 
-  // 3. CART MODIFICATION ACTIONS (3 tests)
-  test('should remove items with confirmation toast', () => {
-    const { result } = renderHook(() => useCart())
-    
-    act(() => {
-      result.current.removeItem('1', 'Pizza Margherita')
-    })
-    
-    expect(mockRemoveItem).toHaveBeenCalledWith('1')
-    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita removed from cart')
-  })
+      const { result: result1 } = renderHook(() => useCart())
+      expect(result1.current.items).toHaveLength(1)
 
-  test('should update quantity correctly', () => {
-    const { result } = renderHook(() => useCart())
-    
-    // Test positive quantity update
-    act(() => {
-      result.current.updateQuantity('1', 3)
-    })
-    expect(mockUpdateQuantity).toHaveBeenCalledWith('1', 3)
-    
-    // Test zero quantity (should remove item)
-    act(() => {
-      result.current.updateQuantity('1', 0)
-    })
-    expect(mockRemoveItem).toHaveBeenCalledWith('1')
-    expect(toast.success).toHaveBeenCalledWith('Pizza Margherita removed from cart')
-    
-    // Test negative quantity (should also remove item)
-    act(() => {
-      result.current.updateQuantity('2', -1)
-    })
-    expect(mockRemoveItem).toHaveBeenCalledWith('2')
-  })
+      // Switch to different user
+      act(() => {
+        useCartStore.getState().setCurrentUser('user-456')
+      })
 
-  test('should clear entire cart with feedback', () => {
-    const { result } = renderHook(() => useCart())
-    
-    act(() => {
-      result.current.clearCart()
-    })
-    
-    expect(mockClearCart).toHaveBeenCalled()
-    expect(toast.success).toHaveBeenCalledWith('Cart cleared')
-    expect(mockCloseCart).toHaveBeenCalled()
-  })
+      const { result: result2 } = renderHook(() => useCart())
+      expect(result2.current.items).toHaveLength(0) // New user has empty cart
 
-  // 4. UTILITY FUNCTIONS AND INTEGRATION (3 tests)
-  test('should sync with menu and log confirmation', () => {
-    const { result } = renderHook(() => useCart())
-    
-    act(() => {
-      result.current.syncWithMenu()
-    })
-    
-    expect(mockSyncWithMenu).toHaveBeenCalled()
-    expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Cart synced with menu')
-  })
+      // Switch back to original user
+      act(() => {
+        useCartStore.getState().setCurrentUser('user-123')
+      })
 
-  test('should pass through store utility functions', () => {
-    mockIsItemInCart.mockReturnValue(true)
-    mockGetItemQuantity.mockReturnValue(2)
-    
-    const { result } = renderHook(() => useCart())
-    
-    // Test utility functions are available
-    expect(typeof result.current.isItemInCart).toBe('function')
-    expect(typeof result.current.getItemQuantity).toBe('function')
-    
-    // Test they return expected values
-    expect(result.current.isItemInCart).toBe(mockIsItemInCart)
-    expect(result.current.getItemQuantity).toBe(mockGetItemQuantity)
-    
-    // Test store functions are passed through
-    expect(result.current.increaseQuantity).toBe(mockIncreaseQuantity)
-    expect(result.current.decreaseQuantity).toBe(mockDecreaseQuantity)
-  })
-
-  test('should integrate cart UI controls properly', () => {
-    vi.mocked(useCartUI).mockReturnValue({
-      isCartOpen: true,
-      openCart: mockOpenCart,
-      closeCart: mockCloseCart,
-      toggleCart: mockToggleCart
+      const { result: result3 } = renderHook(() => useCart())
+      expect(result3.current.items).toHaveLength(1) // Original user's cart preserved
     })
-    
-    const { result } = renderHook(() => useCart())
-    
-    // Test UI state is passed through
-    expect(result.current.isOpen).toBe(true)
-    
-    // Test UI functions are available
-    expect(result.current.openCart).toBe(mockOpenCart)
-    expect(result.current.closeCart).toBe(mockCloseCart)
-    expect(result.current.toggleCart).toBe(mockToggleCart)
-  })
-
-  // Additional edge case test
-  test('should handle unavailable items correctly', () => {
-    const mockUnavailable = [{ id: '3', name: 'Deleted Item', isAvailable: false }]
-    
-    vi.mocked(useCartStore).mockReturnValue({
-      ...vi.mocked(useCartStore)(),
-      getUnavailableItems: vi.fn().mockReturnValue(mockUnavailable),
-    })
-    
-    const { result } = renderHook(() => useCart())
-    
-    expect(result.current.unavailableItems).toEqual(mockUnavailable)
-    expect(result.current.hasUnavailableItems).toBe(true)
   })
 })

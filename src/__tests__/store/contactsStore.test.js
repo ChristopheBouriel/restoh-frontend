@@ -556,5 +556,24 @@ describe('ContactsStore', () => {
       })
       expect(useContactsStore.getState().error).toBeNull()
     })
+
+    test('should clear error on successful operation', async () => {
+      // Set an initial error
+      act(() => {
+        useContactsStore.setState({ error: 'Previous error' })
+      })
+      expect(useContactsStore.getState().error).toBe('Previous error')
+
+      // Successful fetch should clear the error
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      const { fetchMessages } = useContactsStore.getState()
+      await fetchMessages()
+
+      expect(useContactsStore.getState().error).toBeNull()
+    })
   })
 })
