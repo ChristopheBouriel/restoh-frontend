@@ -25,7 +25,7 @@ const MenuManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
-  const [activeFilters, setActiveFilters] = useState([]) // 'suggested', 'excluded', 'popular'
+  const [activeFilter, setActiveFilter] = useState(null) // 'suggested', 'excluded', 'popular' or null
 
   // Use centralized menu hook
   const {
@@ -79,27 +79,21 @@ const MenuManagement = () => {
       filtered = MenuService.search(filtered, searchTerm)
     }
 
-    // Apply active filters
-    if (activeFilters.includes('suggested')) {
+    // Apply active filter
+    if (activeFilter === 'suggested') {
       filtered = filtered.filter(item => item.isSuggested)
-    }
-    if (activeFilters.includes('excluded')) {
+    } else if (activeFilter === 'excluded') {
       filtered = filtered.filter(item => item.isPopularOverride)
-    }
-    if (activeFilters.includes('popular')) {
+    } else if (activeFilter === 'popular') {
       filtered = filtered.filter(item => item.isPopular && !item.isPopularOverride)
     }
 
     return filtered
-  }, [menuItems, searchTerm, selectedCategory, activeFilters])
+  }, [menuItems, searchTerm, selectedCategory, activeFilter])
 
-  // Toggle filter chip
+  // Toggle filter chip (only one active at a time)
   const toggleFilter = (filter) => {
-    setActiveFilters(prev =>
-      prev.includes(filter)
-        ? prev.filter(f => f !== filter)
-        : [...prev, filter]
-    )
+    setActiveFilter(prev => prev === filter ? null : filter)
   }
 
   // Count items for filter badges
@@ -339,7 +333,7 @@ const MenuManagement = () => {
           <button
             onClick={() => toggleFilter('suggested')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              activeFilters.includes('suggested')
+              activeFilter === 'suggested'
                 ? 'bg-purple-600 text-white'
                 : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
             }`}
@@ -351,7 +345,7 @@ const MenuManagement = () => {
           <button
             onClick={() => toggleFilter('popular')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              activeFilters.includes('popular')
+              activeFilter === 'popular'
                 ? 'bg-amber-600 text-white'
                 : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
             }`}
@@ -363,7 +357,7 @@ const MenuManagement = () => {
           <button
             onClick={() => toggleFilter('excluded')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              activeFilters.includes('excluded')
+              activeFilter === 'excluded'
                 ? 'bg-gray-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -383,13 +377,13 @@ const MenuManagement = () => {
             </button>
           )}
 
-          {activeFilters.length > 0 && (
+          {activeFilter && (
             <button
-              onClick={() => setActiveFilters([])}
+              onClick={() => setActiveFilter(null)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
             >
               <X size={14} />
-              <span>Clear filters</span>
+              <span>Clear filter</span>
             </button>
           )}
         </div>
