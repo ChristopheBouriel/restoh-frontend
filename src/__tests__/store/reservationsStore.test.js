@@ -1,21 +1,10 @@
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
-import '@testing-library/jest-dom'
-import { create } from 'zustand'
+import { act } from '@testing-library/react'
+import useReservationsStore from '../../store/reservationsStore'
+import * as reservationsApi from '../../api/reservationsApi'
 
-// Import the store factory function (without persistence for testing)
-let useReservationsStore
-
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn()
-}
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-})
+// Mock the API
+vi.mock('../../api/reservationsApi')
 
 // Mock data
 const mockReservations = [
@@ -43,7 +32,7 @@ const mockReservations = [
     date: '2025-01-15',
     time: '20:00',
     guests: 2,
-    status: 'pending',
+    status: 'confirmed',
     tableNumber: null,
     specialRequests: 'Allergie aux fruits de mer',
     createdAt: '2024-01-21T10:15:00Z',
@@ -84,476 +73,506 @@ const mockReservations = [
 describe('ReservationsStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.setSystemTime(new Date('2025-01-01'))
-    
-    // Create a fresh store for each test without persistence
-    useReservationsStore = create((set, get) => ({
-      // État
-      reservations: [],
-      isLoading: false,
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2025-01-01T12:00:00Z'))
 
-      // Actions
-      setLoading: (loading) => set({ isLoading: loading }),
-
-      // Initialiser avec des données de test
-      initializeReservations: () => {
-        const stored = localStorage.getItem('admin-reservations')
-        if (stored) {
-          set({ reservations: JSON.parse(stored) })
-        } else {
-          const initialReservations = []
-          set({ reservations: initialReservations })
-          localStorage.setItem('admin-reservations', JSON.stringify(initialReservations))
-        }
-      },
-
-      // Créer une nouvelle réservation
-      createReservation: async (reservationData) => {
-        set({ isLoading: true })
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 800))
-          
-          const newReservation = {
-            id: `reservation-${Date.now()}`,
-            ...reservationData,
-            status: 'pending',
-            tableNumber: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-          
-          const updatedReservations = [newReservation, ...get().reservations]
-          set({ reservations: updatedReservations, isLoading: false })
-          localStorage.setItem('admin-reservations', JSON.stringify(updatedReservations))
-          
-          return { success: true, reservationId: newReservation.id }
-        } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
-        }
-      },
-
-      // Mettre à jour le statut d'une réservation
-      updateReservationStatus: async (reservationId, newStatus) => {
-        set({ isLoading: true })
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedReservations = get().reservations.map(reservation =>
-            reservation.id === reservationId 
-              ? { ...reservation, status: newStatus, updatedAt: new Date().toISOString() }
-              : reservation
-          )
-          
-          set({ reservations: updatedReservations, isLoading: false })
-          localStorage.setItem('admin-reservations', JSON.stringify(updatedReservations))
-          
-          return { success: true }
-        } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
-        }
-      },
-
-      // Assigner une table à une réservation
-      assignTable: async (reservationId, tableNumber) => {
-        set({ isLoading: true })
-        
-        try {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          const updatedReservations = get().reservations.map(reservation =>
-            reservation.id === reservationId 
-              ? { 
-                  ...reservation, 
-                  tableNumber: tableNumber,
-                  status: reservation.status === 'pending' ? 'confirmed' : reservation.status,
-                  updatedAt: new Date().toISOString() 
-                }
-              : reservation
-          )
-          
-          set({ reservations: updatedReservations, isLoading: false })
-          localStorage.setItem('admin-reservations', JSON.stringify(updatedReservations))
-          
-          return { success: true }
-        } catch (error) {
-          set({ isLoading: false })
-          return { success: false, error: error.message }
-        }
-      },
-
-      // Getters
-      getReservationsByStatus: (status) => {
-        return get().reservations.filter(reservation => reservation.status === status)
-      },
-
-      getReservationsByUser: (userId) => {
-        return get().reservations.filter(reservation => reservation.userId === userId)
-      },
-
-      getTodaysReservations: () => {
-        const today = new Date().toISOString().split('T')[0]
-        return get().reservations.filter(reservation => 
-          reservation.date === today
-        )
-      },
-
-      getUpcomingReservations: () => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        
-        return get().reservations.filter(reservation => {
-          const reservationDate = new Date(reservation.date)
-          return reservationDate >= today && reservation.status !== 'cancelled'
-        }).sort((a, b) => new Date(a.date) - new Date(b.date))
-      },
-
-      // Statistiques
-      getReservationsStats: () => {
-        const reservations = get().reservations
-        const today = new Date().toISOString().split('T')[0]
-        const todaysReservations = reservations.filter(r => r.date === today)
-        
-        return {
-          total: reservations.length,
-          pending: reservations.filter(r => r.status === 'pending').length,
-          confirmed: reservations.filter(r => r.status === 'confirmed').length,
-          seated: reservations.filter(r => r.status === 'seated').length,
-          completed: reservations.filter(r => r.status === 'completed').length,
-          cancelled: reservations.filter(r => r.status === 'cancelled').length,
-          todayTotal: todaysReservations.length,
-          todayPending: todaysReservations.filter(r => r.status === 'pending').length,
-          todayConfirmed: todaysReservations.filter(r => r.status === 'confirmed').length,
-          totalGuests: reservations
-            .filter(r => ['confirmed', 'seated', 'completed'].includes(r.status))
-            .reduce((sum, reservation) => sum + reservation.guests, 0),
-          todayGuests: todaysReservations
-            .filter(r => ['confirmed', 'seated', 'completed'].includes(r.status))
-            .reduce((sum, reservation) => sum + reservation.guests, 0)
-        }
-      }
-    }))
+    // Reset store state
+    act(() => {
+      useReservationsStore.setState({
+        reservations: [],
+        isAdminData: false,
+        isLoading: false,
+        error: null
+      })
+    })
   })
 
   afterEach(() => {
     vi.useRealTimers()
-    localStorageMock.getItem.mockClear()
-    localStorageMock.setItem.mockClear()
   })
 
-  // 1. ÉTAT INITIAL & INITIALISATION (2 tests)
-  test('should initialize with empty state by default', () => {
-    const state = useReservationsStore.getState()
-    
-    expect(state.reservations).toEqual([])
-    expect(state.isLoading).toBe(false)
-  })
+  // 1. INITIAL STATE
+  describe('Initial State', () => {
+    test('should have correct initial state', () => {
+      const state = useReservationsStore.getState()
 
-  test('should initialize from localStorage when data exists', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockReservations))
-    
-    const { initializeReservations } = useReservationsStore.getState()
-    initializeReservations()
-    
-    const state = useReservationsStore.getState()
-    expect(state.reservations).toEqual(mockReservations)
-  })
-
-  // 2. ACTIONS CRUD PRINCIPALES (4 tests)
-  test('should create reservation successfully and persist to localStorage', async () => {
-    const reservationData = {
-      userId: 'user123',
-      userEmail: 'test@example.com',
-      userName: 'Test User',
-      phone: '06 12 34 56 78',
-      date: '2025-03-15',
-      time: '19:00',
-      guests: 4,
-      specialRequests: 'Quiet table'
-    }
-
-    const { createReservation } = useReservationsStore.getState()
-    
-    const result = await createReservation(reservationData)
-    
-    expect(result.success).toBe(true)
-    expect(result.reservationId).toMatch(/^reservation-\d+$/)
-    
-    const state = useReservationsStore.getState()
-    const newReservation = state.reservations[0]
-    
-    expect(newReservation).toMatchObject({
-      ...reservationData,
-      status: 'pending',
-      tableNumber: null
+      expect(state.reservations).toEqual([])
+      expect(state.isLoading).toBe(false)
+      expect(state.error).toBeNull()
+      expect(state.isAdminData).toBe(false)
     })
-    expect(newReservation.id).toMatch(/^reservation-\d+$/)
-    expect(newReservation.createdAt).toBeTruthy()
-    expect(newReservation.updatedAt).toBeTruthy()
-    
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'admin-reservations',
-      expect.any(String)
-    )
   })
 
-  test('should update reservation status and maintain data integrity', async () => {
-    // Setup initial data
-    useReservationsStore.setState({
-      reservations: [...mockReservations]
+  // 2. FETCH RESERVATIONS
+  describe('fetchReservations', () => {
+    test('should fetch admin reservations successfully', async () => {
+      reservationsApi.getRecentReservations.mockResolvedValue({
+        success: true,
+        data: mockReservations
+      })
+
+      const { fetchReservations } = useReservationsStore.getState()
+
+      const result = await fetchReservations(true) // admin mode
+
+      expect(result.success).toBe(true)
+      expect(reservationsApi.getRecentReservations).toHaveBeenCalledWith({ limit: 1000 })
+
+      const state = useReservationsStore.getState()
+      expect(state.reservations).toEqual(mockReservations)
+      expect(state.isAdminData).toBe(true)
+      expect(state.isLoading).toBe(false)
     })
 
-    const { updateReservationStatus } = useReservationsStore.getState()
-    
-    const result = await updateReservationStatus('reservation-002', 'confirmed')
-    
-    expect(result.success).toBe(true)
-    
-    const state = useReservationsStore.getState()
-    const updatedReservation = state.reservations.find(r => r.id === 'reservation-002')
-    
-    expect(updatedReservation.status).toBe('confirmed')
-    expect(new Date(updatedReservation.updatedAt)).toBeInstanceOf(Date)
-    expect(localStorageMock.setItem).toHaveBeenCalled()
-  })
+    test('should fetch user reservations successfully', async () => {
+      const userReservations = [mockReservations[0]]
+      reservationsApi.getUserReservations.mockResolvedValue({
+        success: true,
+        data: userReservations
+      })
 
-  test('should assign table and change pending status to confirmed', async () => {
-    // Setup with pending reservation
-    const pendingReservations = [
-      { ...mockReservations[1], status: 'pending' }
-    ]
-    
-    useReservationsStore.setState({
-      reservations: pendingReservations
+      const { fetchReservations } = useReservationsStore.getState()
+
+      const result = await fetchReservations(false) // user mode
+
+      expect(result.success).toBe(true)
+      expect(reservationsApi.getUserReservations).toHaveBeenCalled()
+
+      const state = useReservationsStore.getState()
+      expect(state.reservations).toEqual(userReservations)
+      expect(state.isAdminData).toBe(false)
     })
 
-    const { assignTable } = useReservationsStore.getState()
-    
-    const result = await assignTable('reservation-002', 15)
-    
-    expect(result.success).toBe(true)
-    
-    const state = useReservationsStore.getState()
-    const reservation = state.reservations.find(r => r.id === 'reservation-002')
-    
-    expect(reservation.tableNumber).toBe(15)
-    expect(reservation.status).toBe('confirmed') // Should change from pending
-    expect(localStorageMock.setItem).toHaveBeenCalled()
-  })
+    test('should handle fetch error', async () => {
+      reservationsApi.getRecentReservations.mockResolvedValue({
+        success: false,
+        error: 'Network error'
+      })
 
-  test('should handle loading states correctly during async operations', async () => {
-    const reservationData = {
-      userId: 'user123',
-      userEmail: 'test@example.com',
-      userName: 'Test User',
-      phone: '06 12 34 56 78',
-      date: '2025-03-15',
-      time: '19:00',
-      guests: 4
-    }
+      const { fetchReservations } = useReservationsStore.getState()
 
-    const { createReservation } = useReservationsStore.getState()
+      const result = await fetchReservations(true)
 
-    // Create reservation (async)
-    await createReservation(reservationData)
-    
-    // Should not be loading after completion
-    const state = useReservationsStore.getState()
-    expect(state.isLoading).toBe(false)
-  })
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Network error')
 
-  // 3. GETTERS & FILTRES MÉTIER (4 tests)
-  test('should filter reservations by status correctly', () => {
-    useReservationsStore.setState({
-      reservations: [...mockReservations]
+      const state = useReservationsStore.getState()
+      expect(state.error).toBe('Network error')
+      expect(state.isLoading).toBe(false)
     })
 
-    const { getReservationsByStatus } = useReservationsStore.getState()
+    test('should handle API exception', async () => {
+      reservationsApi.getUserReservations.mockRejectedValue({
+        error: 'Server unavailable'
+      })
 
-    const confirmedReservations = getReservationsByStatus('confirmed')
-    expect(confirmedReservations).toHaveLength(1)
-    expect(confirmedReservations[0].status).toBe('confirmed')
-    
-    const pendingReservations = getReservationsByStatus('pending')
-    expect(pendingReservations).toHaveLength(1)
-    expect(pendingReservations[0].status).toBe('pending')
-    
-    const nonexistentStatus = getReservationsByStatus('nonexistent')
-    expect(nonexistentStatus).toHaveLength(0)
+      const { fetchReservations } = useReservationsStore.getState()
+
+      const result = await fetchReservations(false)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Server unavailable')
+    })
   })
 
-  test('should filter reservations by user correctly', () => {
-    useReservationsStore.setState({
-      reservations: [...mockReservations]
+  // 3. FETCH RESERVATION BY ID
+  describe('fetchReservationById', () => {
+    test('should fetch single reservation successfully', async () => {
+      const reservation = mockReservations[0]
+      reservationsApi.getReservationById.mockResolvedValue({
+        success: true,
+        data: reservation
+      })
+
+      const { fetchReservationById } = useReservationsStore.getState()
+
+      const result = await fetchReservationById('reservation-001')
+
+      expect(result.success).toBe(true)
+      expect(result.reservation).toEqual(reservation)
+      expect(reservationsApi.getReservationById).toHaveBeenCalledWith('reservation-001')
     })
 
-    const { getReservationsByUser } = useReservationsStore.getState()
+    test('should handle not found error', async () => {
+      reservationsApi.getReservationById.mockResolvedValue({
+        success: false,
+        error: 'Reservation not found'
+      })
 
-    const client1Reservations = getReservationsByUser('client1')
-    expect(client1Reservations).toHaveLength(2)
-    expect(client1Reservations.every(r => r.userId === 'client1')).toBe(true)
-    
-    const client2Reservations = getReservationsByUser('client2')
-    expect(client2Reservations).toHaveLength(1)
-    expect(client2Reservations[0].userId).toBe('client2')
-  })
+      const { fetchReservationById } = useReservationsStore.getState()
 
-  test('should get today\'s reservations with correct date logic', () => {
-    const todayReservations = [
-      {
-        ...mockReservations[0],
-        date: '2025-01-01' // Today in our mocked time
-      }
-    ]
-    
-    useReservationsStore.setState({
-      reservations: [...mockReservations, ...todayReservations]
+      const result = await fetchReservationById('nonexistent')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Reservation not found')
     })
-
-    const { getTodaysReservations } = useReservationsStore.getState()
-    const todaysResult = getTodaysReservations()
-    expect(todaysResult).toHaveLength(1)
-    expect(todaysResult[0].date).toBe('2025-01-01')
   })
 
-  test('should get upcoming reservations (future + not cancelled, sorted by date)', () => {
-    useReservationsStore.setState({
-      reservations: [...mockReservations]
-    })
-
-    const { getUpcomingReservations } = useReservationsStore.getState()
-    const upcoming = getUpcomingReservations()
-    
-    // Should exclude past dates (2024-12-20) and cancelled reservations
-    expect(upcoming).toHaveLength(2) // Only 2025-01-15 and 2025-02-15
-    
-    // Should be sorted by date
-    expect(upcoming[0].date).toBe('2025-01-15')
-    expect(upcoming[1].date).toBe('2025-02-15')
-    
-    // Should not contain cancelled reservations
-    expect(upcoming.every(r => r.status !== 'cancelled')).toBe(true)
-  })
-
-  // 4. CALCULS MÉTIER COMPLEXES (2 tests)
-  test('should calculate comprehensive reservation statistics correctly', () => {
-    const todayReservations = [
-      {
-        ...mockReservations[0],
-        date: '2025-01-01', // Today
+  // 4. CREATE RESERVATION
+  describe('createReservation', () => {
+    test('should create reservation successfully', async () => {
+      const newReservation = {
+        id: 'reservation-new',
+        userId: 'user123',
+        userEmail: 'test@example.com',
+        userName: 'Test User',
+        phone: '06 12 34 56 78',
+        date: '2025-03-15',
+        time: '19:00',
+        guests: 4,
         status: 'confirmed',
-        guests: 4
-      },
-      {
-        ...mockReservations[1],
-        date: '2025-01-01', // Today
-        status: 'pending',
-        guests: 2
+        specialRequests: 'Quiet table'
       }
-    ]
-    
-    useReservationsStore.setState({
-      reservations: [...mockReservations, ...todayReservations]
+
+      reservationsApi.createReservation.mockResolvedValue({
+        success: true,
+        data: newReservation
+      })
+
+      const { createReservation } = useReservationsStore.getState()
+
+      const result = await createReservation({
+        date: '2025-03-15',
+        time: '19:00',
+        guests: 4,
+        specialRequests: 'Quiet table'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.reservationId).toBe('reservation-new')
+
+      const state = useReservationsStore.getState()
+      expect(state.reservations).toContainEqual(newReservation)
+      expect(state.isLoading).toBe(false)
     })
 
-    const { getReservationsStats } = useReservationsStore.getState()
-    const stats = getReservationsStats()
-    
-    expect(stats.total).toBe(6) // 4 mock + 2 today
-    expect(stats.pending).toBe(2) // mockReservations[1] + todayReservations[1]
-    expect(stats.confirmed).toBe(2) // mockReservations[0] + todayReservations[0]
-    expect(stats.completed).toBe(1) // mockReservations[2]
-    expect(stats.cancelled).toBe(1) // mockReservations[3]
-    
-    expect(stats.todayTotal).toBe(2)
-    expect(stats.todayPending).toBe(1)
-    expect(stats.todayConfirmed).toBe(1)
-    
-    // Total guests for confirmed/seated/completed reservations
-    expect(stats.totalGuests).toBe(14) // 4 (confirmed) + 4 (today confirmed) + 6 (completed)
-    expect(stats.todayGuests).toBe(4) // Only today's confirmed
+    test('should handle creation error with details', async () => {
+      reservationsApi.createReservation.mockResolvedValue({
+        success: false,
+        error: 'Slot not available',
+        code: 'SLOT_UNAVAILABLE',
+        details: { suggestedTimes: ['18:00', '20:00'] }
+      })
+
+      const { createReservation } = useReservationsStore.getState()
+
+      const result = await createReservation({
+        date: '2025-03-15',
+        time: '19:00',
+        guests: 4
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Slot not available')
+      expect(result.code).toBe('SLOT_UNAVAILABLE')
+      expect(result.details).toEqual({ suggestedTimes: ['18:00', '20:00'] })
+    })
   })
 
-  test('should handle edge cases in statistics (empty data, various statuses)', () => {
-    // Test with empty data
-    useReservationsStore.setState({
-      reservations: []
+  // 5. UPDATE RESERVATION STATUS (Admin)
+  describe('updateReservationStatus', () => {
+    test('should update status successfully', async () => {
+      reservationsApi.updateReservationStatus.mockResolvedValue({
+        success: true
+      })
+      reservationsApi.getRecentReservations.mockResolvedValue({
+        success: true,
+        data: mockReservations.map(r =>
+          r.id === 'reservation-002' ? { ...r, status: 'confirmed' } : r
+        )
+      })
+
+      const { updateReservationStatus } = useReservationsStore.getState()
+
+      const result = await updateReservationStatus('reservation-002', 'confirmed')
+
+      expect(result.success).toBe(true)
+      expect(reservationsApi.updateReservationStatus).toHaveBeenCalledWith('reservation-002', 'confirmed')
+      // Should refetch reservations after update
+      expect(reservationsApi.getRecentReservations).toHaveBeenCalled()
     })
 
-    const { getReservationsStats } = useReservationsStore.getState()
-    const emptyStats = getReservationsStats()
-    
-    expect(emptyStats.total).toBe(0)
-    expect(emptyStats.pending).toBe(0)
-    expect(emptyStats.confirmed).toBe(0)
-    expect(emptyStats.totalGuests).toBe(0)
-    expect(emptyStats.todayGuests).toBe(0)
-    expect(emptyStats.todayTotal).toBe(0)
+    test('should handle update error', async () => {
+      reservationsApi.updateReservationStatus.mockResolvedValue({
+        success: false,
+        error: 'Invalid status transition'
+      })
+
+      const { updateReservationStatus } = useReservationsStore.getState()
+
+      const result = await updateReservationStatus('reservation-001', 'invalid')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Invalid status transition')
+    })
   })
 
-  // 5. GESTION ERREURS & ROBUSTESSE (2 tests)
-  test('should handle async operation errors gracefully', async () => {
-    // Mock an error scenario by making setTimeout throw
-    const originalSetTimeout = global.setTimeout
-    global.setTimeout = vi.fn(() => {
-      throw new Error('Network error')
+  // 6. ASSIGN TABLE
+  describe('assignTable', () => {
+    test('should assign table successfully', async () => {
+      reservationsApi.assignTable.mockResolvedValue({
+        success: true
+      })
+      reservationsApi.getRecentReservations.mockResolvedValue({
+        success: true,
+        data: mockReservations.map(r =>
+          r.id === 'reservation-002' ? { ...r, tableNumber: 15, status: 'confirmed' } : r
+        )
+      })
+
+      const { assignTable } = useReservationsStore.getState()
+
+      const result = await assignTable('reservation-002', 15)
+
+      expect(result.success).toBe(true)
+      expect(reservationsApi.assignTable).toHaveBeenCalledWith('reservation-002', 15)
     })
 
-    const reservationData = {
-      userId: 'user123',
-      date: '2025-03-15',
-      time: '19:00',
-      guests: 4
-    }
+    test('should handle assign table error', async () => {
+      reservationsApi.assignTable.mockResolvedValue({
+        success: false,
+        error: 'Table already occupied'
+      })
 
-    const { createReservation } = useReservationsStore.getState()
+      const { assignTable } = useReservationsStore.getState()
 
-    const result = await createReservation(reservationData)
-    
-    expect(result.success).toBe(false)
-    expect(result.error).toBe('Network error')
-    
-    const state = useReservationsStore.getState()
-    expect(state.isLoading).toBe(false)
-    
-    // Restore original setTimeout
-    global.setTimeout = originalSetTimeout
+      const result = await assignTable('reservation-002', 5)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Table already occupied')
+    })
   })
 
-  test('should maintain data consistency between memory and localStorage', async () => {
-    // Create a reservation
-    const reservationData = {
-      userId: 'user123',
-      userEmail: 'test@example.com',
-      userName: 'Test User',
-      phone: '06 12 34 56 78',
-      date: '2025-03-15',
-      time: '19:00',
-      guests: 4
-    }
+  // 7. UPDATE RESERVATION (User)
+  describe('updateReservation', () => {
+    test('should update reservation successfully', async () => {
+      const updatedReservation = {
+        ...mockReservations[0],
+        guests: 6,
+        specialRequests: 'Updated request'
+      }
 
-    const { createReservation, updateReservationStatus } = useReservationsStore.getState()
+      // Setup initial state
+      act(() => {
+        useReservationsStore.setState({ reservations: [mockReservations[0]] })
+      })
 
-    const createResult = await createReservation(reservationData)
-    const reservationId = createResult.reservationId
-    
-    // Update the reservation
-    await updateReservationStatus(reservationId, 'confirmed')
-    
-    // Verify localStorage was called for both operations
-    expect(localStorageMock.setItem).toHaveBeenCalledTimes(2)
-    
-    // Verify both operations used 'admin-reservations' key
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'admin-reservations',
-      expect.any(String)
-    )
-    
-    const state = useReservationsStore.getState()
-    const reservation = state.reservations.find(r => r.id === reservationId)
-    expect(reservation.status).toBe('confirmed')
+      reservationsApi.updateReservation.mockResolvedValue({
+        success: true,
+        data: updatedReservation
+      })
+
+      const { updateReservation } = useReservationsStore.getState()
+
+      const result = await updateReservation('reservation-001', {
+        guests: 6,
+        specialRequests: 'Updated request'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.reservation).toEqual(updatedReservation)
+
+      const state = useReservationsStore.getState()
+      expect(state.reservations[0].guests).toBe(6)
+    })
+  })
+
+  // 8. CANCEL RESERVATION
+  describe('cancelReservation', () => {
+    test('should cancel reservation successfully', async () => {
+      const cancelledReservation = { ...mockReservations[0], status: 'cancelled' }
+
+      act(() => {
+        useReservationsStore.setState({ reservations: [mockReservations[0]] })
+      })
+
+      reservationsApi.cancelReservation.mockResolvedValue({
+        success: true,
+        data: cancelledReservation
+      })
+
+      const { cancelReservation } = useReservationsStore.getState()
+
+      const result = await cancelReservation('reservation-001')
+
+      expect(result.success).toBe(true)
+
+      const state = useReservationsStore.getState()
+      expect(state.reservations[0].status).toBe('cancelled')
+    })
+
+    test('should handle cancel error', async () => {
+      reservationsApi.cancelReservation.mockResolvedValue({
+        success: false,
+        error: 'Cannot cancel past reservation',
+        code: 'PAST_RESERVATION'
+      })
+
+      const { cancelReservation } = useReservationsStore.getState()
+
+      const result = await cancelReservation('reservation-003')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Cannot cancel past reservation')
+      expect(result.code).toBe('PAST_RESERVATION')
+    })
+  })
+
+  // 9. GETTERS (using ReservationService)
+  describe('Getters', () => {
+    beforeEach(() => {
+      act(() => {
+        useReservationsStore.setState({ reservations: mockReservations })
+      })
+    })
+
+    test('should filter reservations by status', () => {
+      const { getReservationsByStatus } = useReservationsStore.getState()
+
+      const confirmed = getReservationsByStatus('confirmed')
+      expect(confirmed).toHaveLength(2)
+      expect(confirmed.every(r => r.status === 'confirmed')).toBe(true)
+
+      const completed = getReservationsByStatus('completed')
+      expect(completed).toHaveLength(1)
+      expect(completed[0].status).toBe('completed')
+    })
+
+    test('should filter reservations by user', () => {
+      const { getReservationsByUser } = useReservationsStore.getState()
+
+      const client1Reservations = getReservationsByUser('client1')
+      expect(client1Reservations).toHaveLength(2)
+      expect(client1Reservations.every(r => r.userId === 'client1')).toBe(true)
+    })
+
+    test('should get today\'s reservations', () => {
+      // Add a reservation for today (2025-01-01)
+      const todayReservation = {
+        ...mockReservations[0],
+        id: 'today-res',
+        date: '2025-01-01'
+      }
+
+      act(() => {
+        useReservationsStore.setState({
+          reservations: [...mockReservations, todayReservation]
+        })
+      })
+
+      const { getTodaysReservations } = useReservationsStore.getState()
+      const todaysResult = getTodaysReservations()
+
+      expect(todaysResult).toHaveLength(1)
+      expect(todaysResult[0].date).toBe('2025-01-01')
+    })
+
+    test('should get upcoming reservations (future + not cancelled, sorted)', () => {
+      const { getUpcomingReservations } = useReservationsStore.getState()
+      const upcoming = getUpcomingReservations()
+
+      // Should exclude past dates (2024-12-20) and cancelled reservations
+      // reservation-001 (2025-02-15, confirmed)
+      // reservation-002 (2025-01-15, confirmed)
+      // reservation-004 (2025-01-10, cancelled) - excluded
+      expect(upcoming).toHaveLength(2)
+
+      // Should be sorted by date
+      expect(upcoming[0].date).toBe('2025-01-15')
+      expect(upcoming[1].date).toBe('2025-02-15')
+
+      // Should not contain cancelled reservations
+      expect(upcoming.every(r => r.status !== 'cancelled')).toBe(true)
+    })
+  })
+
+  // 10. STATISTICS
+  describe('Statistics', () => {
+    test('should calculate reservation statistics correctly', () => {
+      // Add today's reservations
+      const todayReservations = [
+        { ...mockReservations[0], id: 'today-1', date: '2025-01-01', status: 'confirmed', guests: 4 },
+        { ...mockReservations[1], id: 'today-2', date: '2025-01-01', status: 'seated', guests: 2 }
+      ]
+
+      act(() => {
+        useReservationsStore.setState({
+          reservations: [...mockReservations, ...todayReservations]
+        })
+      })
+
+      const { getReservationsStats } = useReservationsStore.getState()
+      const stats = getReservationsStats()
+
+      // Total: 4 mockReservations + 2 today = 6
+      expect(stats.total).toBe(6)
+      // confirmed: reservation-001, reservation-002, today-1 = 3
+      expect(stats.confirmed).toBe(3)
+      // seated: today-2 = 1
+      expect(stats.seated).toBe(1)
+      // completed: reservation-003 = 1
+      expect(stats.completed).toBe(1)
+      // cancelled: reservation-004 = 1
+      expect(stats.cancelled).toBe(1)
+      // Today: today-1, today-2 = 2
+      expect(stats.todayTotal).toBe(2)
+      expect(stats.todayConfirmed).toBe(1)
+      expect(stats.todaySeated).toBe(1)
+    })
+
+    test('should handle empty reservations for statistics', () => {
+      act(() => {
+        useReservationsStore.setState({ reservations: [] })
+      })
+
+      const { getReservationsStats } = useReservationsStore.getState()
+      const stats = getReservationsStats()
+
+      expect(stats.total).toBe(0)
+      expect(stats.confirmed).toBe(0)
+      expect(stats.seated).toBe(0)
+      expect(stats.todayTotal).toBe(0)
+    })
+  })
+
+  // 11. LOADING STATES
+  describe('Loading States', () => {
+    test('should set loading state during fetch', async () => {
+      let resolvePromise
+      reservationsApi.getRecentReservations.mockImplementation(() =>
+        new Promise(resolve => { resolvePromise = resolve })
+      )
+
+      const { fetchReservations } = useReservationsStore.getState()
+
+      const fetchPromise = fetchReservations(true)
+
+      // Should be loading while waiting
+      expect(useReservationsStore.getState().isLoading).toBe(true)
+
+      // Resolve the promise
+      resolvePromise({ success: true, data: [] })
+      await fetchPromise
+
+      // Should not be loading after completion
+      expect(useReservationsStore.getState().isLoading).toBe(false)
+    })
+  })
+
+  // 12. ERROR HANDLING
+  describe('Error Handling', () => {
+    test('should set and clear errors', () => {
+      const { setError, clearError } = useReservationsStore.getState()
+
+      act(() => {
+        setError('Test error')
+      })
+      expect(useReservationsStore.getState().error).toBe('Test error')
+
+      act(() => {
+        clearError()
+      })
+      expect(useReservationsStore.getState().error).toBeNull()
+    })
   })
 })

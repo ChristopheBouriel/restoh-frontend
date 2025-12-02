@@ -1,554 +1,560 @@
-import { beforeEach, describe, it, expect, vi } from 'vitest'
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
+import { act } from '@testing-library/react'
+import useContactsStore from '../../store/contactsStore'
+import * as contactsApi from '../../api/contactsApi'
 
-// Mock localStorage
-const mockLocalStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn()
-}
+// Mock the API
+vi.mock('../../api/contactsApi')
 
-global.localStorage = mockLocalStorage
-
-// Mock timers for async operations
-vi.useFakeTimers()
-
-// Créer le store sans la persistance pour les tests
-import { create } from 'zustand'
-
-// Créer une version simplifiée du store pour les tests
-const createTestContactsStore = () => create((set, get) => ({
-  // État
-  messages: [],
-  isLoading: false,
-
-  // Actions
-  setLoading: (loading) => set({ isLoading: loading }),
-
-  // Initialiser avec des données de test
-  initializeMessages: () => {
-    const stored = localStorage.getItem('admin-messages')
-    if (stored) {
-      set({ messages: JSON.parse(stored) })
-    } else {
-      // Données initiales pour la démo
-      const today = new Date()
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-      const twoDaysAgo = new Date(today)
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
-      
-      const initialMessages = [
-        {
-          id: 'msg-001',
-          name: 'Marie Dubois',
-          email: 'marie.dubois@email.com',
-          phone: '06 12 34 56 78',
-          subject: 'Question sur les allergènes',
-          message: 'Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ?',
-          status: 'new',
-          createdAt: today.toISOString(),
-          readAt: null,
-          repliedAt: null
-        },
-        {
-          id: 'msg-002',
-          name: 'Pierre Martin',
-          email: 'pierre.martin@company.fr',
-          phone: '01 23 45 67 89',
-          subject: 'Réservation événement d\'entreprise',
-          message: 'Nous souhaitons organiser un événement d\'entreprise pour 50 personnes le mois prochain.',
-          status: 'read',
-          createdAt: yesterday.toISOString(),
-          readAt: yesterday.toISOString(),
-          repliedAt: null
-        },
-        {
-          id: 'msg-003',
-          name: 'Sophie Laurent',
-          email: 'sophie.l@email.com',
-          phone: null,
-          subject: 'Félicitations',
-          message: 'Je voulais simplement vous féliciter pour l\'excellente soirée que nous avons passée hier soir.',
-          status: 'replied',
-          createdAt: twoDaysAgo.toISOString(),
-          readAt: twoDaysAgo.toISOString(),
-          repliedAt: twoDaysAgo.toISOString()
-        }
-      ]
-      
-      set({ messages: initialMessages })
-      localStorage.setItem('admin-messages', JSON.stringify(initialMessages))
-    }
+// Mock data
+const mockMessages = [
+  {
+    id: 'msg-001',
+    name: 'Marie Dubois',
+    email: 'marie.dubois@email.com',
+    phone: '06 12 34 56 78',
+    subject: 'Question sur les allergènes',
+    message: 'Bonjour, pourriez-vous me dire si vos plats végétariens contiennent des traces de fruits à coque ?',
+    status: 'new',
+    createdAt: '2024-01-20T10:00:00Z',
+    readAt: null,
+    repliedAt: null
   },
-
-  // Créer un nouveau message (appelé depuis le formulaire de contact)
-  createMessage: async (messageData) => {
-    set({ isLoading: true })
-    
-    try {
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      const newMessage = {
-        id: `msg-${Date.now()}`,
-        ...messageData,
-        status: 'new',
-        createdAt: new Date().toISOString(),
-        readAt: null,
-        repliedAt: null
-      }
-      
-      const updatedMessages = [newMessage, ...get().messages]
-      set({ messages: updatedMessages, isLoading: false })
-      localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-      
-      return { success: true, messageId: newMessage.id }
-    } catch (error) {
-      set({ isLoading: false })
-      return { success: false, error: error.message }
-    }
+  {
+    id: 'msg-002',
+    name: 'Pierre Martin',
+    email: 'pierre.martin@company.fr',
+    phone: '01 23 45 67 89',
+    subject: 'Réservation événement d\'entreprise',
+    message: 'Nous souhaitons organiser un événement d\'entreprise pour 50 personnes.',
+    status: 'read',
+    createdAt: '2024-01-19T10:00:00Z',
+    readAt: '2024-01-19T14:00:00Z',
+    repliedAt: null
   },
-
-  // Marquer un message comme lu
-  markAsRead: async (messageId) => {
-    set({ isLoading: true })
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      const updatedMessages = get().messages.map(message =>
-        message.id === messageId 
-          ? { 
-              ...message, 
-              status: message.status === 'new' ? 'read' : message.status,
-              readAt: message.readAt || new Date().toISOString()
-            }
-          : message
-      )
-      
-      set({ messages: updatedMessages, isLoading: false })
-      localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-      
-      return { success: true }
-    } catch (error) {
-      set({ isLoading: false })
-      return { success: false, error: error.message }
-    }
+  {
+    id: 'msg-003',
+    name: 'Sophie Laurent',
+    email: 'sophie.l@email.com',
+    phone: null,
+    subject: 'Félicitations',
+    message: 'Je voulais simplement vous féliciter pour l\'excellente soirée.',
+    status: 'replied',
+    createdAt: '2024-01-18T10:00:00Z',
+    readAt: '2024-01-18T12:00:00Z',
+    repliedAt: '2024-01-18T15:00:00Z'
   },
-
-  // Delete un message
-  deleteMessage: async (messageId) => {
-    set({ isLoading: true })
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      const updatedMessages = get().messages.filter(message => message.id !== messageId)
-      set({ messages: updatedMessages, isLoading: false })
-      localStorage.setItem('admin-messages', JSON.stringify(updatedMessages))
-      
-      return { success: true }
-    } catch (error) {
-      set({ isLoading: false })
-      return { success: false, error: error.message }
-    }
-  },
-
-  // Getters et filtres
-  getMessagesByStatus: (status) => {
-    return get().messages.filter(message => message.status === status)
-  },
-
-  getNewMessagesCount: () => {
-    return get().messages.filter(message => message.status === 'new' || message.status === 'newlyReplied').length
-  },
-
-  // Statistiques
-  getMessagesStats: () => {
-    const messages = get().messages
-    return {
-      total: messages.length,
-      new: messages.filter(m => m.status === 'new').length,
-      read: messages.filter(m => m.status === 'read').length,
-      replied: messages.filter(m => m.status === 'replied').length
-    }
+  {
+    id: 'msg-004',
+    name: 'Jean Dupont',
+    email: 'jean.dupont@email.com',
+    phone: '07 11 22 33 44',
+    subject: 'Réclamation',
+    message: 'Je souhaite signaler un problème...',
+    status: 'closed',
+    createdAt: '2024-01-17T10:00:00Z',
+    readAt: '2024-01-17T12:00:00Z',
+    repliedAt: '2024-01-17T14:00:00Z'
   }
-}))
+]
 
-describe('contactsStore', () => {
-  let store
-
+describe('ContactsStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.clearAllTimers()
-    
-    // Reset localStorage mocks
-    mockLocalStorage.getItem.mockReturnValue(null)
-    mockLocalStorage.setItem.mockImplementation(() => {})
-    
-    // Create fresh store instance
-    store = createTestContactsStore()
-    
-    // Mock Date for consistent timestamps
-    vi.setSystemTime(new Date('2024-01-20T10:00:00Z'))
+
+    // Reset store state
+    act(() => {
+      useContactsStore.setState({
+        messages: [],
+        myMessages: [],
+        isLoading: false,
+        error: null
+      })
+    })
   })
 
-  // 1. STORE INITIALIZATION (3 tests)
-  describe('Store Initialization', () => {
-    it('should initialize with empty state', () => {
-      const state = store.getState()
-      
+  // 1. INITIAL STATE
+  describe('Initial State', () => {
+    test('should have correct initial state', () => {
+      const state = useContactsStore.getState()
+
       expect(state.messages).toEqual([])
+      expect(state.myMessages).toEqual([])
+      expect(state.isLoading).toBe(false)
+      expect(state.error).toBeNull()
+    })
+  })
+
+  // 2. FETCH MESSAGES (ADMIN)
+  describe('fetchMessages', () => {
+    test('should fetch all messages successfully (admin)', async () => {
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: true,
+        data: mockMessages
+      })
+
+      const { fetchMessages } = useContactsStore.getState()
+
+      const result = await fetchMessages()
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.getAllContacts).toHaveBeenCalled()
+
+      const state = useContactsStore.getState()
+      expect(state.messages).toEqual(mockMessages)
+      expect(state.isLoading).toBe(false)
+      expect(state.error).toBeNull()
+    })
+
+    test('should handle fetch error', async () => {
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: false,
+        error: 'Access denied'
+      })
+
+      const { fetchMessages } = useContactsStore.getState()
+
+      const result = await fetchMessages()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Access denied')
+
+      const state = useContactsStore.getState()
+      expect(state.error).toBe('Access denied')
       expect(state.isLoading).toBe(false)
     })
 
-    it('should load messages from localStorage when available', () => {
-      const storedMessages = [
-        {
-          id: 'stored-msg',
-          name: 'John Doe',
-          email: 'john@test.com',
-          subject: 'Test message',
-          message: 'Test content',
-          status: 'new',
-          createdAt: '2024-01-19T10:00:00Z'
-        }
-      ]
-      
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(storedMessages))
-      
-      store.getState().initializeMessages()
-      
-      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('admin-messages')
-      expect(store.getState().messages).toEqual(storedMessages)
-    })
+    test('should handle API exception', async () => {
+      contactsApi.getAllContacts.mockRejectedValue({
+        error: 'Server unavailable'
+      })
 
-    it('should create initial demo messages when localStorage is empty', () => {
-      mockLocalStorage.getItem.mockReturnValue(null)
-      
-      store.getState().initializeMessages()
-      
-      const { messages } = store.getState()
-      
-      expect(messages).toHaveLength(3)
-      expect(messages[0]).toMatchObject({
-        id: 'msg-001',
-        name: 'Marie Dubois',
-        email: 'marie.dubois@email.com',
-        status: 'new'
-      })
-      expect(messages[1]).toMatchObject({
-        id: 'msg-002',
-        name: 'Pierre Martin',
-        status: 'read'
-      })
-      expect(messages[2]).toMatchObject({
-        id: 'msg-003',
-        name: 'Sophie Laurent',
-        status: 'replied'
-      })
-      
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        'admin-messages',
-        expect.any(String)
-      )
+      const { fetchMessages } = useContactsStore.getState()
+
+      const result = await fetchMessages()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Server unavailable')
     })
   })
 
-  // 2. MESSAGE MANAGEMENT (4 tests)
-  describe('Message Management', () => {
-    it('should create new message successfully', async () => {
-      const messageData = {
+  // 3. FETCH MY MESSAGES (USER)
+  describe('fetchMyMessages', () => {
+    test('should fetch user\'s own messages successfully', async () => {
+      const myMessages = [mockMessages[0], mockMessages[1]]
+      contactsApi.getMyContactMessages.mockResolvedValue({
+        success: true,
+        data: myMessages
+      })
+
+      const { fetchMyMessages } = useContactsStore.getState()
+
+      const result = await fetchMyMessages()
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.getMyContactMessages).toHaveBeenCalled()
+
+      const state = useContactsStore.getState()
+      expect(state.myMessages).toEqual(myMessages)
+      expect(state.isLoading).toBe(false)
+    })
+
+    test('should handle fetch my messages error', async () => {
+      contactsApi.getMyContactMessages.mockResolvedValue({
+        success: false,
+        error: 'Not authenticated'
+      })
+
+      const { fetchMyMessages } = useContactsStore.getState()
+
+      const result = await fetchMyMessages()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Not authenticated')
+    })
+  })
+
+  // 4. CREATE MESSAGE
+  describe('createMessage', () => {
+    test('should create message successfully', async () => {
+      const newMessage = {
+        id: 'msg-new',
         name: 'Test User',
         email: 'test@example.com',
-        phone: '0123456789',
+        subject: 'Test Subject',
+        message: 'Test message content',
+        status: 'new'
+      }
+
+      contactsApi.sendContactMessage.mockResolvedValue({
+        success: true,
+        data: newMessage
+      })
+
+      const { createMessage } = useContactsStore.getState()
+
+      const result = await createMessage({
+        name: 'Test User',
+        email: 'test@example.com',
         subject: 'Test Subject',
         message: 'Test message content'
-      }
-      
-      const promise = store.getState().createMessage(messageData)
-      
-      // Check loading state is set
-      expect(store.getState().isLoading).toBe(true)
-      
-      // Advance timers to complete the async operation
-      await vi.advanceTimersByTimeAsync(500)
-      const result = await promise
-      
-      expect(result).toEqual({
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.messageId).toBe('msg-new')
+      expect(contactsApi.sendContactMessage).toHaveBeenCalledWith({
+        name: 'Test User',
+        email: 'test@example.com',
+        subject: 'Test Subject',
+        message: 'Test message content'
+      })
+
+      const state = useContactsStore.getState()
+      expect(state.isLoading).toBe(false)
+    })
+
+    test('should handle create message error', async () => {
+      contactsApi.sendContactMessage.mockResolvedValue({
+        success: false,
+        error: 'Invalid email format'
+      })
+
+      const { createMessage } = useContactsStore.getState()
+
+      const result = await createMessage({
+        name: 'Test',
+        email: 'invalid-email',
+        subject: 'Test',
+        message: 'Test'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Invalid email format')
+    })
+  })
+
+  // 5. UPDATE MESSAGE STATUS (ADMIN)
+  describe('updateMessageStatus', () => {
+    test('should update message status successfully', async () => {
+      contactsApi.updateContactStatus.mockResolvedValue({
+        success: true
+      })
+      contactsApi.getAllContacts.mockResolvedValue({
         success: true,
-        messageId: expect.stringMatching(/^msg-\d+$/)
+        data: mockMessages.map(m =>
+          m.id === 'msg-001' ? { ...m, status: 'read' } : m
+        )
       })
-      
-      const { messages, isLoading } = store.getState()
-      
-      expect(isLoading).toBe(false)
-      expect(messages).toHaveLength(1)
-      expect(messages[0]).toMatchObject({
-        ...messageData,
-        status: 'new',
-        createdAt: expect.any(String),
-        readAt: null,
-        repliedAt: null
-      })
-      
-      // Check timestamp format separately
-      expect(messages[0].createdAt).toMatch(/2024-01-20T10:00:00\.\d{3}Z/)
-      
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        'admin-messages',
-        expect.any(String)
-      )
+
+      const { updateMessageStatus } = useContactsStore.getState()
+
+      const result = await updateMessageStatus('msg-001', 'read')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.updateContactStatus).toHaveBeenCalledWith('msg-001', 'read')
+      // Should refetch messages after update
+      expect(contactsApi.getAllContacts).toHaveBeenCalled()
     })
 
-    it('should mark message as read and update timestamps', async () => {
-      // Set up initial message
-      const initialMessage = {
-        id: 'test-msg',
-        name: 'Test User',
-        email: 'test@example.com',
-        subject: 'Test',
-        message: 'Test content',
-        status: 'new',
-        createdAt: '2024-01-19T10:00:00Z',
-        readAt: null,
-        repliedAt: null
-      }
-      
-      store.setState({ messages: [initialMessage] })
-      
-      const promise = store.getState().markAsRead('test-msg')
-      
-      expect(store.getState().isLoading).toBe(true)
-      
-      await vi.advanceTimersByTimeAsync(300)
-      const result = await promise
-      
-      expect(result).toEqual({ success: true })
-      
-      const { messages, isLoading } = store.getState()
-      
-      expect(isLoading).toBe(false)
-      expect(messages[0]).toMatchObject({
-        id: 'test-msg',
-        status: 'read',
-        readAt: expect.any(String),
-        repliedAt: null
+    test('should handle update status error', async () => {
+      contactsApi.updateContactStatus.mockResolvedValue({
+        success: false,
+        error: 'Message not found'
       })
-      
-      // Check timestamp format
-      expect(messages[0].readAt).toMatch(/2024-01-20T10:00:00\.\d{3}Z/)
-      
-      expect(mockLocalStorage.setItem).toHaveBeenCalled()
-    })
 
-    it('should delete message and remove from store', async () => {
-      const messages = [
-        { id: 'msg-1', name: 'User 1', status: 'new' },
-        { id: 'msg-2', name: 'User 2', status: 'read' },
-        { id: 'msg-3', name: 'User 3', status: 'replied' }
-      ]
-      
-      store.setState({ messages })
-      
-      const promise = store.getState().deleteMessage('msg-2')
-      
-      await vi.advanceTimersByTimeAsync(300)
-      const result = await promise
-      
-      expect(result).toEqual({ success: true })
-      
-      const { messages: updatedMessages } = store.getState()
-      
-      expect(updatedMessages).toHaveLength(2)
-      expect(updatedMessages.find(m => m.id === 'msg-2')).toBeUndefined()
-      expect(updatedMessages.map(m => m.id)).toEqual(['msg-1', 'msg-3'])
-      
-      expect(mockLocalStorage.setItem).toHaveBeenCalled()
+      const { updateMessageStatus } = useContactsStore.getState()
+
+      const result = await updateMessageStatus('nonexistent', 'read')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Message not found')
     })
   })
 
-  // 3. STATE MANAGEMENT (2 tests)
-  describe('State Management', () => {
-    it('should handle loading states correctly during async operations', async () => {
-      const messageData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        subject: 'Test',
-        message: 'Test content'
-      }
-      
-      // Start async operation
-      const promise = store.getState().createMessage(messageData)
-      
-      // Should be loading
-      expect(store.getState().isLoading).toBe(true)
-      
-      // Complete operation
-      await vi.advanceTimersByTimeAsync(500)
-      await promise
-      
-      // Should not be loading anymore
-      expect(store.getState().isLoading).toBe(false)
-    })
+  // 6. MARK AS READ (helper)
+  describe('markAsRead', () => {
+    test('should mark message as read', async () => {
+      contactsApi.updateContactStatus.mockResolvedValue({
+        success: true
+      })
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: true,
+        data: mockMessages
+      })
 
-    it('should maintain message order (newest first)', async () => {
-      // Create first message
-      const promise1 = store.getState().createMessage({
-        name: 'User 1',
-        email: 'user1@test.com',
-        subject: 'First',
-        message: 'First message'
-      })
-      
-      await vi.advanceTimersByTimeAsync(500)
-      await promise1
-      
-      // Advance time and create second message
-      vi.setSystemTime(new Date('2024-01-20T11:00:00Z'))
-      
-      const promise2 = store.getState().createMessage({
-        name: 'User 2',
-        email: 'user2@test.com',
-        subject: 'Second',
-        message: 'Second message'
-      })
-      
-      await vi.advanceTimersByTimeAsync(500)
-      await promise2
-      
-      const { messages } = store.getState()
-      
-      expect(messages).toHaveLength(2)
-      expect(messages[0].subject).toBe('Second') // Newest first
-      expect(messages[1].subject).toBe('First') // Older second
+      const { markAsRead } = useContactsStore.getState()
+
+      const result = await markAsRead('msg-001')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.updateContactStatus).toHaveBeenCalledWith('msg-001', 'read')
     })
   })
 
-  // 4. FILTERING AND STATISTICS (3 tests)
-  describe('Filtering and Statistics', () => {
+  // 7. MARK AS CLOSED (helper)
+  describe('markAsClosed', () => {
+    test('should mark message as closed', async () => {
+      contactsApi.updateContactStatus.mockResolvedValue({
+        success: true
+      })
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: true,
+        data: mockMessages
+      })
+
+      const { markAsClosed } = useContactsStore.getState()
+
+      const result = await markAsClosed('msg-002')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.updateContactStatus).toHaveBeenCalledWith('msg-002', 'closed')
+    })
+  })
+
+  // 8. ADD REPLY
+  describe('addReply', () => {
+    test('should add reply successfully', async () => {
+      contactsApi.addReplyToDiscussion.mockResolvedValue({
+        success: true
+      })
+
+      const { addReply } = useContactsStore.getState()
+
+      const result = await addReply('msg-001', 'Thank you for your message!')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.addReplyToDiscussion).toHaveBeenCalledWith('msg-001', 'Thank you for your message!')
+    })
+
+    test('should handle add reply error', async () => {
+      contactsApi.addReplyToDiscussion.mockResolvedValue({
+        success: false,
+        error: 'Reply cannot be empty'
+      })
+
+      const { addReply } = useContactsStore.getState()
+
+      const result = await addReply('msg-001', '')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Reply cannot be empty')
+    })
+  })
+
+  // 9. MARK DISCUSSION MESSAGE AS READ
+  describe('markDiscussionMessageAsRead', () => {
+    test('should mark discussion message as read', async () => {
+      contactsApi.markDiscussionMessageAsRead.mockResolvedValue({
+        success: true
+      })
+
+      const { markDiscussionMessageAsRead } = useContactsStore.getState()
+
+      const result = await markDiscussionMessageAsRead('msg-001', 'disc-001')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.markDiscussionMessageAsRead).toHaveBeenCalledWith('msg-001', 'disc-001')
+    })
+
+    test('should handle mark discussion error', async () => {
+      contactsApi.markDiscussionMessageAsRead.mockResolvedValue({
+        success: false,
+        error: 'Discussion not found'
+      })
+
+      const { markDiscussionMessageAsRead } = useContactsStore.getState()
+
+      const result = await markDiscussionMessageAsRead('msg-001', 'invalid')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Discussion not found')
+    })
+  })
+
+  // 10. DELETE MESSAGE
+  describe('deleteMessage', () => {
+    test('should delete message successfully', async () => {
+      contactsApi.deleteContact.mockResolvedValue({
+        success: true
+      })
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: true,
+        data: mockMessages.filter(m => m.id !== 'msg-001')
+      })
+
+      const { deleteMessage } = useContactsStore.getState()
+
+      const result = await deleteMessage('msg-001')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.deleteContact).toHaveBeenCalledWith('msg-001')
+      // Should refetch after deletion
+      expect(contactsApi.getAllContacts).toHaveBeenCalled()
+    })
+
+    test('should handle delete error', async () => {
+      contactsApi.deleteContact.mockResolvedValue({
+        success: false,
+        error: 'Cannot delete this message'
+      })
+
+      const { deleteMessage } = useContactsStore.getState()
+
+      const result = await deleteMessage('msg-001')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Cannot delete this message')
+    })
+
+    test('should handle deletion not supported', async () => {
+      // deleteContact returns undefined (not supported)
+      contactsApi.deleteContact = undefined
+
+      const { deleteMessage } = useContactsStore.getState()
+
+      const result = await deleteMessage('msg-001')
+
+      expect(result.success).toBe(false)
+      // When deleteContact is undefined, the error comes from the catch block
+      expect(result.error).toBe('Error deleting message')
+    })
+  })
+
+  // 11. GETTERS (local computations)
+  describe('Getters', () => {
     beforeEach(() => {
-      const messages = [
-        { id: 'msg-1', status: 'new', name: 'User 1' },
-        { id: 'msg-2', status: 'new', name: 'User 2' },
-        { id: 'msg-3', status: 'read', name: 'User 3' },
-        { id: 'msg-4', status: 'replied', name: 'User 4' },
-        { id: 'msg-5', status: 'replied', name: 'User 5' }
-      ]
-      
-      store.setState({ messages })
+      act(() => {
+        useContactsStore.setState({ messages: mockMessages })
+      })
     })
 
-    it('should filter messages by status correctly', () => {
-      const newMessages = store.getState().getMessagesByStatus('new')
-      const readMessages = store.getState().getMessagesByStatus('read')
-      const repliedMessages = store.getState().getMessagesByStatus('replied')
-      
-      expect(newMessages).toHaveLength(2)
-      expect(newMessages.every(m => m.status === 'new')).toBe(true)
-      
+    test('should filter messages by status', () => {
+      const { getMessagesByStatus } = useContactsStore.getState()
+
+      const newMessages = getMessagesByStatus('new')
+      expect(newMessages).toHaveLength(1)
+      expect(newMessages[0].status).toBe('new')
+
+      const readMessages = getMessagesByStatus('read')
       expect(readMessages).toHaveLength(1)
       expect(readMessages[0].status).toBe('read')
-      
-      expect(repliedMessages).toHaveLength(2)
-      expect(repliedMessages.every(m => m.status === 'replied')).toBe(true)
+
+      const repliedMessages = getMessagesByStatus('replied')
+      expect(repliedMessages).toHaveLength(1)
+      expect(repliedMessages[0].status).toBe('replied')
     })
 
-    it('should count new messages accurately', () => {
-      const newCount = store.getState().getNewMessagesCount()
+    test('should count new messages', () => {
+      const { getNewMessagesCount } = useContactsStore.getState()
 
-      expect(newCount).toBe(2)
+      const count = getNewMessagesCount()
+      expect(count).toBe(1) // Only msg-001 has status 'new'
     })
 
-    it('should count new and newly replied messages together', () => {
-      const messagesWithNewlyReplied = [
-        { id: 'msg-1', status: 'new', name: 'User 1' },
-        { id: 'msg-2', status: 'newlyReplied', name: 'User 2' },
-        { id: 'msg-3', status: 'read', name: 'User 3' },
-        { id: 'msg-4', status: 'replied', name: 'User 4' }
-      ]
+    test('should count new and newlyReplied messages together', () => {
+      // Add a newlyReplied message
+      act(() => {
+        useContactsStore.setState({
+          messages: [
+            ...mockMessages,
+            { id: 'msg-005', status: 'newlyReplied', name: 'Test' }
+          ]
+        })
+      })
 
-      store.setState({ messages: messagesWithNewlyReplied })
+      const { getNewMessagesCount } = useContactsStore.getState()
 
-      const newCount = store.getState().getNewMessagesCount()
-
-      expect(newCount).toBe(2) // 1 new + 1 newlyReplied
+      const count = getNewMessagesCount()
+      expect(count).toBe(2) // 1 new + 1 newlyReplied
     })
+  })
 
-    it('should calculate message statistics by status', () => {
-      const stats = store.getState().getMessagesStats()
-      
+  // 12. STATISTICS
+  describe('Statistics', () => {
+    test('should calculate message statistics correctly', () => {
+      act(() => {
+        useContactsStore.setState({
+          messages: [
+            { id: '1', status: 'new' },
+            { id: '2', status: 'new' },
+            { id: '3', status: 'read' },
+            { id: '4', status: 'replied' },
+            { id: '5', status: 'newlyReplied' },
+            { id: '6', status: 'closed' }
+          ]
+        })
+      })
+
+      const { getMessagesStats } = useContactsStore.getState()
+      const stats = getMessagesStats()
+
       expect(stats).toEqual({
-        total: 5,
+        total: 6,
         new: 2,
         read: 1,
-        replied: 2
+        replied: 1,
+        newlyReplied: 1,
+        closed: 1
+      })
+    })
+
+    test('should handle empty messages for statistics', () => {
+      act(() => {
+        useContactsStore.setState({ messages: [] })
+      })
+
+      const { getMessagesStats } = useContactsStore.getState()
+      const stats = getMessagesStats()
+
+      expect(stats).toEqual({
+        total: 0,
+        new: 0,
+        read: 0,
+        replied: 0,
+        newlyReplied: 0,
+        closed: 0
       })
     })
   })
 
-  // 5. ERROR HANDLING AND EDGE CASES (2 tests)
-  describe('Error Handling and Edge Cases', () => {
-    it('should handle async operation errors gracefully', async () => {
-      // Mock an error by overriding the implementation
-      store.setState({
-        createMessage: async () => {
-          store.getState().setLoading(true)
-          try {
-            throw new Error('Network error')
-          } catch (error) {
-            store.getState().setLoading(false)
-            return { success: false, error: error.message }
-          }
-        }
-      })
-      
-      const result = await store.getState().createMessage({
-        name: 'Test',
-        email: 'test@test.com',
-        subject: 'Test',
-        message: 'Test message'
-      })
-      
-      expect(result).toEqual({
-        success: false,
-        error: 'Network error'
-      })
-      
-      expect(store.getState().isLoading).toBe(false)
-      expect(store.getState().messages).toHaveLength(0) // Should remain empty
-    })
+  // 13. LOADING STATES
+  describe('Loading States', () => {
+    test('should set loading state during fetch', async () => {
+      let resolvePromise
+      contactsApi.getAllContacts.mockImplementation(() =>
+        new Promise(resolve => { resolvePromise = resolve })
+      )
 
-    it('should preserve data integrity on failed operations', async () => {
-      const initialMessages = [
-        { id: 'msg-1', name: 'User 1', status: 'new' }
-      ]
-      
-      store.setState({ messages: initialMessages })
-      
-      // Mock a failed delete operation
-      store.setState({
-        deleteMessage: async () => {
-          store.getState().setLoading(true)
-          try {
-            throw new Error('Delete failed')
-          } catch (error) {
-            store.getState().setLoading(false)
-            return { success: false, error: error.message }
-          }
-        }
+      const { fetchMessages } = useContactsStore.getState()
+
+      const fetchPromise = fetchMessages()
+
+      // Should be loading while waiting
+      expect(useContactsStore.getState().isLoading).toBe(true)
+
+      // Resolve the promise
+      resolvePromise({ success: true, data: [] })
+      await fetchPromise
+
+      // Should not be loading after completion
+      expect(useContactsStore.getState().isLoading).toBe(false)
+    })
+  })
+
+  // 14. ERROR HANDLING
+  describe('Error Handling', () => {
+    test('should set and clear errors', () => {
+      const { setError, clearError } = useContactsStore.getState()
+
+      act(() => {
+        setError('Test error')
       })
-      
-      const result = await store.getState().deleteMessage('msg-1')
-      
-      expect(result).toEqual({
-        success: false,
-        error: 'Delete failed'
+      expect(useContactsStore.getState().error).toBe('Test error')
+
+      act(() => {
+        clearError()
       })
-      
-      // Original messages should be preserved
-      expect(store.getState().messages).toEqual(initialMessages)
-      expect(store.getState().isLoading).toBe(false)
+      expect(useContactsStore.getState().error).toBeNull()
     })
   })
 })
