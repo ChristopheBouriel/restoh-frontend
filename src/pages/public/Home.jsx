@@ -11,7 +11,16 @@ import { ROUTES } from '../../constants'
 
 const Home = () => {
   const { addItem } = useCart()
-  const { popularItems, isLoading } = useMenu()
+  const {
+    backendPopularItems,
+    suggestedItems,
+    popularItems: localPopularItems,
+    isLoading,
+    isLoadingPopular,
+    isLoadingSuggested,
+    fetchPopularItems,
+    fetchSuggestedItems
+  } = useMenu()
   const { reviews, stats, fetchReviews, fetchStats } = useRestaurantReviewsStore()
 
   // Fetch restaurant reviews and stats on mount
@@ -19,6 +28,16 @@ const Home = () => {
     fetchReviews(1, 5) // Get first 5 reviews for home page
     fetchStats()
   }, [fetchReviews, fetchStats])
+
+  // Fetch popular and suggested items from backend
+  useEffect(() => {
+    fetchPopularItems()
+    fetchSuggestedItems()
+  }, [fetchPopularItems, fetchSuggestedItems])
+
+  // Use backend popular items if available, fallback to local
+  const displayPopularItems = backendPopularItems.length > 0 ? backendPopularItems : localPopularItems
+  const popularLoading = isLoading || isLoadingPopular
 
   const handleAddToCart = (dish) => {
     const cartItem = {
@@ -129,7 +148,7 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {isLoading ? (
+            {popularLoading ? (
               // Loading skeleton
               [1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
@@ -145,8 +164,8 @@ const Home = () => {
                 </div>
               ))
             ) : (
-              // Popular dishes from the store
-              popularItems.slice(0, 4).map((dish) => (
+              // Popular dishes from backend (with category distribution) or local fallback
+              displayPopularItems.slice(0, 4).map((dish) => (
                 <div key={dish.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
                   <div className="h-48 bg-gray-200 overflow-hidden">
                     <ImageWithFallback
@@ -183,6 +202,76 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Chef's Recommendations */}
+      {suggestedItems.length > 0 && (
+        <section className="py-16 bg-gradient-to-br from-purple-50 to-purple-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <ChefHat className="w-10 h-10 text-purple-600" />
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                  Chef's Recommendations
+                </h2>
+              </div>
+              <p className="text-xl text-gray-600">
+                Hand-picked selections by our culinary team
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {isLoadingSuggested ? (
+                // Loading skeleton
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+                    <div className="h-56 bg-gray-200"></div>
+                    <div className="p-6">
+                      <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded w-2/3 mb-4"></div>
+                      <div className="flex justify-between items-center">
+                        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                        <div className="h-10 bg-gray-200 rounded w-1/3"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                suggestedItems.slice(0, 3).map((dish) => (
+                  <div key={dish.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col border-2 border-purple-100">
+                    <div className="relative h-56 bg-gray-200 overflow-hidden">
+                      <ImageWithFallback
+                        src={dish.image}
+                        alt={dish.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-3 left-3 flex items-center gap-1 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        <ChefHat size={14} />
+                        <span>Chef's Pick</span>
+                      </div>
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col">
+                      <span className="text-sm text-purple-600 font-medium capitalize">{dish.category}</span>
+                      <h3 className="text-xl font-bold mb-2 text-gray-900">{dish.name}</h3>
+                      {dish.description && (
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{dish.description}</p>
+                      )}
+                      <div className="flex justify-between items-center mt-auto">
+                        <span className="text-2xl font-bold text-purple-600">€{dish.price.toFixed(2)}</span>
+                        <button
+                          onClick={() => handleAddToCart(dish)}
+                          className="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                        >
+                          + Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Customer Reviews */}
       <section className="py-16 bg-gray-50">
