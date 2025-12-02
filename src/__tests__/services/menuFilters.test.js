@@ -3,6 +3,7 @@ import {
   isItemAvailable,
   getAvailableItems,
   getPopularItems,
+  getSuggestedItems,
   getItemsByCategory,
   getItemById,
   filterItems,
@@ -144,6 +145,27 @@ describe('menuFilters', () => {
       expect(popularIds).not.toContain('3') // Popular but unavailable
     })
 
+    it('should exclude items with isPopularOverride set to true', () => {
+      const itemsWithOverride = [
+        { id: '1', name: 'Pizza', isAvailable: true, isPopular: true, isPopularOverride: false },
+        { id: '2', name: 'Burger', isAvailable: true, isPopular: true, isPopularOverride: true },
+        { id: '3', name: 'Salad', isAvailable: true, isPopular: true }
+      ]
+      const popular = getPopularItems(itemsWithOverride)
+      expect(popular).toHaveLength(2)
+      expect(popular.map(i => i.id)).toContain('1')
+      expect(popular.map(i => i.id)).toContain('3')
+      expect(popular.map(i => i.id)).not.toContain('2') // Overridden
+    })
+
+    it('should include items where isPopularOverride is undefined', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isAvailable: true, isPopular: true }
+      ]
+      const popular = getPopularItems(items)
+      expect(popular).toHaveLength(1)
+    })
+
     it('should handle empty array', () => {
       expect(getPopularItems([])).toEqual([])
     })
@@ -151,6 +173,45 @@ describe('menuFilters', () => {
     it('should handle null/undefined', () => {
       expect(getPopularItems(null)).toEqual([])
       expect(getPopularItems(undefined)).toEqual([])
+    })
+  })
+
+  describe('getSuggestedItems', () => {
+    it('should return only suggested and available items', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isAvailable: true, isSuggested: true },
+        { id: '2', name: 'Burger', isAvailable: true, isSuggested: false },
+        { id: '3', name: 'Salad', isAvailable: false, isSuggested: true }
+      ]
+      const suggested = getSuggestedItems(items)
+      expect(suggested).toHaveLength(1)
+      expect(suggested[0].id).toBe('1')
+    })
+
+    it('should exclude unavailable suggested items', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isAvailable: false, isSuggested: true }
+      ]
+      const suggested = getSuggestedItems(items)
+      expect(suggested).toHaveLength(0)
+    })
+
+    it('should return empty array when no items are suggested', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isAvailable: true, isSuggested: false },
+        { id: '2', name: 'Burger', isAvailable: true }
+      ]
+      const suggested = getSuggestedItems(items)
+      expect(suggested).toHaveLength(0)
+    })
+
+    it('should handle empty array', () => {
+      expect(getSuggestedItems([])).toEqual([])
+    })
+
+    it('should handle null/undefined', () => {
+      expect(getSuggestedItems(null)).toEqual([])
+      expect(getSuggestedItems(undefined)).toEqual([])
     })
   })
 
@@ -266,6 +327,47 @@ describe('menuFilters', () => {
 
     it('should handle null items', () => {
       expect(filterItems(null, { category: 'pizza' })).toEqual([])
+    })
+
+    it('should filter by isPopularOverride', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isPopularOverride: true },
+        { id: '2', name: 'Burger', isPopularOverride: false },
+        { id: '3', name: 'Salad' }
+      ]
+      const overridden = filterItems(items, { isPopularOverride: true })
+      expect(overridden).toHaveLength(1)
+      expect(overridden[0].id).toBe('1')
+
+      const notOverridden = filterItems(items, { isPopularOverride: false })
+      expect(notOverridden).toHaveLength(1)
+      expect(notOverridden[0].id).toBe('2')
+    })
+
+    it('should filter by isSuggested', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isSuggested: true },
+        { id: '2', name: 'Burger', isSuggested: false },
+        { id: '3', name: 'Salad' }
+      ]
+      const suggested = filterItems(items, { isSuggested: true })
+      expect(suggested).toHaveLength(1)
+      expect(suggested[0].id).toBe('1')
+
+      const notSuggested = filterItems(items, { isSuggested: false })
+      expect(notSuggested).toHaveLength(1)
+      expect(notSuggested[0].id).toBe('2')
+    })
+
+    it('should combine isPopularOverride and isSuggested filters', () => {
+      const items = [
+        { id: '1', name: 'Pizza', isPopularOverride: true, isSuggested: true },
+        { id: '2', name: 'Burger', isPopularOverride: true, isSuggested: false },
+        { id: '3', name: 'Salad', isPopularOverride: false, isSuggested: true }
+      ]
+      const result = filterItems(items, { isPopularOverride: true, isSuggested: true })
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('1')
     })
   })
 
