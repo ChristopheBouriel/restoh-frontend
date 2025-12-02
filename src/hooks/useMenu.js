@@ -5,11 +5,17 @@ export const useMenu = () => {
   const {
     items,
     categories,
+    popularItems,
+    suggestedItems,
     isLoading,
+    isLoadingPopular,
+    isLoadingSuggested,
     error,
     setLoading,
     fetchMenuItems,
     fetchCategories,
+    fetchPopularItems,
+    fetchSuggestedItems,
     getAvailableItems,
     getPopularItems,
     getItemsByCategory,
@@ -17,7 +23,10 @@ export const useMenu = () => {
     createItem,
     updateItem,
     deleteItem,
-    toggleAvailability
+    toggleAvailability,
+    togglePopularOverride,
+    resetAllPopularOverrides,
+    toggleSuggested
   } = useMenuStore()
 
   useEffect(() => {
@@ -34,8 +43,19 @@ export const useMenu = () => {
     return getAvailableItems()
   }
 
+  // Returns local fallback (filters from items)
   const getPublicPopularItems = () => {
     return getPopularItems()
+  }
+
+  // Returns backend popular items (with category distribution)
+  const getBackendPopularItems = () => {
+    return popularItems
+  }
+
+  // Returns suggested items (chef's recommendations)
+  const getSuggestedItems = () => {
+    return suggestedItems
   }
 
   const getPublicItemsByCategory = (category) => {
@@ -64,18 +84,36 @@ export const useMenu = () => {
     return await toggleAvailability(id)
   }
 
+  const handleTogglePopularOverride = async (id) => {
+    return await togglePopularOverride(id)
+  }
+
+  const handleResetAllPopularOverrides = async () => {
+    return await resetAllPopularOverrides()
+  }
+
+  const handleToggleSuggested = async (id) => {
+    return await toggleSuggested(id)
+  }
+
   return {
     // State
     items: getAllItems(),
     availableItems: getPublicMenu(),
     popularItems: getPublicPopularItems(),
+    backendPopularItems: getBackendPopularItems(),
+    suggestedItems: getSuggestedItems(),
     categories,
     isLoading,
+    isLoadingPopular,
+    isLoadingSuggested,
     error,
 
     // Public getters
     getPublicMenu,
     getPublicPopularItems,
+    getBackendPopularItems,
+    getSuggestedItems,
     getPublicItemsByCategory,
     getItemById,
 
@@ -84,10 +122,15 @@ export const useMenu = () => {
     updateItem: handleUpdateItem,
     deleteItem: handleDeleteItem,
     toggleAvailability: handleToggleAvailability,
+    togglePopularOverride: handleTogglePopularOverride,
+    resetAllPopularOverrides: handleResetAllPopularOverrides,
+    toggleSuggested: handleToggleSuggested,
 
     // Loading actions
     fetchMenuItems,
     fetchCategories,
+    fetchPopularItems,
+    fetchSuggestedItems,
 
     // Utilities
     setLoading

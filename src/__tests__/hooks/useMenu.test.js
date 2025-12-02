@@ -10,11 +10,17 @@ describe('useMenu', () => {
   const mockMenuStore = {
     items: [],
     categories: ['pizza', 'pasta', 'dessert'],
+    popularItems: [],
+    suggestedItems: [],
     isLoading: false,
+    isLoadingPopular: false,
+    isLoadingSuggested: false,
     error: null,
     setLoading: vi.fn(),
     fetchMenuItems: vi.fn(),
     fetchCategories: vi.fn(),
+    fetchPopularItems: vi.fn(),
+    fetchSuggestedItems: vi.fn(),
     getAvailableItems: vi.fn(),
     getPopularItems: vi.fn(),
     getItemsByCategory: vi.fn(),
@@ -22,7 +28,10 @@ describe('useMenu', () => {
     createItem: vi.fn(),
     updateItem: vi.fn(),
     deleteItem: vi.fn(),
-    toggleAvailability: vi.fn()
+    toggleAvailability: vi.fn(),
+    togglePopularOverride: vi.fn(),
+    resetAllPopularOverrides: vi.fn(),
+    toggleSuggested: vi.fn()
   }
 
   beforeEach(() => {
@@ -253,6 +262,139 @@ describe('useMenu', () => {
       })
 
       expect(mockMenuStore.fetchMenuItems).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe('Popular Items & Suggestions', () => {
+    it('should return backend popular items', () => {
+      const mockBackendPopular = [
+        { id: '1', name: 'Pizza', orderCount: 100 },
+        { id: '2', name: 'Pasta', orderCount: 80 }
+      ]
+      mockMenuStore.popularItems = mockBackendPopular
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      expect(result.current.backendPopularItems).toEqual(mockBackendPopular)
+      expect(result.current.getBackendPopularItems()).toEqual(mockBackendPopular)
+    })
+
+    it('should return suggested items', () => {
+      const mockSuggested = [
+        { id: '1', name: 'Chef Special Pizza', isSuggested: true },
+        { id: '2', name: 'House Pasta', isSuggested: true }
+      ]
+      mockMenuStore.suggestedItems = mockSuggested
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      expect(result.current.suggestedItems).toEqual(mockSuggested)
+      expect(result.current.getSuggestedItems()).toEqual(mockSuggested)
+    })
+
+    it('should expose loading states for popular and suggested', () => {
+      mockMenuStore.isLoadingPopular = true
+      mockMenuStore.isLoadingSuggested = true
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      expect(result.current.isLoadingPopular).toBe(true)
+      expect(result.current.isLoadingSuggested).toBe(true)
+    })
+
+    it('should expose fetchPopularItems', () => {
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      expect(result.current.fetchPopularItems).toBe(mockMenuStore.fetchPopularItems)
+    })
+
+    it('should expose fetchSuggestedItems', () => {
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      expect(result.current.fetchSuggestedItems).toBe(mockMenuStore.fetchSuggestedItems)
+    })
+  })
+
+  describe('Admin Actions - Popular Override & Suggestions', () => {
+    it('should toggle popular override successfully', async () => {
+      const updatedItem = { id: '123', name: 'Pizza', isPopularOverride: true }
+      mockMenuStore.togglePopularOverride.mockResolvedValue({ success: true, item: updatedItem })
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      const response = await result.current.togglePopularOverride('123')
+
+      expect(mockMenuStore.togglePopularOverride).toHaveBeenCalledWith('123')
+      expect(response).toEqual({ success: true, item: updatedItem })
+    })
+
+    it('should handle toggle popular override error', async () => {
+      const errorMessage = 'Toggle failed'
+      mockMenuStore.togglePopularOverride.mockResolvedValue({ success: false, error: errorMessage })
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      const response = await result.current.togglePopularOverride('123')
+
+      expect(response).toEqual({ success: false, error: errorMessage })
+    })
+
+    it('should reset all popular overrides successfully', async () => {
+      mockMenuStore.resetAllPopularOverrides.mockResolvedValue({ success: true, count: 5 })
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      const response = await result.current.resetAllPopularOverrides()
+
+      expect(mockMenuStore.resetAllPopularOverrides).toHaveBeenCalled()
+      expect(response).toEqual({ success: true, count: 5 })
+    })
+
+    it('should handle reset all popular overrides error', async () => {
+      const errorMessage = 'Reset failed'
+      mockMenuStore.resetAllPopularOverrides.mockResolvedValue({ success: false, error: errorMessage })
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      const response = await result.current.resetAllPopularOverrides()
+
+      expect(response).toEqual({ success: false, error: errorMessage })
+    })
+
+    it('should toggle suggested successfully', async () => {
+      const updatedItem = { id: '123', name: 'Pizza', isSuggested: true }
+      mockMenuStore.toggleSuggested.mockResolvedValue({ success: true, item: updatedItem })
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      const response = await result.current.toggleSuggested('123')
+
+      expect(mockMenuStore.toggleSuggested).toHaveBeenCalledWith('123')
+      expect(response).toEqual({ success: true, item: updatedItem })
+    })
+
+    it('should handle toggle suggested error', async () => {
+      const errorMessage = 'Toggle suggested failed'
+      mockMenuStore.toggleSuggested.mockResolvedValue({ success: false, error: errorMessage })
+      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+
+      const { result } = renderHook(() => useMenu())
+
+      const response = await result.current.toggleSuggested('123')
+
+      expect(response).toEqual({ success: false, error: errorMessage })
     })
   })
 })

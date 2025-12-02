@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Plus,
   Search,
@@ -8,7 +8,10 @@ import {
   EyeOff,
   Filter,
   X,
-  Upload
+  Star,
+  StarOff,
+  ChefHat,
+  RotateCcw
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useMenu } from '../../hooks/useMenu'
@@ -22,6 +25,7 @@ const MenuManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [activeFilters, setActiveFilters] = useState([]) // 'suggested', 'excluded', 'popular'
 
   // Use centralized menu hook
   const {
@@ -30,7 +34,10 @@ const MenuManagement = () => {
     addItem,
     updateItem,
     deleteItem,
-    toggleAvailability
+    toggleAvailability,
+    togglePopularOverride,
+    resetAllPopularOverrides,
+    toggleSuggested
   } = useMenu()
   const [formData, setFormData] = useState({
     name: '',
@@ -72,8 +79,35 @@ const MenuManagement = () => {
       filtered = MenuService.search(filtered, searchTerm)
     }
 
+    // Apply active filters
+    if (activeFilters.includes('suggested')) {
+      filtered = filtered.filter(item => item.isSuggested)
+    }
+    if (activeFilters.includes('excluded')) {
+      filtered = filtered.filter(item => item.isPopularOverride)
+    }
+    if (activeFilters.includes('popular')) {
+      filtered = filtered.filter(item => item.isPopular && !item.isPopularOverride)
+    }
+
     return filtered
-  }, [menuItems, searchTerm, selectedCategory])
+  }, [menuItems, searchTerm, selectedCategory, activeFilters])
+
+  // Toggle filter chip
+  const toggleFilter = (filter) => {
+    setActiveFilters(prev =>
+      prev.includes(filter)
+        ? prev.filter(f => f !== filter)
+        : [...prev, filter]
+    )
+  }
+
+  // Count items for filter badges
+  const filterCounts = useMemo(() => ({
+    suggested: menuItems.filter(item => item.isSuggested).length,
+    excluded: menuItems.filter(item => item.isPopularOverride).length,
+    popular: menuItems.filter(item => item.isPopular && !item.isPopularOverride).length
+  }), [menuItems])
 
   const resetForm = () => {
     setFormData({
@@ -188,6 +222,41 @@ const MenuManagement = () => {
     }
   }
 
+  const handleTogglePopularOverride = async (id, name) => {
+    const result = await togglePopularOverride(id)
+    if (result.success) {
+      const isExcluded = result.item?.isPopularOverride
+      toast.success(`${name} ${isExcluded ? 'excluded from' : 'included in'} popular items`)
+    } else {
+      toast.error(result.error || 'Error updating popular status')
+    }
+  }
+
+  const handleResetAllPopularOverrides = async () => {
+    if (filterCounts.excluded === 0) {
+      toast.error('No items to reset')
+      return
+    }
+    if (window.confirm(`Reset all ${filterCounts.excluded} excluded items to be included in popular calculation?`)) {
+      const result = await resetAllPopularOverrides()
+      if (result.success) {
+        toast.success(`${result.count || filterCounts.excluded} items reset`)
+      } else {
+        toast.error(result.error || 'Error resetting popular overrides')
+      }
+    }
+  }
+
+  const handleToggleSuggested = async (id, name) => {
+    const result = await toggleSuggested(id)
+    if (result.success) {
+      const isSuggested = result.item?.isSuggested
+      toast.success(`${name} ${isSuggested ? 'added to' : 'removed from'} suggestions`)
+    } else {
+      toast.error(result.error || 'Error updating suggestion status')
+    }
+  }
+
   const getCategoryLabel = (category) => {
     return categories.find(cat => cat.value === category)?.label || category
   }
@@ -262,6 +331,68 @@ const MenuManagement = () => {
             />
           </div>
         </div>
+
+        {/* Filter chips */}
+        <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+          <span className="text-sm text-gray-500">Quick filters:</span>
+
+          <button
+            onClick={() => toggleFilter('suggested')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              activeFilters.includes('suggested')
+                ? 'bg-purple-600 text-white'
+                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+            }`}
+          >
+            <ChefHat size={14} />
+            <span>Suggested ({filterCounts.suggested})</span>
+          </button>
+
+          <button
+            onClick={() => toggleFilter('popular')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              activeFilters.includes('popular')
+                ? 'bg-amber-600 text-white'
+                : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+            }`}
+          >
+            <Star size={14} />
+            <span>Popular ({filterCounts.popular})</span>
+          </button>
+
+          <button
+            onClick={() => toggleFilter('excluded')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              activeFilters.includes('excluded')
+                ? 'bg-gray-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <StarOff size={14} />
+            <span>Excluded ({filterCounts.excluded})</span>
+          </button>
+
+          {filterCounts.excluded > 0 && (
+            <button
+              onClick={handleResetAllPopularOverrides}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors ml-2"
+              title="Reset all excluded items"
+            >
+              <RotateCcw size={14} />
+              <span>Reset Exclusions</span>
+            </button>
+          )}
+
+          {activeFilters.length > 0 && (
+            <button
+              onClick={() => setActiveFilters([])}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X size={14} />
+              <span>Clear filters</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Liste des articles */}
@@ -274,7 +405,7 @@ const MenuManagement = () => {
                 alt={item.name}
                 className="w-full h-48 object-cover"
               />
-              <div className="absolute top-2 right-2 flex gap-2">
+              <div className="absolute top-2 right-2 flex flex-wrap gap-1 max-w-[60%] justify-end">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   item.isAvailable
                     ? 'bg-green-100 text-green-800'
@@ -284,7 +415,25 @@ const MenuManagement = () => {
                 </span>
                 {item.isVegetarian && (
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                    🌱 Vegetarian
+                    🌱 Veg
+                  </span>
+                )}
+                {item.isSuggested && (
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    <ChefHat size={12} />
+                    Suggested
+                  </span>
+                )}
+                {item.isPopular && !item.isPopularOverride && (
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                    <Star size={12} />
+                    Popular
+                  </span>
+                )}
+                {item.isPopularOverride && (
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                    <StarOff size={12} />
+                    Excluded
                   </span>
                 )}
               </div>
@@ -326,6 +475,7 @@ const MenuManagement = () => {
                 </div>
               )}
 
+              {/* Action buttons - Row 1: Main actions */}
               <div className="flex space-x-2 mt-auto">
                 <button
                   onClick={() => openEditModal(item)}
@@ -342,6 +492,7 @@ const MenuManagement = () => {
                       ? 'bg-red-100 text-red-700 hover:bg-red-200'
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
                   }`}
+                  title={item.isAvailable ? 'Disable' : 'Enable'}
                 >
                   {item.isAvailable ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -349,8 +500,38 @@ const MenuManagement = () => {
                 <button
                   onClick={() => handleDeleteItem(item.id, item.name)}
                   className="flex items-center justify-center px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                  title="Delete"
                 >
                   <Trash2 size={16} />
+                </button>
+              </div>
+
+              {/* Action buttons - Row 2: Popular & Suggestion toggles */}
+              <div className="flex space-x-2 mt-2">
+                <button
+                  onClick={() => handleToggleSuggested(item.id, item.name)}
+                  className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
+                    item.isSuggested
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                  }`}
+                  title={item.isSuggested ? 'Remove from suggestions' : 'Add to suggestions'}
+                >
+                  <ChefHat size={16} />
+                  <span className="text-xs">{item.isSuggested ? 'Suggested' : 'Suggest'}</span>
+                </button>
+
+                <button
+                  onClick={() => handleTogglePopularOverride(item.id, item.name)}
+                  className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
+                    item.isPopularOverride
+                      ? 'bg-gray-600 text-white hover:bg-gray-700'
+                      : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  }`}
+                  title={item.isPopularOverride ? 'Include in popular' : 'Exclude from popular'}
+                >
+                  {item.isPopularOverride ? <StarOff size={16} /> : <Star size={16} />}
+                  <span className="text-xs">{item.isPopularOverride ? 'Excluded' : 'Popular'}</span>
                 </button>
               </div>
             </div>
