@@ -5,6 +5,16 @@ import { useReservations } from '../../hooks/useReservations'
 import { useAuth } from '../../hooks/useAuth'
 import useReservationsStore from '../../store/reservationsStore'
 import { toast } from 'react-hot-toast'
+import * as reservationsApi from '../../api/reservationsApi'
+
+// Mock the API (not the store!)
+vi.mock('../../api/reservationsApi')
+
+// Mock external dependencies
+vi.mock('react-hot-toast')
+
+// Mock useAuth hook since it's another hook dependency
+vi.mock('../../hooks/useAuth')
 
 // Mock data
 const mockUser = {
@@ -53,52 +63,45 @@ const mockReservations = [
   }
 ]
 
-// Mock hooks and dependencies
-vi.mock('../../hooks/useAuth')
-vi.mock('../../store/reservationsStore')
-vi.mock('react-hot-toast', () => ({
-  toast: {
-    error: vi.fn(),
-    success: vi.fn()
-  }
-}))
-
-const mockCreateReservation = vi.fn()
-const mockUpdateReservation = vi.fn()
-const mockCancelReservation = vi.fn()
-const mockGetReservationsByUser = vi.fn()
-
 describe('useReservations Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Mock current date to 2025-01-01
     vi.setSystemTime(new Date('2025-01-01'))
-    
-    // Default mock setup
+
+    // Reset store state with user's reservations (backend filters by user)
+    act(() => {
+      useReservationsStore.setState({
+        reservations: mockReservations.filter(r => r.userId === 'user-1'),
+        isLoading: false,
+        error: null,
+        isAdminData: false
+      })
+    })
+
+    // Default authenticated user mock
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser
     })
 
-    vi.mocked(useReservationsStore).mockReturnValue({
-      // Backend filters reservations by user, so store only contains user's reservations
-      reservations: mockReservations.filter(r => r.userId === 'user-1'),
-      createReservation: mockCreateReservation,
-      updateReservation: mockUpdateReservation,
-      cancelReservation: mockCancelReservation,
-      getReservationsByUser: mockGetReservationsByUser,
-      getUpcomingReservations: vi.fn()
+    // Default toast mocks
+    vi.mocked(toast.success).mockImplementation(() => {})
+    vi.mocked(toast.error).mockImplementation(() => {})
+
+    // Default API mocks
+    reservationsApi.createReservation.mockResolvedValue({
+      success: true,
+      data: { id: 'new-1', ...mockReservations[0] }
     })
-
-    // Mock getReservationsByUser to return user's reservations
-    mockGetReservationsByUser.mockImplementation((userId) =>
-      mockReservations.filter(r => r.userId === userId)
-    )
-
-    // Mock successful operations by default
-    mockCreateReservation.mockResolvedValue({ success: true })
-    mockUpdateReservation.mockResolvedValue({ success: true })
-    mockCancelReservation.mockResolvedValue({ success: true })
+    reservationsApi.updateReservation.mockResolvedValue({
+      success: true,
+      data: { ...mockReservations[0], date: '2025-03-20' }
+    })
+    reservationsApi.cancelReservation.mockResolvedValue({
+      success: true,
+      data: { ...mockReservations[0], status: 'cancelled' }
+    })
   })
 
   afterEach(() => {
@@ -109,14 +112,13 @@ describe('useReservations Hook', () => {
   // 1. ÉTAT INITIAL ET CALCULS (4 tests)
   test('should return empty reservations when user is not authenticated', () => {
     vi.mocked(useAuth).mockReturnValue({ user: null })
-    // When not authenticated, backend returns empty array
-    vi.mocked(useReservationsStore).mockReturnValue({
-      reservations: [],
-      createReservation: mockCreateReservation,
-      updateReservation: mockUpdateReservation,
-      cancelReservation: mockCancelReservation,
-      getReservationsByUser: mockGetReservationsByUser,
-      getUpcomingReservations: vi.fn()
+    // When not authenticated, store would have empty reservations
+    act(() => {
+      useReservationsStore.setState({
+        reservations: [],
+        isLoading: false,
+        error: null
+      })
     })
 
     const { result } = renderHook(() => useReservations())
@@ -132,7 +134,7 @@ describe('useReservations Hook', () => {
     const { result } = renderHook(() => useReservations())
 
     expect(result.current.reservations).toHaveLength(3)
-    
+
     // Should only contain user's reservations, not other users
     const userIds = result.current.reservations.map(r => r.userId)
     expect(userIds.every(id => id === 'user-1')).toBe(true)
@@ -143,10 +145,10 @@ describe('useReservations Hook', () => {
 
     // Upcoming = future dates + not cancelled, sorted by date
     expect(result.current.upcomingReservations).toHaveLength(2)
-    
+
     const upcomingDates = result.current.upcomingReservations.map(r => r.date)
     expect(upcomingDates).toEqual(['2025-01-10', '2025-02-15'])
-    
+
     // Should exclude cancelled and past reservations
     const statuses = result.current.upcomingReservations.map(r => r.status)
     expect(statuses).not.toContain('cancelled')
@@ -177,7 +179,7 @@ describe('useReservations Hook', () => {
     })
 
     // Only reservation data is sent - user info is attached by backend auth middleware
-    expect(mockCreateReservation).toHaveBeenCalledWith({
+    expect(reservationsApi.createReservation).toHaveBeenCalledWith({
       date: '2025-03-15',
       time: '19:00',
       guests: 4,
@@ -185,7 +187,7 @@ describe('useReservations Hook', () => {
     })
 
     expect(toast.success).toHaveBeenCalledWith('Reservation created successfully!')
-    expect(createResult).toEqual({ success: true })
+    expect(createResult.success).toBe(true)
   })
 
   test('should return error when creating reservation without authentication', async () => {
@@ -205,7 +207,7 @@ describe('useReservations Hook', () => {
     })
 
     expect(toast.error).toHaveBeenCalledWith('You must be logged in to create a reservation')
-    expect(mockCreateReservation).not.toHaveBeenCalled()
+    expect(reservationsApi.createReservation).not.toHaveBeenCalled()
     expect(createResult).toEqual({ success: false, error: 'User not authenticated' })
   })
 
@@ -223,7 +225,7 @@ describe('useReservations Hook', () => {
       await result.current.updateReservation('1', reservationData)
     })
 
-    expect(mockUpdateReservation).toHaveBeenCalledWith('1', reservationData)
+    expect(reservationsApi.updateReservation).toHaveBeenCalledWith('1', reservationData)
     expect(toast.success).toHaveBeenCalledWith('Reservation updated successfully!')
   })
 
@@ -241,11 +243,11 @@ describe('useReservations Hook', () => {
 
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
     expect(cancelResult.success).toBe(true)
-    expect(mockCancelReservation).toHaveBeenCalledWith('1')
+    expect(reservationsApi.cancelReservation).toHaveBeenCalledWith('1')
     expect(toast.success).toHaveBeenCalledWith('Reservation cancelled successfully')
   })
 
-  // 3. VALIDATION ET GESTION D'ERREURS (3 tests) 
+  // 3. VALIDATION ET GESTION D'ERREURS (4 tests)
   test('should validate reservation data correctly', () => {
     const { result } = renderHook(() => useReservations())
 
@@ -289,7 +291,10 @@ describe('useReservations Hook', () => {
   })
 
   test('should handle store errors gracefully with toast', async () => {
-    mockCreateReservation.mockResolvedValue({ success: false, error: 'Store error' })
+    reservationsApi.createReservation.mockResolvedValue({
+      success: false,
+      error: 'Store error'
+    })
 
     const { result } = renderHook(() => useReservations())
 
@@ -305,7 +310,8 @@ describe('useReservations Hook', () => {
     })
 
     expect(toast.error).toHaveBeenCalledWith('Store error')
-    expect(createResult).toEqual({ success: false, error: 'Store error' })
+    expect(createResult.success).toBe(false)
+    expect(createResult.error).toBe('Store error')
   })
 
   test('should return error with details when backend provides suggestedTables', async () => {
@@ -319,7 +325,7 @@ describe('useReservations Hook', () => {
       }
     }
 
-    mockCreateReservation.mockResolvedValue(errorWithDetails)
+    reservationsApi.createReservation.mockResolvedValue(errorWithDetails)
 
     const { result } = renderHook(() => useReservations())
 
@@ -336,7 +342,7 @@ describe('useReservations Hook', () => {
 
     // Should NOT show toast when details are present (InlineAlert will handle it)
     expect(toast.error).not.toHaveBeenCalled()
-    expect(createResult).toEqual(errorWithDetails)
+    expect(createResult.details).toEqual(errorWithDetails.details)
   })
 
   // 4. UTILITAIRES ET FORMATAGE (2 tests)
@@ -370,7 +376,7 @@ describe('useReservations Hook', () => {
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this reservation?')
     expect(cancelResult.success).toBe(false)
     expect(cancelResult.error).toBe('Cancellation aborted by user')
-    expect(mockCancelReservation).not.toHaveBeenCalled()
+    expect(reservationsApi.cancelReservation).not.toHaveBeenCalled()
   })
 
   test('should handle empty reservation data', () => {
@@ -410,7 +416,7 @@ describe('useReservations Hook', () => {
       }
     }
 
-    mockUpdateReservation.mockResolvedValue(errorWithDetails)
+    reservationsApi.updateReservation.mockResolvedValue(errorWithDetails)
 
     const { result } = renderHook(() => useReservations())
 
@@ -422,11 +428,11 @@ describe('useReservations Hook', () => {
     // Should NOT show toast when details are present
     expect(toast.error).not.toHaveBeenCalled()
     expect(toast.success).not.toHaveBeenCalled()
-    expect(updateResult).toEqual(errorWithDetails)
+    expect(updateResult.details).toEqual(errorWithDetails.details)
   })
 
   test('should handle network errors gracefully', async () => {
-    mockCreateReservation.mockRejectedValue(new Error('Network error'))
+    reservationsApi.createReservation.mockRejectedValue(new Error('Network error'))
 
     const { result } = renderHook(() => useReservations())
 
@@ -439,7 +445,8 @@ describe('useReservations Hook', () => {
       })
     })
 
+    // Store catches network errors and returns formatted error message
     expect(toast.error).toHaveBeenCalledWith('Error creating reservation')
-    expect(createResult).toEqual({ success: false, error: 'Network error' })
+    expect(createResult).toEqual({ success: false, error: 'Error creating reservation' })
   })
 })
