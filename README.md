@@ -58,7 +58,7 @@ npm run dev          # Lancer le serveur de développement
 npm run build        # Build de production
 npm run preview      # Preview du build de production
 npm run lint         # Linter le code avec ESLint
-npm test             # Lancer les tests (1200+ tests)
+npm test             # Lancer les tests (1400+ tests)
 npm run test:ui      # Interface Vitest UI
 npm run test:watch   # Mode watch
 npm run test:coverage # Couverture de code
@@ -138,17 +138,23 @@ Modifier `tailwind.config.js` pour personnaliser les couleurs, fonts, etc.
 
 ## Tests
 
-Le projet dispose de plus de 1200 tests couvrant :
-- **Stores** : authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore
-- **Services** : MenuService, ReservationService, OrderService, AuthService
-- **Composants** : Pages, formulaires, navigation
+Le projet dispose de plus de **1400 tests** couvrant :
+- **Stores** : authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore
+- **Hooks** : useAuth, useCart, useMenu, useOrders, useReservations
+- **Services** : MenuService, ReservationService, OrderService, AuthService, ContactService
+- **Composants** : Pages, formulaires, navigation, composants communs
 
 ```bash
 npm test              # Tous les tests
 npm run test:ui       # Interface Vitest
-npm run test:coverage # Couverture de code
+npm run test:coverage # Couverture de code (rapport HTML dans coverage/)
 npm run test:watch    # Mode watch
 ```
+
+### Bonnes pratiques de tests
+- Les tests de hooks utilisent le **vrai store** avec l'**API mockée** (pas de mock du store entier)
+- Les tests vérifient contre la **spécification** (signature de fonction), pas contre l'implémentation
+- Les dépendances externes (toast, navigate, context) sont mockées comme effets de bord
 
 ## 📡 Intégration Backend
 
@@ -227,7 +233,8 @@ Pour toute question ou problème :
 
 ## Roadmap
 
-- [x] Tests unitaires complets (1200+ tests)
+- [x] Tests unitaires complets (1400+ tests)
+- [x] Rapport de couverture de code
 - [ ] Tests E2E avec Playwright/Cypress
 - [ ] PWA (Progressive Web App)
 - [ ] Internationalisation (i18n)
