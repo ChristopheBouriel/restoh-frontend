@@ -7,6 +7,7 @@ import {
   isItemAvailable,
   getAvailableItems,
   getPopularItems,
+  getSuggestedItems,
   getItemsByCategory,
   getItemById,
   filterItems,
@@ -43,6 +44,15 @@ class MenuService {
    */
   getPopular(items) {
     return getPopularItems(items)
+  }
+
+  /**
+   * Get suggested items (restaurant recommendations)
+   * @param {Array} items - Array of menu items
+   * @returns {Array} Suggested and available items
+   */
+  getSuggested(items) {
+    return getSuggestedItems(items)
   }
 
   /**
@@ -232,6 +242,9 @@ class MenuService {
       cuisine: item.cuisine || 'continental',
       isAvailable: Boolean(item.isAvailable),
       isPopular: Boolean(item.isPopular),
+      isPopularOverride: Boolean(item.isPopularOverride),
+      isSuggested: Boolean(item.isSuggested),
+      orderCount: item.orderCount || 0,
       deleted: Boolean(item.deleted)
     }))
   }
@@ -265,12 +278,16 @@ class MenuService {
         available: 0,
         unavailable: 0,
         popular: 0,
+        suggested: 0,
+        overridden: 0,
         categories: 0
       }
     }
 
     const available = this.getAvailable(items)
     const popular = this.getPopular(items)
+    const suggested = this.getSuggested(items)
+    const overridden = items.filter(i => i.isPopularOverride)
     const categories = this.extractCategories(items)
 
     return {
@@ -278,6 +295,8 @@ class MenuService {
       available: available.length,
       unavailable: items.length - available.length,
       popular: popular.length,
+      suggested: suggested.length,
+      overridden: overridden.length,
       categories: categories.length,
       categoryList: categories
     }

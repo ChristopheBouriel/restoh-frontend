@@ -86,6 +86,22 @@ describe('MenuService', () => {
       expect(result[0].price).toBe(8.99)
       expect(result[2].price).toBe(14.99)
     })
+
+    it('should get suggested items', () => {
+      const itemsWithSuggested = [
+        { id: '1', name: 'Pizza', isAvailable: true, isSuggested: true },
+        { id: '2', name: 'Salad', isAvailable: true, isSuggested: false },
+        { id: '3', name: 'Burger', isAvailable: false, isSuggested: true }
+      ]
+      const result = MenuService.getSuggested(itemsWithSuggested)
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('1')
+    })
+
+    it('should return empty array for getSuggested with no suggested items', () => {
+      const result = MenuService.getSuggested(mockMenuItems)
+      expect(result).toEqual([])
+    })
   })
 
   describe('enrichCartItems', () => {
@@ -313,6 +329,9 @@ describe('MenuService', () => {
       expect(result[0].cuisine).toBe('continental')
       expect(result[0].isAvailable).toBe(false)
       expect(result[0].isPopular).toBe(false)
+      expect(result[0].isPopularOverride).toBe(false)
+      expect(result[0].isSuggested).toBe(false)
+      expect(result[0].orderCount).toBe(0)
     })
 
     it('should ensure booleans for availability', () => {
@@ -335,7 +354,10 @@ describe('MenuService', () => {
           preparationTime: 15,
           cuisine: 'italian',
           isAvailable: true,
-          isPopular: true
+          isPopular: true,
+          isPopularOverride: true,
+          isSuggested: true,
+          orderCount: 42
         }
       ]
       const result = MenuService.normalizeItems(rawItems)
@@ -345,6 +367,20 @@ describe('MenuService', () => {
       expect(result[0].cuisine).toBe('italian')
       expect(result[0].isAvailable).toBe(true)
       expect(result[0].isPopular).toBe(true)
+      expect(result[0].isPopularOverride).toBe(true)
+      expect(result[0].isSuggested).toBe(true)
+      expect(result[0].orderCount).toBe(42)
+    })
+
+    it('should ensure booleans for isPopularOverride and isSuggested', () => {
+      const rawItems = [
+        { id: '1', name: 'Pizza', price: 12.99, isPopularOverride: 1, isSuggested: 'yes' }
+      ]
+      const result = MenuService.normalizeItems(rawItems)
+      expect(result[0].isPopularOverride).toBe(true)
+      expect(typeof result[0].isPopularOverride).toBe('boolean')
+      expect(result[0].isSuggested).toBe(true)
+      expect(typeof result[0].isSuggested).toBe('boolean')
     })
 
     it('should handle empty array', () => {
@@ -409,8 +445,31 @@ describe('MenuService', () => {
       expect(result.available).toBe(2)
       expect(result.unavailable).toBe(1)
       expect(result.popular).toBe(1)
+      expect(result.suggested).toBe(0)
+      expect(result.overridden).toBe(0)
       expect(result.categories).toBe(3)
       expect(result.categoryList).toHaveLength(3)
+    })
+
+    it('should count suggested items', () => {
+      const itemsWithSuggested = [
+        { id: '1', name: 'Pizza', isAvailable: true, isSuggested: true, category: 'pizza' },
+        { id: '2', name: 'Salad', isAvailable: true, isSuggested: true, category: 'salad' },
+        { id: '3', name: 'Burger', isAvailable: true, isSuggested: false, category: 'burger' }
+      ]
+      const result = MenuService.getStats(itemsWithSuggested)
+      expect(result.suggested).toBe(2)
+    })
+
+    it('should count overridden items', () => {
+      const itemsWithOverride = [
+        { id: '1', name: 'Pizza', isAvailable: true, isPopular: true, isPopularOverride: true, category: 'pizza' },
+        { id: '2', name: 'Salad', isAvailable: true, isPopular: true, isPopularOverride: false, category: 'salad' },
+        { id: '3', name: 'Burger', isAvailable: true, isPopular: true, category: 'burger' }
+      ]
+      const result = MenuService.getStats(itemsWithOverride)
+      expect(result.overridden).toBe(1)
+      expect(result.popular).toBe(2) // Pizza is overridden, so only Salad and Burger count as popular
     })
 
     it('should handle empty items', () => {
@@ -419,12 +478,16 @@ describe('MenuService', () => {
       expect(result.available).toBe(0)
       expect(result.unavailable).toBe(0)
       expect(result.popular).toBe(0)
+      expect(result.suggested).toBe(0)
+      expect(result.overridden).toBe(0)
       expect(result.categories).toBe(0)
     })
 
     it('should handle null items', () => {
       const result = MenuService.getStats(null)
       expect(result.total).toBe(0)
+      expect(result.suggested).toBe(0)
+      expect(result.overridden).toBe(0)
     })
   })
 })
