@@ -15,16 +15,6 @@ export const getMenuItems = async (category = null) => {
   }
 }
 
-// Get all categories
-export const getCategories = async () => {
-  try {
-    const response = await apiClient.get('/menu/categories')
-    return { success: true, ...response }
-  } catch (error) {
-    return { success: false, error: error.error || 'Error fetching categories' }
-  }
-}
-
 // Create a new item (ADMIN)
 export const createMenuItem = async (itemData) => {
   try {

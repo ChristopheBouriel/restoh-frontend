@@ -1,284 +1,396 @@
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { useMenu } from '../../hooks/useMenu'
 import useMenuStore from '../../store/menuStore'
+import * as menuApi from '../../api/menuApi'
 
-// Mock du store
-vi.mock('../../store/menuStore')
+// Mock the API (not the store!)
+vi.mock('../../api/menuApi')
+
+// Mock data
+const mockMenuItems = [
+  { id: '1', name: 'Pizza Margherita', price: 12.50, category: 'pizza', isAvailable: true },
+  { id: '2', name: 'Spaghetti Carbonara', price: 14.00, category: 'pasta', isAvailable: true },
+  { id: '3', name: 'Tiramisu', price: 8.00, category: 'dessert', isAvailable: false },
+  { id: '4', name: 'Pizza Pepperoni', price: 14.50, category: 'pizza', isAvailable: true, isPopular: true },
+  { id: '5', name: 'Risotto', price: 16.00, category: 'pasta', isAvailable: true, isSuggested: true }
+]
+
+const mockCategories = ['pizza', 'pasta', 'dessert']
+
+const mockPopularItems = [
+  { id: '4', name: 'Pizza Pepperoni', price: 14.50, category: 'pizza', isAvailable: true, isPopular: true }
+]
+
+const mockSuggestedItems = [
+  { id: '5', name: 'Risotto', price: 16.00, category: 'pasta', isAvailable: true, isSuggested: true }
+]
 
 describe('useMenu', () => {
-  const mockMenuStore = {
-    items: [],
-    categories: ['pizza', 'pasta', 'dessert'],
-    popularItems: [],
-    suggestedItems: [],
-    isLoading: false,
-    isLoadingPopular: false,
-    isLoadingSuggested: false,
-    error: null,
-    setLoading: vi.fn(),
-    fetchMenuItems: vi.fn(),
-    fetchCategories: vi.fn(),
-    fetchPopularItems: vi.fn(),
-    fetchSuggestedItems: vi.fn(),
-    getAvailableItems: vi.fn(),
-    getItemsByCategory: vi.fn(),
-    getItemById: vi.fn(),
-    createItem: vi.fn(),
-    updateItem: vi.fn(),
-    deleteItem: vi.fn(),
-    toggleAvailability: vi.fn(),
-    togglePopularOverride: vi.fn(),
-    resetAllPopularOverrides: vi.fn(),
-    toggleSuggested: vi.fn()
-  }
-
   beforeEach(() => {
     vi.clearAllMocks()
-    
-    // Mock par défaut du store
-    vi.mocked(useMenuStore).mockReturnValue(mockMenuStore)
+
+    // Reset store state
+    act(() => {
+      useMenuStore.setState({
+        items: [],
+        categories: [],
+        popularItems: [],
+        suggestedItems: [],
+        isLoading: false,
+        isLoadingPopular: false,
+        isLoadingSuggested: false,
+        error: null
+      })
+    })
+
+    // Default API mocks
+    menuApi.getMenuItems.mockResolvedValue({
+      success: true,
+      data: mockMenuItems
+    })
+    menuApi.getPopularItems.mockResolvedValue({
+      success: true,
+      data: mockPopularItems
+    })
+    menuApi.getSuggestedItems.mockResolvedValue({
+      success: true,
+      data: mockSuggestedItems
+    })
   })
 
-  describe('Initialisation et État', () => {
+  describe('Initialization and State', () => {
     it('should fetch menu automatically when items array is empty', async () => {
-      // Setup: items vide pour déclencher l'initialisation
-      mockMenuStore.items = []
-
       renderHook(() => useMenu())
 
-      expect(mockMenuStore.fetchMenuItems).toHaveBeenCalledOnce()
-      expect(mockMenuStore.fetchCategories).toHaveBeenCalledOnce()
+      await waitFor(() => {
+        expect(menuApi.getMenuItems).toHaveBeenCalled()
+      })
     })
 
     it('should not fetch menu when items already exist', async () => {
-      // Setup: items non-vide pour éviter l'initialisation
-      mockMenuStore.items = [
-        { id: '1', name: 'Pizza Margherita', available: true }
-      ]
+      // Pre-populate store with items
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories
+        })
+      })
 
       renderHook(() => useMenu())
 
-      expect(mockMenuStore.fetchMenuItems).not.toHaveBeenCalled()
-      expect(mockMenuStore.fetchCategories).not.toHaveBeenCalled()
+      // Should not call fetch API when items already exist
+      expect(menuApi.getMenuItems).not.toHaveBeenCalled()
     })
 
-    it('should return correct state from store', () => {
-      const mockItems = [
-        { id: '1', name: 'Pizza', category: 'pizza' },
-        { id: '2', name: 'Pasta', category: 'pasta' }
-      ]
-      const mockAvailableItems = [{ id: '1', name: 'Pizza', available: true }]
-      const mockPopular = [{ id: '1', name: 'Pizza', popular: true }]
-
-      mockMenuStore.items = mockItems
-      mockMenuStore.popularItems = mockPopular
-      mockMenuStore.getAvailableItems.mockReturnValue(mockAvailableItems)
-      mockMenuStore.isLoading = true
+    it('should return correct state from store', async () => {
+      // Pre-populate store
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories,
+          popularItems: mockPopularItems,
+          suggestedItems: mockSuggestedItems,
+          isLoading: false
+        })
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.items).toEqual(mockItems)
-      expect(result.current.availableItems).toEqual(mockAvailableItems)
-      expect(result.current.popularItems).toEqual(mockPopular)
-      expect(result.current.categories).toEqual(['pizza', 'pasta', 'dessert'])
-      expect(result.current.isLoading).toBe(true)
+      expect(result.current.items).toEqual(mockMenuItems)
+      expect(result.current.categories).toEqual(mockCategories)
+      expect(result.current.popularItems).toEqual(mockPopularItems)
+      expect(result.current.suggestedItems).toEqual(mockSuggestedItems)
+      expect(result.current.isLoading).toBe(false)
     })
-  })
 
-  describe('Méthodes Publiques', () => {
-    it('should get public menu through getAvailableItems', () => {
-      const mockAvailableItems = [
-        { id: '1', name: 'Pizza', available: true },
-        { id: '2', name: 'Pasta', available: true }
-      ]
-      mockMenuStore.getAvailableItems.mockReturnValue(mockAvailableItems)
+    it('should return available items only via getPublicMenu', () => {
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories
+        })
+      })
 
       const { result } = renderHook(() => useMenu())
-
-      // Clear les appels du render initial
-      mockMenuStore.getAvailableItems.mockClear()
 
       const publicMenu = result.current.getPublicMenu()
 
-      expect(mockMenuStore.getAvailableItems).toHaveBeenCalledOnce()
-      expect(publicMenu).toEqual(mockAvailableItems)
+      // Should only include available items
+      expect(publicMenu.every(item => item.isAvailable !== false)).toBe(true)
+      expect(publicMenu.find(item => item.id === '3')).toBeUndefined() // Tiramisu is unavailable
+    })
+  })
+
+  describe('Public Methods', () => {
+    beforeEach(() => {
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories,
+          suggestedItems: mockSuggestedItems
+        })
+      })
     })
 
-    it('should get items by category through getItemsByCategory', () => {
-      const mockPizzaItems = [
-        { id: '1', name: 'Pizza Margherita', category: 'pizza' },
-        { id: '2', name: 'Pizza Pepperoni', category: 'pizza' }
-      ]
-      mockMenuStore.getItemsByCategory.mockReturnValue(mockPizzaItems)
-
+    it('should get items by category through getPublicItemsByCategory', () => {
       const { result } = renderHook(() => useMenu())
 
       const pizzaItems = result.current.getPublicItemsByCategory('pizza')
 
-      expect(mockMenuStore.getItemsByCategory).toHaveBeenCalledWith('pizza')
-      expect(pizzaItems).toEqual(mockPizzaItems)
+      expect(pizzaItems.length).toBeGreaterThan(0)
+      expect(pizzaItems.every(item => item.category === 'pizza')).toBe(true)
+    })
+
+    it('should get suggested items', () => {
+      const { result } = renderHook(() => useMenu())
+
+      const suggested = result.current.getSuggestedItems()
+
+      expect(suggested).toEqual(mockSuggestedItems)
+    })
+
+    it('should get item by id', () => {
+      const { result } = renderHook(() => useMenu())
+
+      const item = result.current.getItemById('1')
+
+      expect(item).toBeDefined()
+      expect(item.name).toBe('Pizza Margherita')
     })
   })
 
-  describe('Actions Admin CRUD', () => {
+  describe('Admin CRUD Actions', () => {
+    beforeEach(() => {
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories
+        })
+      })
+    })
+
     it('should add item successfully', async () => {
-      const itemData = { name: 'New Pizza', price: 12.99, category: 'pizza' }
-      const newItem = { id: '123', ...itemData }
-      mockMenuStore.createItem.mockResolvedValue({ success: true, item: newItem })
+      const newItem = { id: '6', name: 'New Pizza', price: 12.99, category: 'pizza' }
+
+      menuApi.createMenuItem.mockResolvedValue({
+        success: true,
+        data: newItem
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.addItem(itemData)
+      let response
+      await act(async () => {
+        response = await result.current.addItem({ name: 'New Pizza', price: 12.99, category: 'pizza' })
+      })
 
-      expect(mockMenuStore.createItem).toHaveBeenCalledWith(itemData)
-      expect(response).toEqual({ success: true, item: newItem })
+      expect(menuApi.createMenuItem).toHaveBeenCalledWith({ name: 'New Pizza', price: 12.99, category: 'pizza' })
+      expect(response.success).toBe(true)
     })
 
     it('should update item successfully', async () => {
-      const itemData = { name: 'Updated Pizza', price: 15.99 }
-      mockMenuStore.updateItem.mockResolvedValue({ success: true })
+      menuApi.updateMenuItem.mockResolvedValue({
+        success: true,
+        data: { ...mockMenuItems[0], name: 'Updated Pizza' }
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.updateItem('123', itemData)
+      let response
+      await act(async () => {
+        response = await result.current.updateItem('1', { name: 'Updated Pizza' })
+      })
 
-      expect(mockMenuStore.updateItem).toHaveBeenCalledWith('123', itemData)
-      expect(response).toEqual({ success: true })
+      expect(menuApi.updateMenuItem).toHaveBeenCalledWith('1', { name: 'Updated Pizza' })
+      expect(response.success).toBe(true)
     })
 
     it('should delete item successfully', async () => {
-      mockMenuStore.deleteItem.mockResolvedValue({ success: true })
+      menuApi.deleteMenuItem.mockResolvedValue({
+        success: true
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.deleteItem('123')
+      let response
+      await act(async () => {
+        response = await result.current.deleteItem('1')
+      })
 
-      expect(mockMenuStore.deleteItem).toHaveBeenCalledWith('123')
-      expect(response).toEqual({ success: true })
+      expect(menuApi.deleteMenuItem).toHaveBeenCalledWith('1')
+      expect(response.success).toBe(true)
     })
 
     it('should toggle availability successfully', async () => {
-      const updatedItem = { id: '123', name: 'Pizza', available: false }
-      mockMenuStore.toggleAvailability.mockResolvedValue({ success: true, item: updatedItem })
+      // toggleAvailability internally calls updateItem with toggled isAvailable
+      menuApi.updateMenuItem.mockResolvedValue({
+        success: true,
+        data: { ...mockMenuItems[0], isAvailable: false }
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.toggleAvailability('123')
+      let response
+      await act(async () => {
+        response = await result.current.toggleAvailability('1')
+      })
 
-      expect(mockMenuStore.toggleAvailability).toHaveBeenCalledWith('123')
-      expect(response).toEqual({ success: true, item: updatedItem })
+      // toggleAvailability uses updateMenuItem under the hood
+      expect(menuApi.updateMenuItem).toHaveBeenCalledWith('1', { isAvailable: false })
+      expect(response.success).toBe(true)
     })
   })
 
-  describe('Error Management', () => {
+  describe('Error Handling', () => {
+    beforeEach(() => {
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories
+        })
+      })
+    })
+
     it('should handle addItem error gracefully', async () => {
-      const errorMessage = 'Invalid item data'
-      mockMenuStore.createItem.mockResolvedValue({ success: false, error: errorMessage })
+      menuApi.createMenuItem.mockResolvedValue({
+        success: false,
+        error: 'Invalid item data'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.addItem({ name: 'Bad Item' })
+      let response
+      await act(async () => {
+        response = await result.current.addItem({ name: 'Bad Item' })
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Invalid item data')
     })
 
     it('should handle updateItem error gracefully', async () => {
-      const errorMessage = 'Item not found'
-      mockMenuStore.updateItem.mockResolvedValue({ success: false, error: errorMessage })
+      menuApi.updateMenuItem.mockResolvedValue({
+        success: false,
+        error: 'Item not found'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.updateItem('nonexistent', { name: 'Test' })
+      let response
+      await act(async () => {
+        response = await result.current.updateItem('nonexistent', { name: 'Test' })
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Item not found')
     })
 
     it('should handle deleteItem error gracefully', async () => {
-      const errorMessage = 'Cannot delete item'
-      mockMenuStore.deleteItem.mockResolvedValue({ success: false, error: errorMessage })
+      menuApi.deleteMenuItem.mockResolvedValue({
+        success: false,
+        error: 'Cannot delete item'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.deleteItem('123')
+      let response
+      await act(async () => {
+        response = await result.current.deleteItem('1')
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Cannot delete item')
     })
 
     it('should handle toggleAvailability error gracefully', async () => {
-      const errorMessage = 'Toggle failed'
-      mockMenuStore.toggleAvailability.mockResolvedValue({ success: false, error: errorMessage })
+      // toggleAvailability uses updateMenuItem
+      menuApi.updateMenuItem.mockResolvedValue({
+        success: false,
+        error: 'Toggle failed'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.toggleAvailability('123')
+      let response
+      await act(async () => {
+        response = await result.current.toggleAvailability('1')
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Toggle failed')
     })
   })
 
-  describe('Intégration Store', () => {
-    it('should expose store utilities correctly', () => {
+  describe('Store Utilities', () => {
+    it('should expose setLoading function', () => {
+      act(() => {
+        useMenuStore.setState({ items: mockMenuItems })
+      })
+
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.setLoading).toBe(mockMenuStore.setLoading)
-      expect(result.current.fetchMenuItems).toBe(mockMenuStore.fetchMenuItems)
-      expect(result.current.getItemById).toBe(mockMenuStore.getItemById)
-    })
-
-    it('should call setLoading when exposed', () => {
-      const { result } = renderHook(() => useMenu())
+      expect(typeof result.current.setLoading).toBe('function')
 
       act(() => {
         result.current.setLoading(true)
       })
 
-      expect(mockMenuStore.setLoading).toHaveBeenCalledWith(true)
+      expect(useMenuStore.getState().isLoading).toBe(true)
     })
 
-    it('should call fetchMenuItems when exposed', () => {
-      const { result } = renderHook(() => useMenu())
-
+    it('should expose fetchMenuItems function', async () => {
       act(() => {
-        result.current.fetchMenuItems()
+        useMenuStore.setState({ items: mockMenuItems })
       })
 
-      expect(mockMenuStore.fetchMenuItems).toHaveBeenCalledOnce()
+      const { result } = renderHook(() => useMenu())
+
+      expect(typeof result.current.fetchMenuItems).toBe('function')
+
+      await act(async () => {
+        await result.current.fetchMenuItems()
+      })
+
+      expect(menuApi.getMenuItems).toHaveBeenCalled()
     })
   })
 
   describe('Popular Items & Suggestions', () => {
     it('should return popular items from store', () => {
-      const mockPopular = [
-        { id: '1', name: 'Pizza', orderCount: 100 },
-        { id: '2', name: 'Pasta', orderCount: 80 }
-      ]
-      mockMenuStore.popularItems = mockPopular
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          popularItems: mockPopularItems
+        })
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.popularItems).toEqual(mockPopular)
+      expect(result.current.popularItems).toEqual(mockPopularItems)
     })
 
-    it('should return suggested items', () => {
-      const mockSuggested = [
-        { id: '1', name: 'Chef Special Pizza', isSuggested: true },
-        { id: '2', name: 'House Pasta', isSuggested: true }
-      ]
-      mockMenuStore.suggestedItems = mockSuggested
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+    it('should return suggested items from store', () => {
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          suggestedItems: mockSuggestedItems
+        })
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.suggestedItems).toEqual(mockSuggested)
-      expect(result.current.getSuggestedItems()).toEqual(mockSuggested)
+      expect(result.current.suggestedItems).toEqual(mockSuggestedItems)
     })
 
     it('should expose loading states for popular and suggested', () => {
-      mockMenuStore.isLoadingPopular = true
-      mockMenuStore.isLoadingSuggested = true
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          isLoadingPopular: true,
+          isLoadingSuggested: true
+        })
+      })
 
       const { result } = renderHook(() => useMenu())
 
@@ -286,96 +398,145 @@ describe('useMenu', () => {
       expect(result.current.isLoadingSuggested).toBe(true)
     })
 
-    it('should expose fetchPopularItems', () => {
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+    it('should expose fetchPopularItems function', async () => {
+      act(() => {
+        useMenuStore.setState({ items: mockMenuItems })
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.fetchPopularItems).toBe(mockMenuStore.fetchPopularItems)
+      await act(async () => {
+        await result.current.fetchPopularItems()
+      })
+
+      expect(menuApi.getPopularItems).toHaveBeenCalled()
     })
 
-    it('should expose fetchSuggestedItems', () => {
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+    it('should expose fetchSuggestedItems function', async () => {
+      act(() => {
+        useMenuStore.setState({ items: mockMenuItems })
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.fetchSuggestedItems).toBe(mockMenuStore.fetchSuggestedItems)
+      await act(async () => {
+        await result.current.fetchSuggestedItems()
+      })
+
+      expect(menuApi.getSuggestedItems).toHaveBeenCalled()
     })
   })
 
   describe('Admin Actions - Popular Override & Suggestions', () => {
+    beforeEach(() => {
+      act(() => {
+        useMenuStore.setState({
+          items: mockMenuItems,
+          categories: mockCategories
+        })
+      })
+    })
+
     it('should toggle popular override successfully', async () => {
-      const updatedItem = { id: '123', name: 'Pizza', isPopularOverride: true }
-      mockMenuStore.togglePopularOverride.mockResolvedValue({ success: true, item: updatedItem })
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      menuApi.togglePopularOverride.mockResolvedValue({
+        success: true,
+        data: { id: '1', isPopularOverride: true }
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.togglePopularOverride('123')
+      let response
+      await act(async () => {
+        response = await result.current.togglePopularOverride('1')
+      })
 
-      expect(mockMenuStore.togglePopularOverride).toHaveBeenCalledWith('123')
-      expect(response).toEqual({ success: true, item: updatedItem })
+      expect(menuApi.togglePopularOverride).toHaveBeenCalledWith('1')
+      expect(response.success).toBe(true)
     })
 
     it('should handle toggle popular override error', async () => {
-      const errorMessage = 'Toggle failed'
-      mockMenuStore.togglePopularOverride.mockResolvedValue({ success: false, error: errorMessage })
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      menuApi.togglePopularOverride.mockResolvedValue({
+        success: false,
+        error: 'Toggle failed'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.togglePopularOverride('123')
+      let response
+      await act(async () => {
+        response = await result.current.togglePopularOverride('1')
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Toggle failed')
     })
 
     it('should reset all popular overrides successfully', async () => {
-      mockMenuStore.resetAllPopularOverrides.mockResolvedValue({ success: true, count: 5 })
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      menuApi.resetAllPopularOverrides.mockResolvedValue({
+        success: true,
+        count: 5
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.resetAllPopularOverrides()
+      let response
+      await act(async () => {
+        response = await result.current.resetAllPopularOverrides()
+      })
 
-      expect(mockMenuStore.resetAllPopularOverrides).toHaveBeenCalled()
-      expect(response).toEqual({ success: true, count: 5 })
+      expect(menuApi.resetAllPopularOverrides).toHaveBeenCalled()
+      expect(response.success).toBe(true)
     })
 
     it('should handle reset all popular overrides error', async () => {
-      const errorMessage = 'Reset failed'
-      mockMenuStore.resetAllPopularOverrides.mockResolvedValue({ success: false, error: errorMessage })
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      menuApi.resetAllPopularOverrides.mockResolvedValue({
+        success: false,
+        error: 'Reset failed'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.resetAllPopularOverrides()
+      let response
+      await act(async () => {
+        response = await result.current.resetAllPopularOverrides()
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Reset failed')
     })
 
     it('should toggle suggested successfully', async () => {
-      const updatedItem = { id: '123', name: 'Pizza', isSuggested: true }
-      mockMenuStore.toggleSuggested.mockResolvedValue({ success: true, item: updatedItem })
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      menuApi.toggleSuggested.mockResolvedValue({
+        success: true,
+        data: { id: '1', isSuggested: true }
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.toggleSuggested('123')
+      let response
+      await act(async () => {
+        response = await result.current.toggleSuggested('1')
+      })
 
-      expect(mockMenuStore.toggleSuggested).toHaveBeenCalledWith('123')
-      expect(response).toEqual({ success: true, item: updatedItem })
+      expect(menuApi.toggleSuggested).toHaveBeenCalledWith('1')
+      expect(response.success).toBe(true)
     })
 
     it('should handle toggle suggested error', async () => {
-      const errorMessage = 'Toggle suggested failed'
-      mockMenuStore.toggleSuggested.mockResolvedValue({ success: false, error: errorMessage })
-      mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
+      menuApi.toggleSuggested.mockResolvedValue({
+        success: false,
+        error: 'Toggle suggested failed'
+      })
 
       const { result } = renderHook(() => useMenu())
 
-      const response = await result.current.toggleSuggested('123')
+      let response
+      await act(async () => {
+        response = await result.current.toggleSuggested('1')
+      })
 
-      expect(response).toEqual({ success: false, error: errorMessage })
+      expect(response.success).toBe(false)
+      expect(response.error).toBe('Toggle suggested failed')
     })
   })
 })

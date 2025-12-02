@@ -10,7 +10,6 @@ import { useCart } from '../../../hooks/useCart'
 // Mock menuApi to prevent real API calls
 vi.mock('../../../api/menuApi', () => ({
   getMenuItems: vi.fn(),
-  getCategories: vi.fn(),
   createMenuItem: vi.fn(),
   updateMenuItem: vi.fn(),
   deleteMenuItem: vi.fn()
@@ -34,14 +33,13 @@ vi.mock('../../../store/authStore', () => ({
 }))
 
 // Get mocked API functions
-let mockGetMenuItems, mockGetCategories, mockGetMenuItemRatingStats, mockGetMenuItemReviews, mockCreateReview, mockUpdateReview, mockDeleteReview, mockUseAuthStore
+let mockGetMenuItems, mockGetMenuItemRatingStats, mockGetMenuItemReviews, mockCreateReview, mockUpdateReview, mockDeleteReview, mockUseAuthStore
 beforeAll(async () => {
   const menuApi = await import('../../../api/menuApi')
   const reviewsApi = await import('../../../api/reviewsApi')
   const authStore = await import('../../../store/authStore')
 
   mockGetMenuItems = menuApi.getMenuItems
-  mockGetCategories = menuApi.getCategories
   mockGetMenuItemRatingStats = reviewsApi.getMenuItemRatingStats
   mockGetMenuItemReviews = reviewsApi.getMenuItemReviews
   mockCreateReview = reviewsApi.createReview
@@ -176,11 +174,6 @@ describe('Menu Component', () => {
     mockGetMenuItems.mockResolvedValue({
       success: true,
       data: mockMenuItems
-    })
-
-    mockGetCategories.mockResolvedValue({
-      success: true,
-      data: mockCategories
     })
 
     // Mock reviews API to prevent backend calls

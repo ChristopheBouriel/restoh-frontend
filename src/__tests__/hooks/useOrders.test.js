@@ -1,13 +1,18 @@
 import { renderHook, act } from '@testing-library/react'
-import { vi, describe, test, expect, beforeEach } from 'vitest'
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
 import { toast } from 'react-hot-toast'
 import { useOrders } from '../../hooks/useOrders'
 import useOrdersStore from '../../store/ordersStore'
 import { useAuth } from '../../hooks/useAuth'
+import * as ordersApi from '../../api/ordersApi'
 
-// Mock dependencies
+// Mock the API (not the store!)
+vi.mock('../../api/ordersApi')
+
+// Mock external dependencies (toast is a side effect)
 vi.mock('react-hot-toast')
-vi.mock('../../store/ordersStore')
+
+// Mock useAuth hook since it's another hook dependency
 vi.mock('../../hooks/useAuth')
 
 // Mock window.confirm
@@ -75,35 +80,42 @@ const mockOrders = [
   }
 ]
 
-// Mock functions
-const mockGetOrdersByUser = vi.fn()
-const mockUpdateOrderStatus = vi.fn()
-const mockGetOrdersStats = vi.fn()
-
 describe('useOrders Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Reset date to a consistent point for testing (2024-01-30)
     vi.setSystemTime(new Date('2024-01-30T10:00:00Z'))
-    
+
+    // Reset store state with mock orders
+    act(() => {
+      useOrdersStore.setState({
+        orders: mockOrders,
+        isLoading: false,
+        error: null,
+        isAdminData: false
+      })
+    })
+
     // Default authenticated user mock
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser
     })
-    
-    // Default orders store mock
-    vi.mocked(useOrdersStore).mockReturnValue({
-      orders: mockOrders,
-      getOrdersByUser: mockGetOrdersByUser,
-      updateOrderStatus: mockUpdateOrderStatus,
-      getOrdersStats: mockGetOrdersStats
+
+    // Default toast mocks
+    vi.mocked(toast.success).mockImplementation(() => {})
+    vi.mocked(toast.error).mockImplementation(() => {})
+
+    // Default API mocks
+    ordersApi.updateOrderStatus.mockResolvedValue({ success: true })
+    ordersApi.getRecentOrders.mockResolvedValue({
+      success: true,
+      data: mockOrders
     })
-    
-    // Mock getOrdersByUser to return user's orders
-    mockGetOrdersByUser.mockImplementation((userId) => 
-      mockOrders.filter(order => order.userId === userId)
-    )
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   // 1. USER AUTHENTICATION AND ORDER FILTERING (3 tests)
@@ -111,9 +123,9 @@ describe('useOrders Hook', () => {
     vi.mocked(useAuth).mockReturnValue({
       user: null
     })
-    
+
     const { result } = renderHook(() => useOrders())
-    
+
     expect(result.current.orders).toEqual([])
     expect(result.current.recentOrders).toEqual([])
     expect(result.current.totalOrders).toBe(0)
@@ -122,9 +134,7 @@ describe('useOrders Hook', () => {
 
   test('should filter orders by current user ID', () => {
     const { result } = renderHook(() => useOrders())
-    
-    expect(mockGetOrdersByUser).toHaveBeenCalledWith('user123')
-    
+
     // Should only contain orders for user123, not otherUser
     const userOrderIds = result.current.orders.map(order => order.id)
     expect(userOrderIds).toEqual(['4', '2', '1', '3', '5']) // Sorted by date desc
@@ -133,7 +143,7 @@ describe('useOrders Hook', () => {
 
   test('should sort user orders by creation date (newest first)', () => {
     const { result } = renderHook(() => useOrders())
-    
+
     const orderDates = result.current.orders.map(order => order.createdAt)
     expect(orderDates).toEqual([
       '2024-01-26T16:45:00Z', // Most recent
@@ -144,7 +154,7 @@ describe('useOrders Hook', () => {
     ])
   })
 
-  // 2. ORDER CANCELLATION WORKFLOW (3 tests)
+  // 2. ORDER CANCELLATION WORKFLOW (4 tests)
   test('should prevent order cancellation when user not authenticated', async () => {
     vi.mocked(useAuth).mockReturnValue({
       user: null
@@ -160,29 +170,31 @@ describe('useOrders Hook', () => {
     })
 
     expect(toast.error).toHaveBeenCalledWith('You must be logged in to cancel an order')
-    expect(mockUpdateOrderStatus).not.toHaveBeenCalled()
+    expect(ordersApi.updateOrderStatus).not.toHaveBeenCalled()
     expect(cancelResult).toBe(false) // Should return false when not authenticated
   })
 
   test('should cancel order successfully with confirmation', async () => {
     mockConfirm.mockReturnValue(true) // User confirms
-    mockUpdateOrderStatus.mockResolvedValue({ success: true })
-    
+    ordersApi.updateOrderStatus.mockResolvedValue({ success: true })
+    ordersApi.getRecentOrders.mockResolvedValue({ success: true, data: mockOrders })
+
     const { result } = renderHook(() => useOrders())
-    
-    const cancelResult = await act(async () => {
-      return result.current.cancelOrder('2')
+
+    let cancelResult
+    await act(async () => {
+      cancelResult = await result.current.cancelOrder('2')
     })
-    
+
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this order?')
-    expect(mockUpdateOrderStatus).toHaveBeenCalledWith('2', 'cancelled')
+    expect(ordersApi.updateOrderStatus).toHaveBeenCalledWith('2', 'cancelled')
     expect(toast.success).toHaveBeenCalledWith('Order cancelled')
     expect(cancelResult).toBe(true)
   })
 
   test('should handle cancellation errors gracefully', async () => {
     mockConfirm.mockReturnValue(true)
-    mockUpdateOrderStatus.mockResolvedValue({ success: false, error: 'Update failed' })
+    ordersApi.updateOrderStatus.mockResolvedValue({ success: false, error: 'Update failed' })
 
     const { result } = renderHook(() => useOrders())
 
@@ -206,14 +218,14 @@ describe('useOrders Hook', () => {
     })
 
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to cancel this order?')
-    expect(mockUpdateOrderStatus).not.toHaveBeenCalled()
+    expect(ordersApi.updateOrderStatus).not.toHaveBeenCalled()
     expect(cancelResult).toBe(false)
   })
 
   // 3. FORMATTING UTILITIES (2 tests)
   test('should format prices correctly with French locale', () => {
     const { result } = renderHook(() => useOrders())
-    
+
     expect(result.current.formatPrice(25.50)).toMatch(/25,50\s?€/)
     expect(result.current.formatPrice(0)).toMatch(/0,00\s?€/)
     expect(result.current.formatPrice(999.99)).toMatch(/999,99\s?€/)
@@ -221,13 +233,13 @@ describe('useOrders Hook', () => {
 
   test('should format dates correctly with French locale', () => {
     const { result } = renderHook(() => useOrders())
-    
+
     const testDate = '2024-01-20T10:30:00Z'
-    
+
     // Test date formatting (DD/MM/YYYY)
     const formattedDate = result.current.formatDate(testDate)
     expect(formattedDate).toMatch(/20\/01\/2024/)
-    
+
     // Test datetime formatting (includes time) - timezone may affect the time
     const formattedDateTime = result.current.formatDateTime(testDate)
     expect(formattedDateTime).toMatch(/20\/01\/2024/)
@@ -277,12 +289,12 @@ describe('useOrders Hook', () => {
   // 5. STATISTICS CALCULATIONS (2 tests)
   test('should calculate order statistics correctly', () => {
     const { result } = renderHook(() => useOrders())
-    
+
     expect(result.current.totalOrders).toBe(5) // All user orders
     expect(result.current.deliveredOrders).toBe(2) // Orders 1 and 5
     expect(result.current.pendingOrders).toBe(1) // Order 2
     expect(result.current.cancelledOrders).toBe(1) // Order 3
-    
+
     // Total spent should be sum of delivered orders only
     expect(result.current.totalSpent).toBe(40.75) // 25.50 + 15.25
   })
@@ -291,11 +303,10 @@ describe('useOrders Hook', () => {
     vi.mocked(useAuth).mockReturnValue({
       user: { id: 'emptyUser', name: 'Empty User' }
     })
-    
-    mockGetOrdersByUser.mockReturnValue([]) // No orders
-    
+
+    // Store has orders but none for emptyUser
     const { result } = renderHook(() => useOrders())
-    
+
     expect(result.current.orders).toEqual([])
     expect(result.current.recentOrders).toEqual([])
     expect(result.current.totalOrders).toBe(0)
@@ -308,7 +319,7 @@ describe('useOrders Hook', () => {
   // Additional edge case test
   test('should handle network error during order cancellation', async () => {
     mockConfirm.mockReturnValue(true)
-    mockUpdateOrderStatus.mockRejectedValue(new Error('Network error'))
+    ordersApi.updateOrderStatus.mockRejectedValue(new Error('Network error'))
 
     const { result } = renderHook(() => useOrders())
 
@@ -317,7 +328,8 @@ describe('useOrders Hook', () => {
       cancelResult = await result.current.cancelOrder('2')
     })
 
-    expect(toast.error).toHaveBeenCalledWith('Error cancelling order')
+    // Store catches network errors and returns formatted error message
+    expect(toast.error).toHaveBeenCalledWith('Error updating status')
     expect(cancelResult).toBe(false) // Should return false on network error
   })
 })
