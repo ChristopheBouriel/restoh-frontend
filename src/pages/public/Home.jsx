@@ -206,11 +206,11 @@ const Home = () => {
 
       {/* Chef's Recommendations */}
       {suggestedItems.length > 0 && (
-        <section className="py-16 bg-gradient-to-br from-purple-50 to-purple-100">
+        <section className="py-16 bg-gradient-to-br from-orange-100 to-orange-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <ChefHat className="w-10 h-10 text-purple-600" />
+                <ChefHat className="w-10 h-10 text-amber-700" />
                 <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
                   Chef's Recommendations
                 </h2>
@@ -220,10 +220,10 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {isLoadingSuggested ? (
-                // Loading skeleton
-                [1, 2, 3].map((i) => (
+            {isLoadingSuggested ? (
+              // Loading skeleton
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[1, 2, 3].map((i) => (
                   <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
                     <div className="h-56 bg-gray-200"></div>
                     <div className="p-6">
@@ -235,41 +235,47 @@ const Home = () => {
                       </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                suggestedItems.slice(0, 3).map((dish) => (
-                  <div key={dish.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col border-2 border-purple-100">
+                ))}
+              </div>
+            ) : (
+              <Carousel
+                itemsPerView={{ mobile: 1, tablet: 2, desktop: 3 }}
+                showArrows={true}
+                showDots={true}
+              >
+                {suggestedItems.map((dish) => (
+                  <div key={dish.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col border-2 border-amber-100">
                     <div className="relative h-56 bg-gray-200 overflow-hidden">
                       <ImageWithFallback
                         src={dish.image}
                         alt={dish.name}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute top-3 left-3 flex items-center gap-1 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      <div className="absolute top-3 left-3 flex items-center gap-1 bg-amber-700 text-white px-3 py-1 rounded-full text-sm font-medium">
                         <ChefHat size={14} />
                         <span>Chef's Pick</span>
                       </div>
                     </div>
                     <div className="p-6 flex-1 flex flex-col">
-                      <span className="text-sm text-purple-600 font-medium capitalize">{dish.category}</span>
+                      <span className="text-sm text-amber-700 font-medium capitalize">{dish.category}</span>
                       <h3 className="text-xl font-bold mb-2 text-gray-900">{dish.name}</h3>
                       {dish.description && (
                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{dish.description}</p>
                       )}
                       <div className="flex justify-between items-center mt-auto">
-                        <span className="text-2xl font-bold text-purple-600">€{dish.price.toFixed(2)}</span>
+                        <span className="text-2xl font-bold text-amber-700">€{dish.price.toFixed(2)}</span>
                         <button
                           onClick={() => handleAddToCart(dish)}
-                          className="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                          className="bg-amber-700 text-white px-5 py-2 rounded-lg hover:bg-amber-800 transition-colors font-medium"
                         >
                           + Cart
                         </button>
                       </div>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </Carousel>
+            )}
           </div>
         </section>
       )}
