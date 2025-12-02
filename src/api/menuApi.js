@@ -118,3 +118,93 @@ export const deleteMenuItem = async (itemId) => {
     return { success: false, error: error.error || 'Error deleting item' }
   }
 }
+
+// ============================================
+// Popular Items & Suggestions - Public Routes
+// ============================================
+
+/**
+ * Get popular items (backend-calculated with category distribution)
+ * Returns 8 items: 2 appetizers, 3 mains, 1 dessert, 2 beverages
+ * @returns {Promise<{success: boolean, data?: Array, error?: string}>}
+ */
+export const getPopularItems = async () => {
+  try {
+    const response = await apiClient.get('/menu/popular')
+    return { success: true, data: response.data || [] }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching popular items' }
+  }
+}
+
+/**
+ * Get restaurant suggestions (admin-selected items)
+ * @returns {Promise<{success: boolean, data?: Array, error?: string}>}
+ */
+export const getSuggestedItems = async () => {
+  try {
+    const response = await apiClient.get('/menu/suggestions')
+    return { success: true, data: response.data || [] }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching suggestions' }
+  }
+}
+
+// ============================================
+// Popular Items & Suggestions - Admin Routes
+// ============================================
+
+/**
+ * Toggle popular override for a menu item (ADMIN)
+ * When true, item is excluded from automatic popular selection
+ * @param {string} itemId - Menu item ID
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ */
+export const togglePopularOverride = async (itemId) => {
+  try {
+    const response = await apiClient.patch(`/admin/menu/${itemId}/popular`)
+    return { success: true, data: response.data }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error toggling popular override' }
+  }
+}
+
+/**
+ * Reset all popular overrides to false (ADMIN)
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ */
+export const resetAllPopularOverrides = async () => {
+  try {
+    const response = await apiClient.patch('/admin/menu/popular/reset')
+    return { success: true, data: response.data }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error resetting popular overrides' }
+  }
+}
+
+/**
+ * Toggle suggested status for a menu item (ADMIN)
+ * @param {string} itemId - Menu item ID
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ */
+export const toggleSuggested = async (itemId) => {
+  try {
+    const response = await apiClient.patch(`/admin/menu/${itemId}/suggested`)
+    return { success: true, data: response.data }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error toggling suggested' }
+  }
+}
+
+/**
+ * Get all suggested items for admin view (ADMIN)
+ * @returns {Promise<{success: boolean, data?: Array, error?: string}>}
+ */
+export const getAdminSuggestedItems = async () => {
+  try {
+    const response = await apiClient.get('/admin/menu/suggested')
+    return { success: true, data: response.data || [] }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching admin suggested items' }
+  }
+}

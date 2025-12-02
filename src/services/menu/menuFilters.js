@@ -26,15 +26,33 @@ export const getAvailableItems = (items) => {
 }
 
 /**
- * Get popular items
+ * Get popular items (local fallback)
+ * NOTE: The real popular items are calculated by the backend with category distribution.
+ * This function is a local fallback that excludes overridden items.
  * @param {Array} items - Array of menu items
- * @returns {Array} Popular and available items
+ * @returns {Array} Popular and available items (excluding overridden)
  */
 export const getPopularItems = (items) => {
   if (!items || !Array.isArray(items)) {
     return []
   }
-  return items.filter(item => isItemAvailable(item) && item.isPopular)
+  return items.filter(item =>
+    isItemAvailable(item) &&
+    item.isPopular &&
+    !item.isPopularOverride
+  )
+}
+
+/**
+ * Get suggested items (restaurant recommendations)
+ * @param {Array} items - Array of menu items
+ * @returns {Array} Suggested and available items
+ */
+export const getSuggestedItems = (items) => {
+  if (!items || !Array.isArray(items)) {
+    return []
+  }
+  return items.filter(item => isItemAvailable(item) && item.isSuggested)
 }
 
 /**
@@ -71,6 +89,8 @@ export const getItemById = (items, id) => {
  * @param {boolean} [filters.isPopular] - Filter by popular
  * @param {boolean} [filters.isAvailable] - Filter by availability
  * @param {string} [filters.cuisine] - Filter by cuisine type
+ * @param {boolean} [filters.isPopularOverride] - Filter by popular override status
+ * @param {boolean} [filters.isSuggested] - Filter by suggested status
  * @returns {Array} Filtered items
  */
 export const filterItems = (items, filters = {}) => {
@@ -103,6 +123,16 @@ export const filterItems = (items, filters = {}) => {
   // Apply cuisine filter
   if (safeFilters.cuisine) {
     result = result.filter(item => item.cuisine === safeFilters.cuisine)
+  }
+
+  // Apply popular override filter
+  if (safeFilters.isPopularOverride !== undefined) {
+    result = result.filter(item => item.isPopularOverride === safeFilters.isPopularOverride)
+  }
+
+  // Apply suggested filter
+  if (safeFilters.isSuggested !== undefined) {
+    result = result.filter(item => item.isSuggested === safeFilters.isSuggested)
   }
 
   return result

@@ -6,7 +6,11 @@ const useMenuStore = create((set, get) => ({
       // State
       items: [],
       categories: [],
+      popularItems: [],      // Popular items from backend (with category distribution)
+      suggestedItems: [],    // Restaurant suggestions (admin-selected)
       isLoading: false,
+      isLoadingPopular: false,
+      isLoadingSuggested: false,
       error: null,
 
       // Actions
@@ -191,6 +195,110 @@ const useMenuStore = create((set, get) => ({
         const newAvailability = !item.isAvailable
 
         return await get().updateItem(id, { isAvailable: newAvailability })
+      },
+
+      // ============================================
+      // Popular Items & Suggestions
+      // ============================================
+
+      // Fetch popular items from backend (with category distribution)
+      fetchPopularItems: async () => {
+        set({ isLoadingPopular: true })
+
+        try {
+          const result = await menuApi.getPopularItems()
+
+          if (result.success) {
+            set({
+              popularItems: result.data || [],
+              isLoadingPopular: false
+            })
+            return { success: true }
+          } else {
+            set({ isLoadingPopular: false })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          set({ isLoadingPopular: false })
+          return { success: false, error: error.error || 'Error fetching popular items' }
+        }
+      },
+
+      // Fetch suggested items from backend
+      fetchSuggestedItems: async () => {
+        set({ isLoadingSuggested: true })
+
+        try {
+          const result = await menuApi.getSuggestedItems()
+
+          if (result.success) {
+            set({
+              suggestedItems: result.data || [],
+              isLoadingSuggested: false
+            })
+            return { success: true }
+          } else {
+            set({ isLoadingSuggested: false })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          set({ isLoadingSuggested: false })
+          return { success: false, error: error.error || 'Error fetching suggested items' }
+        }
+      },
+
+      // Toggle popular override for an item (ADMIN)
+      togglePopularOverride: async (id) => {
+        try {
+          const result = await menuApi.togglePopularOverride(id)
+
+          if (result.success) {
+            // Refresh both menu items and popular items
+            await get().fetchMenuItems()
+            await get().fetchPopularItems()
+            return { success: true, data: result.data }
+          } else {
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          return { success: false, error: error.error || 'Error toggling popular override' }
+        }
+      },
+
+      // Reset all popular overrides (ADMIN)
+      resetAllPopularOverrides: async () => {
+        try {
+          const result = await menuApi.resetAllPopularOverrides()
+
+          if (result.success) {
+            // Refresh both menu items and popular items
+            await get().fetchMenuItems()
+            await get().fetchPopularItems()
+            return { success: true, data: result.data }
+          } else {
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          return { success: false, error: error.error || 'Error resetting popular overrides' }
+        }
+      },
+
+      // Toggle suggested status for an item (ADMIN)
+      toggleSuggested: async (id) => {
+        try {
+          const result = await menuApi.toggleSuggested(id)
+
+          if (result.success) {
+            // Refresh both menu items and suggested items
+            await get().fetchMenuItems()
+            await get().fetchSuggestedItems()
+            return { success: true, data: result.data }
+          } else {
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          return { success: false, error: error.error || 'Error toggling suggested' }
+        }
       }
     }))
 
