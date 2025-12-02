@@ -5,6 +5,7 @@ import { useCart } from '../../hooks/useCart'
 import { useMenu } from '../../hooks/useMenu'
 import useRestaurantReviewsStore from '../../store/restaurantReviewsStore'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
+import Carousel from '../../components/common/Carousel'
 import RestaurantStats from '../../components/restaurant-reviews/RestaurantStats'
 import RestaurantReviewCard from '../../components/restaurant-reviews/RestaurantReviewCard'
 import { ROUTES } from '../../constants'
@@ -12,10 +13,8 @@ import { ROUTES } from '../../constants'
 const Home = () => {
   const { addItem } = useCart()
   const {
-    backendPopularItems,
+    popularItems,
     suggestedItems,
-    popularItems: localPopularItems,
-    isLoading,
     isLoadingPopular,
     isLoadingSuggested,
     fetchPopularItems,
@@ -34,10 +33,6 @@ const Home = () => {
     fetchPopularItems()
     fetchSuggestedItems()
   }, [fetchPopularItems, fetchSuggestedItems])
-
-  // Use backend popular items if available, fallback to local
-  const displayPopularItems = backendPopularItems.length > 0 ? backendPopularItems : localPopularItems
-  const popularLoading = isLoading || isLoadingPopular
 
   const handleAddToCart = (dish) => {
     const cartItem = {
@@ -147,10 +142,10 @@ const Home = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {popularLoading ? (
-              // Loading skeleton
-              [1, 2, 3, 4].map((i) => (
+          {isLoadingPopular ? (
+            // Loading skeleton
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
                   <div className="h-48 bg-gray-200"></div>
                   <div className="p-4">
@@ -162,14 +157,20 @@ const Home = () => {
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              // Popular dishes from backend (with category distribution) or local fallback
-              displayPopularItems.slice(0, 4).map((dish) => (
+              ))}
+            </div>
+          ) : (
+            // Popular dishes carousel
+            <Carousel
+              itemsPerView={{ mobile: 1, tablet: 2, desktop: 4 }}
+              showArrows={true}
+              showDots={true}
+            >
+              {popularItems.map((dish) => (
                 <div key={dish.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
                   <div className="h-48 bg-gray-200 overflow-hidden">
                     <ImageWithFallback
-                      src={dish.image} 
+                      src={dish.image}
                       alt={dish.name}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
@@ -188,9 +189,9 @@ const Home = () => {
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </Carousel>
+          )}
           
           <div className="text-center mt-12">
             <Link

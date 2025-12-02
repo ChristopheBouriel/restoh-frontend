@@ -22,7 +22,6 @@ describe('useMenu', () => {
     fetchPopularItems: vi.fn(),
     fetchSuggestedItems: vi.fn(),
     getAvailableItems: vi.fn(),
-    getPopularItems: vi.fn(),
     getItemsByCategory: vi.fn(),
     getItemById: vi.fn(),
     createItem: vi.fn(),
@@ -70,18 +69,18 @@ describe('useMenu', () => {
         { id: '2', name: 'Pasta', category: 'pasta' }
       ]
       const mockAvailableItems = [{ id: '1', name: 'Pizza', available: true }]
-      const mockPopularItems = [{ id: '1', name: 'Pizza', popular: true }]
+      const mockPopular = [{ id: '1', name: 'Pizza', popular: true }]
 
       mockMenuStore.items = mockItems
+      mockMenuStore.popularItems = mockPopular
       mockMenuStore.getAvailableItems.mockReturnValue(mockAvailableItems)
-      mockMenuStore.getPopularItems.mockReturnValue(mockPopularItems)
       mockMenuStore.isLoading = true
 
       const { result } = renderHook(() => useMenu())
 
       expect(result.current.items).toEqual(mockItems)
       expect(result.current.availableItems).toEqual(mockAvailableItems)
-      expect(result.current.popularItems).toEqual(mockPopularItems)
+      expect(result.current.popularItems).toEqual(mockPopular)
       expect(result.current.categories).toEqual(['pizza', 'pasta', 'dessert'])
       expect(result.current.isLoading).toBe(true)
     })
@@ -104,23 +103,6 @@ describe('useMenu', () => {
 
       expect(mockMenuStore.getAvailableItems).toHaveBeenCalledOnce()
       expect(publicMenu).toEqual(mockAvailableItems)
-    })
-
-    it('should get popular items through getPopularItems', () => {
-      const mockPopularItems = [
-        { id: '1', name: 'Pizza Margherita', popular: true }
-      ]
-      mockMenuStore.getPopularItems.mockReturnValue(mockPopularItems)
-
-      const { result } = renderHook(() => useMenu())
-
-      // Clear les appels du render initial
-      mockMenuStore.getPopularItems.mockClear()
-
-      const popularItems = result.current.getPublicPopularItems()
-
-      expect(mockMenuStore.getPopularItems).toHaveBeenCalledOnce()
-      expect(popularItems).toEqual(mockPopularItems)
     })
 
     it('should get items by category through getItemsByCategory', () => {
@@ -266,18 +248,17 @@ describe('useMenu', () => {
   })
 
   describe('Popular Items & Suggestions', () => {
-    it('should return backend popular items', () => {
-      const mockBackendPopular = [
+    it('should return popular items from store', () => {
+      const mockPopular = [
         { id: '1', name: 'Pizza', orderCount: 100 },
         { id: '2', name: 'Pasta', orderCount: 80 }
       ]
-      mockMenuStore.popularItems = mockBackendPopular
+      mockMenuStore.popularItems = mockPopular
       mockMenuStore.items = [{ id: '1' }] // prevent auto-fetch
 
       const { result } = renderHook(() => useMenu())
 
-      expect(result.current.backendPopularItems).toEqual(mockBackendPopular)
-      expect(result.current.getBackendPopularItems()).toEqual(mockBackendPopular)
+      expect(result.current.popularItems).toEqual(mockPopular)
     })
 
     it('should return suggested items', () => {

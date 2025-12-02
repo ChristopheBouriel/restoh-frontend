@@ -17,7 +17,6 @@ export const useMenu = () => {
     fetchPopularItems,
     fetchSuggestedItems,
     getAvailableItems,
-    getPopularItems,
     getItemsByCategory,
     getItemById,
     createItem,
@@ -41,16 +40,6 @@ export const useMenu = () => {
   // For public pages
   const getPublicMenu = () => {
     return getAvailableItems()
-  }
-
-  // Returns local fallback (filters from items)
-  const getPublicPopularItems = () => {
-    return getPopularItems()
-  }
-
-  // Returns backend popular items (with category distribution)
-  const getBackendPopularItems = () => {
-    return popularItems
   }
 
   // Returns suggested items (chef's recommendations)
@@ -100,8 +89,7 @@ export const useMenu = () => {
     // State
     items: getAllItems(),
     availableItems: getPublicMenu(),
-    popularItems: getPublicPopularItems(),
-    backendPopularItems: getBackendPopularItems(),
+    popularItems,
     suggestedItems: getSuggestedItems(),
     categories,
     isLoading,
@@ -111,8 +99,6 @@ export const useMenu = () => {
 
     // Public getters
     getPublicMenu,
-    getPublicPopularItems,
-    getBackendPopularItems,
     getSuggestedItems,
     getPublicItemsByCategory,
     getItemById,
