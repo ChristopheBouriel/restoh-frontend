@@ -222,10 +222,11 @@ describe('CustomDatePicker Component', () => {
       
       // Wait for calendar to open and check header format
       await waitFor(() => {
-        const headerText = screen.getByText(/\w+ \d{4}/)
+        // Match French month names (including accented characters like Décembre, Février)
+        const headerText = screen.getByText(/[A-Za-zÀ-ÿ]+ \d{4}/)
         expect(headerText).toBeInTheDocument()
-        // Should match format like "Septembre 2025" or "Janvier 2024"
-        expect(headerText.textContent).toMatch(/^\w+ \d{4}$/)
+        // Should match format like "Décembre 2025" or "Janvier 2024"
+        expect(headerText.textContent).toMatch(/^[A-Za-zÀ-ÿ]+ \d{4}$/)
       })
     })
   })
