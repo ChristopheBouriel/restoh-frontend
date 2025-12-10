@@ -33,4 +33,5 @@ dist-ssr
 # Claude Code documentation (local only)
 CLAUDE.md
 
-docscoverage/
+docs/
+coverage/

@@ -1,75 +1,75 @@
 # RestOh Frontend
 
-Application React de gestion de restaurant moderne avec système de commandes en ligne, réservations et panel d'administration.
+Modern React restaurant management application with online ordering, reservations, and admin panel.
 
 ## Technologies
 
-- **React 18** - Bibliothèque UI
-- **Vite** - Build tool ultra-rapide
-- **Zustand** - Gestion d'état avec persistance
+- **React 18** - UI Library
+- **Vite** - Ultra-fast build tool
+- **Zustand** - State management with persistence
 - **React Router** - Navigation
-- **Tailwind CSS** - Styling utility-first
-- **Axios** - Client HTTP (cookies HTTP-only)
+- **Tailwind CSS** - Utility-first styling
+- **Axios** - HTTP client (HTTP-only cookies)
 - **React Hot Toast** - Notifications
-- **Lucide React** - Icônes modernes
-- **Vitest** - Tests unitaires et d'intégration
-- **React Testing Library** - Tests de composants
+- **Lucide React** - Modern icons
+- **Vitest** - Unit and integration testing
+- **React Testing Library** - Component testing
 
-## 📋 Prérequis
+## 📋 Prerequisites
 
-- **Node.js** 22.x ou supérieur
-- **npm** 9.x ou supérieur
-- Backend RestOh en cours d'exécution (voir repository backend)
+- **Node.js** 22.x or higher
+- **npm** 9.x or higher
+- RestOh backend running (see backend repository)
 
 ## 🛠️ Installation
 
-1. **Cloner le repository**
+1. **Clone the repository**
 ```bash
 git clone https://github.com/ChristopheBouriel/restoh-frontend.git
 cd restoh-frontend
 ```
 
-2. **Installer les dépendances**
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-3. **Configurer les variables d'environnement**
+3. **Configure environment variables**
 ```bash
 cp .env.example .env
 ```
 
-Éditer `.env` et configurer l'URL de votre backend :
+Edit `.env` and configure your backend URL:
 ```env
 VITE_API_URL=http://localhost:3000/api
 ```
 
-4. **Lancer en mode développement**
+4. **Start development server**
 ```bash
 npm run dev
 ```
 
-L'application sera accessible sur `http://localhost:5173`
+The application will be available at `http://localhost:5173`
 
-## Scripts disponibles
+## Available Scripts
 
 ```bash
-npm run dev          # Lancer le serveur de développement
-npm run build        # Build de production
-npm run preview      # Preview du build de production
-npm run lint         # Linter le code avec ESLint
-npm test             # Lancer les tests (1400+ tests)
-npm run test:ui      # Interface Vitest UI
-npm run test:watch   # Mode watch
-npm run test:coverage # Couverture de code
+npm run dev          # Start development server
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run lint         # Lint code with ESLint
+npm test             # Run tests (1400+ tests)
+npm run test:ui      # Vitest UI interface
+npm run test:watch   # Watch mode
+npm run test:coverage # Code coverage
 ```
 
-## Structure du projet
+## Project Structure
 
 ```
 restoh-frontend/
 ├── src/
-│   ├── api/              # Couche API (axios + endpoints)
+│   ├── api/              # API layer (axios + endpoints)
 │   │   ├── apiClient.js
 │   │   ├── authApi.js
 │   │   ├── ordersApi.js
@@ -79,170 +79,170 @@ restoh-frontend/
 │   │   ├── emailApi.js
 │   │   ├── reviewsApi.js
 │   │   └── restaurantReviewsApi.js
-│   ├── services/         # Couche Service (logique métier)
+│   ├── services/         # Service layer (business logic)
 │   │   ├── menu/         # MenuService
 │   │   ├── reservations/ # ReservationService
 │   │   ├── orders/       # OrderService
 │   │   └── auth/         # AuthService
-│   ├── components/       # Composants réutilisables
-│   ├── constants/        # Constantes et enums
+│   ├── components/       # Reusable components
+│   ├── constants/        # Constants and enums
 │   ├── contexts/         # React Contexts
 │   ├── hooks/            # Custom hooks
 │   ├── pages/            # Pages/Routes
 │   ├── store/            # Zustand stores
-│   ├── utils/            # Fonctions utilitaires
-│   ├── __tests__/        # Tests unitaires et d'intégration
+│   ├── utils/            # Utility functions
+│   ├── __tests__/        # Unit and integration tests
 │   ├── App.jsx
 │   └── main.jsx
-├── public/               # Ressources statiques
-├── .env.example          # Exemple de configuration
-├── API_ENDPOINTS.md      # Documentation des endpoints backend
-└── CLAUDE.md            # Instructions pour Claude Code
+├── public/               # Static assets
+├── .env.example          # Configuration example
+├── API_ENDPOINTS.md      # Backend endpoints documentation
+└── CLAUDE.md            # Claude Code instructions
 ```
 
-## 🔑 Fonctionnalités principales
+## 🔑 Key Features
 
-### Pour les clients
-- ✅ Consultation du menu par catégories
-- ✅ Ajout au panier avec persistance
-- ✅ Passage de commande (paiement carte/espèces)
-- ✅ Suivi des commandes en temps réel
-- ✅ Réservation de tables
-- ✅ Gestion du profil utilisateur
-- ✅ Suppression de compte (RGPD)
+### For Customers
+- ✅ Browse menu by categories
+- ✅ Add to cart with persistence
+- ✅ Place orders (card/cash payment)
+- ✅ Real-time order tracking
+- ✅ Table reservations
+- ✅ User profile management
+- ✅ Account deletion (GDPR)
 
-### Pour les administrateurs
-- ✅ Dashboard avec statistiques
-- ✅ Gestion complète du menu
-- ✅ Gestion des commandes (statuts, paiements)
-- ✅ Gestion des réservations (assignation tables)
-- ✅ Messagerie contact
-- ✅ Gestion des utilisateurs
+### For Administrators
+- ✅ Dashboard with statistics
+- ✅ Complete menu management
+- ✅ Order management (status, payments)
+- ✅ Reservation management (table assignment)
+- ✅ Contact messaging
+- ✅ User management
 
-## Authentification
+## Authentication
 
-L'application utilise des cookies HTTP-only pour l'authentification :
+The application uses HTTP-only cookies for authentication:
 
-- **Session** : Gérée par cookies HTTP-only côté backend (sécurisé)
-- **État local** : `user` et `isAuthenticated` persistés dans localStorage
-- **Auto-logout** : Redirection vers `/login` si session expirée
-- **Pages publiques** : Login, register, reset-password ne déclenchent pas de redirection
+- **Session**: Managed by HTTP-only cookies on the backend (secure)
+- **Local state**: `user` and `isAuthenticated` persisted in localStorage
+- **Auto-logout**: Redirect to `/login` when session expires
+- **Public pages**: Login, register, reset-password don't trigger redirects
 
-## 🎨 Personnalisation
+## 🎨 Customization
 
 ### Tailwind CSS
-Modifier `tailwind.config.js` pour personnaliser les couleurs, fonts, etc.
+Edit `tailwind.config.js` to customize colors, fonts, etc.
 
-### Constantes
-Éditer `src/constants/index.js` pour modifier les routes, statuts, etc.
+### Constants
+Edit `src/constants/index.js` to modify routes, statuses, etc.
 
 ## Tests
 
-Le projet dispose de plus de **1400 tests** couvrant :
-- **Stores** : authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore
-- **Hooks** : useAuth, useCart, useMenu, useOrders, useReservations
-- **Services** : MenuService, ReservationService, OrderService, AuthService, ContactService
-- **Composants** : Pages, formulaires, navigation, composants communs
+The project has over **1400 tests** covering:
+- **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore
+- **Hooks**: useAuth, useCart, useMenu, useOrders, useReservations
+- **Services**: MenuService, ReservationService, OrderService, AuthService, ContactService
+- **Components**: Pages, forms, navigation, common components
 
 ```bash
-npm test              # Tous les tests
-npm run test:ui       # Interface Vitest
-npm run test:coverage # Couverture de code (rapport HTML dans coverage/)
-npm run test:watch    # Mode watch
+npm test              # All tests
+npm run test:ui       # Vitest interface
+npm run test:coverage # Code coverage (HTML report in coverage/)
+npm run test:watch    # Watch mode
 ```
 
-### Bonnes pratiques de tests
-- Les tests de hooks utilisent le **vrai store** avec l'**API mockée** (pas de mock du store entier)
-- Les tests vérifient contre la **spécification** (signature de fonction), pas contre l'implémentation
-- Les dépendances externes (toast, navigate, context) sont mockées comme effets de bord
+### Testing Best Practices
+- Hook tests use the **real store** with **mocked API** (no mocking the entire store)
+- Tests verify against the **specification** (function signature), not the implementation
+- External dependencies (toast, navigate, context) are mocked as side effects
 
-## 📡 Intégration Backend
+## 📡 Backend Integration
 
-Ce frontend est conçu pour fonctionner avec le backend RestOh.
+This frontend is designed to work with the RestOh backend.
 
-**Documentation complète des endpoints** : voir `API_ENDPOINTS.md`
+**Full endpoints documentation**: see `API_ENDPOINTS.md`
 
-**URL du backend** : Configurable via `VITE_API_URL` dans `.env`
+**Backend URL**: Configurable via `VITE_API_URL` in `.env`
 
-### Exemple de connexion au backend local
+### Local backend connection example
 ```env
 VITE_API_URL=http://localhost:3000/api
 ```
 
-### Exemple de connexion au backend de production
+### Production backend connection example
 ```env
 VITE_API_URL=https://api.restoh.com/api
 ```
 
-## 🚢 Déploiement
+## 🚢 Deployment
 
-### Build de production
+### Production Build
 ```bash
 npm run build
 ```
 
-Le dossier `dist/` contiendra les fichiers optimisés.
+The `dist/` folder will contain the optimized files.
 
-### Déploiement sur Vercel/Netlify
-1. Connecter votre repository GitHub
-2. Configurer les variables d'environnement :
-   - `VITE_API_URL` = URL de votre backend de production
-3. Build command : `npm run build`
-4. Output directory : `dist`
+### Deployment on Vercel/Netlify
+1. Connect your GitHub repository
+2. Configure environment variables:
+   - `VITE_API_URL` = Your production backend URL
+3. Build command: `npm run build`
+4. Output directory: `dist`
 
 ## 🐛 Debugging
 
-### Mode Debug
-Activer les logs détaillés dans `.env` :
+### Debug Mode
+Enable detailed logs in `.env`:
 ```env
 VITE_DEBUG=true
 ```
 
-### Console du navigateur
-Les erreurs API sont loggées dans la console avec :
-- Code d'erreur HTTP
-- Message d'erreur
-- Détails supplémentaires
+### Browser Console
+API errors are logged to console with:
+- HTTP error code
+- Error message
+- Additional details
 
-## 📝 Conventions de code
+## 📝 Code Conventions
 
-- **Composants** : PascalCase (`UserProfile.jsx`)
-- **Hooks** : camelCase avec préfixe `use` (`useAuth.js`)
-- **Stores** : camelCase avec suffixe `Store` (`authStore.js`)
-- **API** : camelCase avec suffixe `Api` (`authApi.js`)
-- **Constants** : UPPER_SNAKE_CASE
+- **Components**: PascalCase (`UserProfile.jsx`)
+- **Hooks**: camelCase with `use` prefix (`useAuth.js`)
+- **Stores**: camelCase with `Store` suffix (`authStore.js`)
+- **API**: camelCase with `Api` suffix (`authApi.js`)
+- **Constants**: UPPER_SNAKE_CASE
 
-## 🤝 Contribution
+## 🤝 Contributing
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+1. Fork the project
+2. Create a branch (`git checkout -b feature/AmazingFeature`)
 3. Commit (`git commit -m 'feat: Add amazing feature'`)
 4. Push (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+5. Open a Pull Request
 
-## 📄 Licence
+## 📄 License
 
-Ce projet est sous licence MIT.
+This project is licensed under MIT.
 
 ## 🆘 Support
 
-Pour toute question ou problème :
-- Ouvrir une issue sur GitHub
-- Consulter la documentation `API_ENDPOINTS.md`
-- Voir les instructions dans `CLAUDE.md` pour le développement
+For any questions or issues:
+- Open an issue on GitHub
+- Check the `API_ENDPOINTS.md` documentation
+- See instructions in `CLAUDE.md` for development
 
 ## Roadmap
 
-- [x] Tests unitaires complets (1400+ tests)
-- [x] Rapport de couverture de code
-- [ ] Tests E2E avec Playwright/Cypress
+- [x] Complete unit tests (1400+ tests)
+- [x] Code coverage report
+- [ ] E2E tests with Playwright/Cypress
 - [ ] PWA (Progressive Web App)
-- [ ] Internationalisation (i18n)
-- [ ] Mode sombre
-- [ ] Notifications push
-- [ ] Export PDF des factures
-- [ ] Analytics avancées
+- [ ] Internationalization (i18n)
+- [ ] Dark mode
+- [ ] Push notifications
+- [ ] PDF invoice export
+- [ ] Advanced analytics
 
 ---
 
-**Développé avec ❤️ pour RestOh**
+**Built with ❤️ for RestOh**
