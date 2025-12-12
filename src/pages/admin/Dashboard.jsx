@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   DollarSign,
@@ -9,11 +9,16 @@ import {
   ArrowDownRight,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  TrendingUp,
+  Utensils,
+  Truck,
+  Store
 } from 'lucide-react'
 import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
 import useUsersStore from '../../store/usersStore'
+import useStatsStore from '../../store/statsStore'
 import { OrderService } from '../../services/orders'
 import { getLabelFromSlot } from '../../utils/reservationSlots'
 import { pluralize } from '../../utils/pluralize'
@@ -22,9 +27,15 @@ const Dashboard = () => {
   const { orders } = useOrdersStore()
   const { reservations } = useReservationsStore()
   const { users } = useUsersStore()
+  const { stats: apiStats, isLoading: isLoadingStats, fetchStats } = useStatsStore()
 
-  // Calculate statistics from real data using OrderService
-  const stats = useMemo(() => {
+  // Fetch API stats on mount
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  // Calculate statistics from local store data
+  const localStats = useMemo(() => {
     const now = new Date()
     const today = now.toISOString().split('T')[0]
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -47,26 +58,53 @@ const Dashboard = () => {
     return {
       revenue: {
         today: todayRevenue,
-        thisMonth: thisMonthRevenue,
-        growth: 0 // Could calculate from previous month if needed
+        thisMonth: thisMonthRevenue
       },
       orders: {
         today: todayOrders.length,
-        thisMonth: thisMonthOrders.length,
-        growth: 0
+        thisMonth: thisMonthOrders.length
       },
       customers: {
         total: users.length,
-        newThisMonth: thisMonthUsers.length,
-        growth: 0
+        newThisMonth: thisMonthUsers.length
       },
       reservations: {
         today: todayReservations.length,
-        thisWeek: thisWeekReservations.length,
-        growth: 0
+        thisWeek: thisWeekReservations.length
       }
     }
   }, [orders, reservations, users])
+
+  // Calculate percentage change helper
+  const calculateChange = (current, previous) => {
+    if (previous === 0) return current > 0 ? 100 : 0
+    return ((current - previous) / previous * 100).toFixed(1)
+  }
+
+  // Get comparison stats from API (week-over-week for daily, month-over-month for monthly)
+  const getRevenueChange = () => {
+    if (!apiStats) return { value: 0, isPositive: true }
+    const change = calculateChange(apiStats.revenue.today, apiStats.revenue.sameDayLastWeek)
+    return { value: Math.abs(change), isPositive: change >= 0 }
+  }
+
+  const getOrdersChange = () => {
+    if (!apiStats) return { value: 0, isPositive: true }
+    const change = calculateChange(apiStats.orders.today.total, apiStats.orders.sameDayLastWeek.total)
+    return { value: Math.abs(change), isPositive: change >= 0 }
+  }
+
+  const getReservationsChange = () => {
+    if (!apiStats) return { value: 0, isPositive: true }
+    const change = calculateChange(apiStats.reservations.today.total, apiStats.reservations.sameDayLastWeek.total)
+    return { value: Math.abs(change), isPositive: change >= 0 }
+  }
+
+  const getMonthlyRevenueChange = () => {
+    if (!apiStats) return { value: 0, isPositive: true }
+    const change = calculateChange(apiStats.revenue.thisMonth, apiStats.revenue.lastMonth)
+    return { value: Math.abs(change), isPositive: change >= 0 }
+  }
 
   // Get recent orders (last 10) using OrderService
   const recentOrders = useMemo(() => {
@@ -135,23 +173,31 @@ const Dashboard = () => {
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Revenus */}
+        {/* Revenue */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">€{stats.revenue.today}</p>
-              <p className="text-xs text-gray-500">€{stats.revenue.thisMonth.toLocaleString()} this month</p>
+              <p className="text-2xl font-bold text-gray-900">€{localStats.revenue.today.toFixed(2)}</p>
+              <p className="text-xs text-gray-500">€{localStats.revenue.thisMonth.toLocaleString()} this month</p>
             </div>
             <div className="p-2 bg-green-50 rounded-lg">
               <DollarSign className="w-6 h-6 text-green-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 font-medium">+{stats.revenue.growth}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs last month</span>
-          </div>
+          {apiStats && (
+            <div className="mt-4 flex items-center">
+              {getRevenueChange().isPositive ? (
+                <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${getRevenueChange().isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {getRevenueChange().isPositive ? '+' : '-'}{getRevenueChange().value}%
+              </span>
+              <span className="text-sm text-gray-500 ml-1">vs last week</span>
+            </div>
+          )}
         </div>
 
         {/* Orders */}
@@ -159,36 +205,39 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Orders Today</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.orders.today}</p>
-              <p className="text-xs text-gray-500">{stats.orders.thisMonth} this month</p>
+              <p className="text-2xl font-bold text-gray-900">{localStats.orders.today}</p>
+              <p className="text-xs text-gray-500">{localStats.orders.thisMonth} this month</p>
             </div>
             <div className="p-2 bg-blue-50 rounded-lg">
               <ShoppingBag className="w-6 h-6 text-blue-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 font-medium">+{stats.orders.growth}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs last month</span>
-          </div>
+          {apiStats && (
+            <div className="mt-4 flex items-center">
+              {getOrdersChange().isPositive ? (
+                <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${getOrdersChange().isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {getOrdersChange().isPositive ? '+' : '-'}{getOrdersChange().value}%
+              </span>
+              <span className="text-sm text-gray-500 ml-1">vs last week</span>
+            </div>
+          )}
         </div>
 
-        {/* Clients */}
+        {/* Customers */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.customers.total}</p>
-              <p className="text-xs text-gray-500">+{stats.customers.newThisMonth} new</p>
+              <p className="text-2xl font-bold text-gray-900">{localStats.customers.total}</p>
+              <p className="text-xs text-gray-500">+{localStats.customers.newThisMonth} new this month</p>
             </div>
             <div className="p-2 bg-purple-50 rounded-lg">
               <Users className="w-6 h-6 text-purple-600" />
             </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-            <span className="text-sm text-green-600 font-medium">+{stats.customers.growth}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs last month</span>
           </div>
         </div>
 
@@ -197,20 +246,160 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Reservations Today</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.reservations.today}</p>
-              <p className="text-xs text-gray-500">{stats.reservations.thisWeek} this week</p>
+              <p className="text-2xl font-bold text-gray-900">{localStats.reservations.today}</p>
+              <p className="text-xs text-gray-500">{localStats.reservations.thisWeek} this week</p>
             </div>
             <div className="p-2 bg-orange-50 rounded-lg">
               <Calendar className="w-6 h-6 text-orange-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
-            <span className="text-sm text-red-600 font-medium">{Math.abs(stats.reservations.growth)}%</span>
-            <span className="text-sm text-gray-500 ml-1">vs last week</span>
-          </div>
+          {apiStats && (
+            <div className="mt-4 flex items-center">
+              {getReservationsChange().isPositive ? (
+                <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${getReservationsChange().isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {getReservationsChange().isPositive ? '+' : '-'}{getReservationsChange().value}%
+              </span>
+              <span className="text-sm text-gray-500 ml-1">vs last week</span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* API Statistics (from backend) */}
+      {apiStats && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Monthly Revenue */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">€{apiStats.revenue.thisMonth.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">€{apiStats.revenue.lastMonth.toLocaleString()} last month</p>
+                </div>
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center">
+                {getMonthlyRevenueChange().isPositive ? (
+                  <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+                ) : (
+                  <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
+                )}
+                <span className={`text-sm font-medium ${getMonthlyRevenueChange().isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                  {getMonthlyRevenueChange().isPositive ? '+' : '-'}{getMonthlyRevenueChange().value}%
+                </span>
+                <span className="text-sm text-gray-500 ml-1">vs last month</span>
+              </div>
+            </div>
+
+            {/* Monthly Orders */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Monthly Orders</p>
+                  <p className="text-2xl font-bold text-gray-900">{apiStats.orders.thisMonth.total}</p>
+                  <p className="text-xs text-gray-500">{apiStats.orders.lastMonth.total} last month</p>
+                </div>
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <ShoppingBag className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Monthly Guests */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Guests This Month</p>
+                  <p className="text-2xl font-bold text-gray-900">{apiStats.reservations.thisMonth.totalGuests}</p>
+                  <p className="text-xs text-gray-500">{apiStats.reservations.lastMonth.totalGuests} last month</p>
+                </div>
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Menu Items</p>
+                  <p className="text-2xl font-bold text-gray-900">{apiStats.totalMenuItems}</p>
+                  <p className="text-xs text-gray-500">
+                    <span className="text-green-600">{apiStats.activeMenuItems} active</span>
+                    {' / '}
+                    <span className="text-gray-400">{apiStats.inactiveMenuItems} inactive</span>
+                  </p>
+                </div>
+                <div className="p-2 bg-orange-50 rounded-lg">
+                  <Utensils className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Types Breakdown */}
+          <div className="mt-6 bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-md font-semibold text-gray-900 mb-4">Order Types This Month</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Store className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Pickup</p>
+                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.thisMonth.pickup}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Truck className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Delivery</p>
+                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.thisMonth.delivery}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <Store className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Pickup (last month)</p>
+                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.lastMonth.pickup}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <Truck className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Delivery (last month)</p>
+                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.lastMonth.delivery}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading state for API stats */}
+      {isLoadingStats && !apiStats && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <span className="ml-3 text-gray-500">Loading statistics...</span>
+          </div>
+        </div>
+      )}
 
       {/* Recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -18,6 +18,7 @@ import * as contactsApi from './contactsApi'
 import * as tablesApi from './tablesApi'
 import * as reviewsApi from './reviewsApi'
 import * as restaurantReviewsApi from './restaurantReviewsApi'
+import * as statsApi from './statsApi'
 
 export {
   authApi,
@@ -28,7 +29,8 @@ export {
   contactsApi,
   tablesApi,
   reviewsApi,
-  restaurantReviewsApi
+  restaurantReviewsApi,
+  statsApi
 }
 
 // Default export for alternative usage
@@ -41,5 +43,6 @@ export default {
   contacts: contactsApi,
   tables: tablesApi,
   reviews: reviewsApi,
-  restaurantReviews: restaurantReviewsApi
+  restaurantReviews: restaurantReviewsApi,
+  stats: statsApi
 }
