@@ -106,6 +106,26 @@ const Dashboard = () => {
     return { value: Math.abs(change), isPositive: change >= 0 }
   }
 
+  // Calculate upcoming reservations (from today until end of month)
+  const upcomingReservations = useMemo(() => {
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+
+    const upcoming = reservations.filter(r =>
+      r.date >= today &&
+      r.date <= endOfMonth &&
+      r.status !== 'cancelled' &&
+      r.status !== 'no-show' &&
+      r.status !== 'completed'
+    )
+
+    return {
+      count: upcoming.length,
+      guests: upcoming.reduce((sum, r) => sum + (r.guests || 0), 0)
+    }
+  }, [reservations])
+
   // Get recent orders (last 10) using OrderService
   const recentOrders = useMemo(() => {
     return OrderService.getRecentOrders(orders, 10)
@@ -227,20 +247,6 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Customers */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{localStats.customers.total}</p>
-              <p className="text-xs text-gray-500">+{localStats.customers.newThisMonth} new this month</p>
-            </div>
-            <div className="p-2 bg-purple-50 rounded-lg">
-              <Users className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
         {/* Reservations */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between">
@@ -267,13 +273,29 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Active Users */}
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Active Users</p>
+              <p className="text-2xl font-bold text-gray-900">{localStats.customers.total}</p>
+              <p className="text-xs text-gray-500">+{localStats.customers.newThisMonth} new this month</p>
+            </div>
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* API Statistics (from backend) */}
       {apiStats && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+          {/* Row 1: Revenue & Orders */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Monthly Revenue */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
@@ -299,16 +321,47 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Monthly Orders */}
+            {/* Order Types */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-medium text-gray-600">Monthly Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{apiStats.orders.thisMonth.total}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Store className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Pickup</p>
+                    <p className="text-lg font-bold text-gray-900">{apiStats.orders.thisMonth.pickup}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Truck className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Delivery</p>
+                    <p className="text-lg font-bold text-gray-900">{apiStats.orders.thisMonth.delivery}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Reservations & Guests */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Monthly Reservations */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Monthly Orders</p>
-                  <p className="text-2xl font-bold text-gray-900">{apiStats.orders.thisMonth.total}</p>
-                  <p className="text-xs text-gray-500">{apiStats.orders.lastMonth.total} last month</p>
+                  <p className="text-sm font-medium text-gray-600">Monthly Reservations</p>
+                  <p className="text-2xl font-bold text-gray-900">{apiStats.reservations.thisMonth.total}</p>
+                  <p className="text-xs text-gray-500">{apiStats.reservations.lastMonth.total} last month</p>
                 </div>
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <ShoppingBag className="w-6 h-6 text-blue-600" />
+                <div className="p-2 bg-orange-50 rounded-lg">
+                  <Calendar className="w-6 h-6 text-orange-600" />
                 </div>
               </div>
             </div>
@@ -317,12 +370,29 @@ const Dashboard = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Guests This Month</p>
+                  <p className="text-sm font-medium text-gray-600">Monthly Guests</p>
                   <p className="text-2xl font-bold text-gray-900">{apiStats.reservations.thisMonth.totalGuests}</p>
                   <p className="text-xs text-gray-500">{apiStats.reservations.lastMonth.totalGuests} last month</p>
                 </div>
                 <div className="p-2 bg-purple-50 rounded-lg">
                   <Users className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: Upcoming Reservations & Menu Items */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Upcoming Reservations */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Upcoming Reservations</p>
+                  <p className="text-2xl font-bold text-gray-900">{upcomingReservations.count}</p>
+                  <p className="text-xs text-gray-500">{upcomingReservations.guests} guests until end of month</p>
+                </div>
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Clock className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -341,49 +411,6 @@ const Dashboard = () => {
                 </div>
                 <div className="p-2 bg-orange-50 rounded-lg">
                   <Utensils className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Order Types Breakdown */}
-          <div className="mt-6 bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-md font-semibold text-gray-900 mb-4">Order Types This Month</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Store className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Pickup</p>
-                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.thisMonth.pickup}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <Truck className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Delivery</p>
-                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.thisMonth.delivery}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-50 rounded-lg">
-                  <Store className="w-5 h-5 text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Pickup (last month)</p>
-                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.lastMonth.pickup}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-50 rounded-lg">
-                  <Truck className="w-5 h-5 text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Delivery (last month)</p>
-                  <p className="text-lg font-bold text-gray-900">{apiStats.orders.lastMonth.delivery}</p>
                 </div>
               </div>
             </div>
