@@ -216,13 +216,19 @@ const OrdersManagement = () => {
     }
   }
 
-  // Calculate stats from current orders using OrderService
-  const currentOrdersForStats = activeTab === 'recent' ? recentOrders : historicalOrders
-  const stats = OrderService.calculateStats(currentOrdersForStats)
-
   // Get current orders
   const currentOrders = activeTab === 'recent' ? recentOrders : historicalOrders
   const isLoading = activeTab === 'recent' ? isLoadingRecent : isLoadingHistorical
+
+  // Helper function to check if order is from today
+  const isOrderFromToday = (order) => {
+    const orderDate = new Date(order.createdAt)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return orderDate >= today && orderDate < tomorrow
+  }
 
   // Filter orders (for search and today filter)
   const filteredOrders = currentOrders.filter(order => {
@@ -234,19 +240,20 @@ const OrdersManagement = () => {
 
     // Today filter (only for recent tab)
     if (activeTab === 'recent' && showTodayOnly) {
-      const orderDate = new Date(order.createdAt)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-
-      if (orderDate < today || orderDate >= tomorrow) {
+      if (!isOrderFromToday(order)) {
         return false
       }
     }
 
     return true
   })
+
+  // Calculate stats from current orders using OrderService
+  // When "Today" filter is active, calculate stats from filtered orders only
+  const currentOrdersForStats = activeTab === 'recent'
+    ? (showTodayOnly ? filteredOrders : recentOrders)
+    : historicalOrders
+  const stats = OrderService.calculateStats(currentOrdersForStats)
 
   // Deleted user row class
   const getDeletedUserRowClass = (order) => {

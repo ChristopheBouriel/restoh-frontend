@@ -213,16 +213,6 @@ const ReservationsManagement = () => {
   }
 
   // ========================================
-  // STATS CALCULATION (Using ReservationService)
-  // ========================================
-
-  const stats = useMemo(() => {
-    const allReservations = activeTab === 'recent' ? recentReservations : historicalReservations
-    // Use ReservationService for stats calculation
-    return ReservationService.calculateStats(allReservations)
-  }, [recentReservations, historicalReservations, activeTab])
-
-  // ========================================
   // FILTERING (Using ReservationService + custom admin filters)
   // ========================================
 
@@ -254,6 +244,19 @@ const ReservationsManagement = () => {
       return true
     })
   }, [recentReservations, historicalReservations, activeTab, statusFilter, searchReservationNumber, showTodayOnly])
+
+  // ========================================
+  // STATS CALCULATION (Using ReservationService)
+  // ========================================
+
+  const stats = useMemo(() => {
+    // When "Today" filter is active, calculate stats from filtered reservations only
+    const reservationsForStats = activeTab === 'recent'
+      ? (showTodayOnly ? displayedReservations : recentReservations)
+      : historicalReservations
+    // Use ReservationService for stats calculation
+    return ReservationService.calculateStats(reservationsForStats)
+  }, [recentReservations, historicalReservations, activeTab, showTodayOnly, displayedReservations])
 
   // ========================================
   // HELPERS
