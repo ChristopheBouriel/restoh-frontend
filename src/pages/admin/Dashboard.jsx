@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import useOrdersStore from '../../store/ordersStore'
 import useReservationsStore from '../../store/reservationsStore'
-import useUsersStore from '../../store/usersStore'
 import useStatsStore from '../../store/statsStore'
 import { OrderService } from '../../services/orders'
 import { getLabelFromSlot } from '../../utils/reservationSlots'
@@ -26,54 +25,12 @@ import { pluralize } from '../../utils/pluralize'
 const Dashboard = () => {
   const { orders } = useOrdersStore()
   const { reservations } = useReservationsStore()
-  const { users } = useUsersStore()
-  const { stats: apiStats, isLoading: isLoadingStats, fetchStats } = useStatsStore()
+  const { stats: apiStats, fetchStats } = useStatsStore()
 
   // Fetch API stats on mount
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
-
-  // Calculate statistics from local store data
-  const localStats = useMemo(() => {
-    const now = new Date()
-    const today = now.toISOString().split('T')[0]
-    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    const thisWeek = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0]
-
-    // Orders stats using OrderService
-    const todayOrders = OrderService.getTodaysOrders(orders)
-    const thisMonthOrders = orders.filter(o => o.createdAt?.startsWith(thisMonth))
-
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
-    const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
-
-    // Reservations stats
-    const todayReservations = reservations.filter(r => r.date === today)
-    const thisWeekReservations = reservations.filter(r => r.date >= thisWeek)
-
-    // Users stats
-    const thisMonthUsers = users.filter(u => u.createdAt?.startsWith(thisMonth))
-
-    return {
-      revenue: {
-        today: todayRevenue,
-        thisMonth: thisMonthRevenue
-      },
-      orders: {
-        today: todayOrders.length,
-        thisMonth: thisMonthOrders.length
-      },
-      customers: {
-        total: users.length,
-        newThisMonth: thisMonthUsers.length
-      },
-      reservations: {
-        today: todayReservations.length,
-        thisWeek: thisWeekReservations.length
-      }
-    }
-  }, [orders, reservations, users])
 
   // Calculate percentage change helper
   const calculateChange = (current, previous) => {
@@ -191,21 +148,21 @@ const Dashboard = () => {
         <p className="text-gray-600">Overview of your restaurant</p>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Revenue */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">€{localStats.revenue.today.toFixed(2)}</p>
-              <p className="text-xs text-gray-500">€{localStats.revenue.thisMonth.toLocaleString()} this month</p>
+      {/* Stats cards - Quick Stats from API */}
+      {apiStats?.quickStats ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Revenue */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">€{apiStats.quickStats.todayRevenue.toFixed(2)}</p>
+                <p className="text-xs text-gray-500">€{apiStats.revenue.thisMonth.toLocaleString()} this month</p>
+              </div>
+              <div className="p-2 bg-green-50 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
             </div>
-            <div className="p-2 bg-green-50 rounded-lg">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-          {apiStats && (
             <div className="mt-4 flex items-center">
               {getRevenueChange().isPositive ? (
                 <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
@@ -217,22 +174,20 @@ const Dashboard = () => {
               </span>
               <span className="text-sm text-gray-500 ml-1">vs last week</span>
             </div>
-          )}
-        </div>
-
-        {/* Orders */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Orders Today</p>
-              <p className="text-2xl font-bold text-gray-900">{localStats.orders.today}</p>
-              <p className="text-xs text-gray-500">{localStats.orders.thisMonth} this month</p>
-            </div>
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-blue-600" />
-            </div>
           </div>
-          {apiStats && (
+
+          {/* Orders */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Orders Today</p>
+                <p className="text-2xl font-bold text-gray-900">{apiStats.quickStats.todayOrders}</p>
+                <p className="text-xs text-gray-500">{apiStats.orders.thisMonth.total} this month</p>
+              </div>
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <ShoppingBag className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
             <div className="mt-4 flex items-center">
               {getOrdersChange().isPositive ? (
                 <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
@@ -244,22 +199,20 @@ const Dashboard = () => {
               </span>
               <span className="text-sm text-gray-500 ml-1">vs last week</span>
             </div>
-          )}
-        </div>
-
-        {/* Reservations */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Reservations Today</p>
-              <p className="text-2xl font-bold text-gray-900">{localStats.reservations.today}</p>
-              <p className="text-xs text-gray-500">{localStats.reservations.thisWeek} this week</p>
-            </div>
-            <div className="p-2 bg-orange-50 rounded-lg">
-              <Calendar className="w-6 h-6 text-orange-600" />
-            </div>
           </div>
-          {apiStats && (
+
+          {/* Reservations */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Reservations Today</p>
+                <p className="text-2xl font-bold text-gray-900">{apiStats.quickStats.todayReservations}</p>
+                <p className="text-xs text-gray-500">{apiStats.reservations.thisMonth.total} this month</p>
+              </div>
+              <div className="p-2 bg-orange-50 rounded-lg">
+                <Calendar className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
             <div className="mt-4 flex items-center">
               {getReservationsChange().isPositive ? (
                 <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
@@ -271,23 +224,32 @@ const Dashboard = () => {
               </span>
               <span className="text-sm text-gray-500 ml-1">vs last week</span>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Active Users */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Active Users</p>
-              <p className="text-2xl font-bold text-gray-900">{localStats.customers.total}</p>
-              <p className="text-xs text-gray-500">+{localStats.customers.newThisMonth} new this month</p>
-            </div>
-            <div className="p-2 bg-purple-50 rounded-lg">
-              <Users className="w-6 h-6 text-purple-600" />
+          {/* Active Users */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Active Users</p>
+                <p className="text-2xl font-bold text-gray-900">{apiStats.quickStats.totalActiveUsers}</p>
+              </div>
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white p-6 rounded-lg shadow-sm animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* API Statistics (from backend) */}
       {apiStats && (
@@ -414,16 +376,6 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Loading state for API stats */}
-      {isLoadingStats && !apiStats && (
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            <span className="ml-3 text-gray-500">Loading statistics...</span>
           </div>
         </div>
       )}

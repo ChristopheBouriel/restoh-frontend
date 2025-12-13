@@ -8,6 +8,12 @@ vi.mock('../../api/statsApi')
 
 // Mock data matching the backend API response structure
 const mockStatsData = {
+  quickStats: {
+    todayRevenue: 125.00,
+    todayOrders: 5,
+    todayReservations: 3,
+    totalActiveUsers: 150
+  },
   totalMenuItems: 15,
   activeMenuItems: 12,
   inactiveMenuItems: 3,
@@ -194,6 +200,12 @@ describe('StatsStore', () => {
 
       const { stats } = useStatsStore.getState()
 
+      // Quick stats (for top row cards)
+      expect(stats.quickStats.todayRevenue).toBe(125.00)
+      expect(stats.quickStats.todayOrders).toBe(5)
+      expect(stats.quickStats.todayReservations).toBe(3)
+      expect(stats.quickStats.totalActiveUsers).toBe(150)
+
       // Menu stats
       expect(stats.totalMenuItems).toBe(15)
       expect(stats.activeMenuItems).toBe(12)
@@ -272,6 +284,12 @@ describe('StatsStore', () => {
   describe('Edge Cases', () => {
     test('should handle empty stats data', async () => {
       const emptyStats = {
+        quickStats: {
+          todayRevenue: 0,
+          todayOrders: 0,
+          todayReservations: 0,
+          totalActiveUsers: 0
+        },
         totalMenuItems: 0,
         activeMenuItems: 0,
         inactiveMenuItems: 0,

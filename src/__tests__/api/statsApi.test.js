@@ -16,6 +16,12 @@ describe('Stats API', () => {
 
   describe('getDashboardStats', () => {
     const mockStatsData = {
+      quickStats: {
+        todayRevenue: 125.00,
+        todayOrders: 5,
+        todayReservations: 3,
+        totalActiveUsers: 150
+      },
       totalMenuItems: 15,
       activeMenuItems: 12,
       inactiveMenuItems: 3,
@@ -47,6 +53,17 @@ describe('Stats API', () => {
       expect(apiClient.get).toHaveBeenCalledWith('/admin/stats')
       expect(result.success).toBe(true)
       expect(result.data).toEqual(mockStatsData)
+    })
+
+    it('should return quick stats for dashboard top row', async () => {
+      apiClient.get.mockResolvedValueOnce({ data: mockStatsData })
+
+      const result = await statsApi.getDashboardStats()
+
+      expect(result.data.quickStats.todayRevenue).toBe(125.00)
+      expect(result.data.quickStats.todayOrders).toBe(5)
+      expect(result.data.quickStats.todayReservations).toBe(3)
+      expect(result.data.quickStats.totalActiveUsers).toBe(150)
     })
 
     it('should return menu statistics', async () => {
