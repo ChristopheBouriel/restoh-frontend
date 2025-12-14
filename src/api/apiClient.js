@@ -77,6 +77,12 @@ apiClient.interceptors.response.use(
           console.error('Conflict error:', data)
           break
 
+        case 423:
+          // Locked - Account temporarily locked (brute force protection)
+          console.error('Account locked:', data)
+          // Don't show global toast - let the login form handle this with InlineAlert
+          break
+
         case 500:
           // Internal Server Error
           console.error('Server error:', data)

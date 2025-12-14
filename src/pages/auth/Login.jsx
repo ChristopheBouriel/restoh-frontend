@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Clock } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../constants'
 import InlineAlert from '../../components/common/InlineAlert'
@@ -66,7 +66,9 @@ const Login = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* InlineAlert for invalid credentials - error type (red) */}
-            {inlineError && inlineError.details && (
+            {/* Exclude special codes that have their own custom display */}
+            {inlineError && inlineError.details &&
+             !['AUTH_ACCOUNT_INACTIVE', 'AUTH_ACCOUNT_DELETED', 'AUTH_ACCOUNT_LOCKED'].includes(inlineError.code) && (
               <InlineAlert
                 type="error"
                 message={inlineError.error}
@@ -93,6 +95,25 @@ const Login = () => {
                 details={inlineError.details.message}
                 dismissible={false}
               />
+            )}
+
+            {/* InlineAlert for locked account - warning type with clock icon */}
+            {inlineError && inlineError.code === 'AUTH_ACCOUNT_LOCKED' && inlineError.details && (
+              <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <Clock className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <h3 className="text-sm font-medium text-amber-800">
+                      {inlineError.error}
+                    </h3>
+                    <div className="mt-2 text-sm text-amber-700">
+                      <p>{inlineError.details.suggestion || `Please try again in ${inlineError.details.remainingMinutes} minutes.`}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Fallback: Custom banner for inactive account if backend doesn't send details */}
