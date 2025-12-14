@@ -66,6 +66,7 @@ describe('ContactsStore', () => {
     act(() => {
       useContactsStore.setState({
         messages: [],
+        deletedMessages: [],
         myMessages: [],
         isLoading: false,
         error: null
@@ -79,6 +80,7 @@ describe('ContactsStore', () => {
       const state = useContactsStore.getState()
 
       expect(state.messages).toEqual([])
+      expect(state.deletedMessages).toEqual([])
       expect(state.myMessages).toEqual([])
       expect(state.isLoading).toBe(false)
       expect(state.error).toBeNull()
@@ -371,9 +373,9 @@ describe('ContactsStore', () => {
     })
   })
 
-  // 10. DELETE MESSAGE
-  describe('deleteMessage', () => {
-    test('should delete message successfully', async () => {
+  // 10. ARCHIVE MESSAGE (soft delete)
+  describe('archiveMessage', () => {
+    test('should archive message successfully', async () => {
       contactsApi.deleteContact.mockResolvedValue({
         success: true
       })
@@ -382,45 +384,162 @@ describe('ContactsStore', () => {
         data: mockMessages.filter(m => m.id !== 'msg-001')
       })
 
-      const { deleteMessage } = useContactsStore.getState()
+      const { archiveMessage } = useContactsStore.getState()
 
-      const result = await deleteMessage('msg-001')
+      const result = await archiveMessage('msg-001')
 
       expect(result.success).toBe(true)
       expect(contactsApi.deleteContact).toHaveBeenCalledWith('msg-001')
-      // Should refetch after deletion
+      // Should refetch after archiving
       expect(contactsApi.getAllContacts).toHaveBeenCalled()
     })
 
-    test('should handle delete error', async () => {
+    test('should handle archive error', async () => {
       contactsApi.deleteContact.mockResolvedValue({
         success: false,
-        error: 'Cannot delete this message'
+        error: 'Cannot archive this message'
       })
 
-      const { deleteMessage } = useContactsStore.getState()
+      const { archiveMessage } = useContactsStore.getState()
 
-      const result = await deleteMessage('msg-001')
+      const result = await archiveMessage('msg-001')
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Cannot delete this message')
+      expect(result.error).toBe('Cannot archive this message')
     })
 
-    test('should handle deletion not supported', async () => {
-      // deleteContact returns undefined (not supported)
-      contactsApi.deleteContact = undefined
+    test('should handle archive exception', async () => {
+      contactsApi.deleteContact.mockRejectedValue({
+        error: 'Server error'
+      })
 
-      const { deleteMessage } = useContactsStore.getState()
+      const { archiveMessage } = useContactsStore.getState()
 
-      const result = await deleteMessage('msg-001')
+      const result = await archiveMessage('msg-001')
 
       expect(result.success).toBe(false)
-      // When deleteContact is undefined, the error comes from the catch block
-      expect(result.error).toBe('Error deleting message')
+      expect(result.error).toBe('Server error')
     })
   })
 
-  // 11. GETTERS (local computations)
+  // 11. FETCH DELETED MESSAGES
+  describe('fetchDeletedMessages', () => {
+    const mockDeletedMessages = [
+      {
+        id: 'msg-deleted-001',
+        name: 'Archived User',
+        email: 'archived@email.com',
+        subject: 'Archived message',
+        message: 'This message was archived',
+        status: 'closed',
+        isDeleted: true,
+        deletedBy: { firstName: 'Admin', lastName: 'User' },
+        deletedAt: '2024-01-20T10:00:00Z'
+      }
+    ]
+
+    test('should fetch deleted messages successfully', async () => {
+      contactsApi.getDeletedContacts.mockResolvedValue({
+        success: true,
+        data: mockDeletedMessages
+      })
+
+      const { fetchDeletedMessages } = useContactsStore.getState()
+
+      const result = await fetchDeletedMessages()
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.getDeletedContacts).toHaveBeenCalledWith({})
+
+      const state = useContactsStore.getState()
+      expect(state.deletedMessages).toEqual(mockDeletedMessages)
+      expect(state.isLoading).toBe(false)
+    })
+
+    test('should pass params to API', async () => {
+      contactsApi.getDeletedContacts.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      const { fetchDeletedMessages } = useContactsStore.getState()
+
+      await fetchDeletedMessages({ page: 2, limit: 10 })
+
+      expect(contactsApi.getDeletedContacts).toHaveBeenCalledWith({ page: 2, limit: 10 })
+    })
+
+    test('should handle fetch deleted messages error', async () => {
+      contactsApi.getDeletedContacts.mockResolvedValue({
+        success: false,
+        error: 'Access denied'
+      })
+
+      const { fetchDeletedMessages } = useContactsStore.getState()
+
+      const result = await fetchDeletedMessages()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Access denied')
+    })
+  })
+
+  // 12. RESTORE MESSAGE
+  describe('restoreMessage', () => {
+    test('should restore message successfully', async () => {
+      contactsApi.restoreContact.mockResolvedValue({
+        success: true,
+        data: { ...mockMessages[0], isDeleted: false }
+      })
+      contactsApi.getAllContacts.mockResolvedValue({
+        success: true,
+        data: mockMessages
+      })
+      contactsApi.getDeletedContacts.mockResolvedValue({
+        success: true,
+        data: []
+      })
+
+      const { restoreMessage } = useContactsStore.getState()
+
+      const result = await restoreMessage('msg-001')
+
+      expect(result.success).toBe(true)
+      expect(contactsApi.restoreContact).toHaveBeenCalledWith('msg-001')
+      // Should refetch both lists
+      expect(contactsApi.getAllContacts).toHaveBeenCalled()
+      expect(contactsApi.getDeletedContacts).toHaveBeenCalled()
+    })
+
+    test('should handle restore error', async () => {
+      contactsApi.restoreContact.mockResolvedValue({
+        success: false,
+        error: 'Message not found'
+      })
+
+      const { restoreMessage } = useContactsStore.getState()
+
+      const result = await restoreMessage('nonexistent')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Message not found')
+    })
+
+    test('should handle restore exception', async () => {
+      contactsApi.restoreContact.mockRejectedValue({
+        error: 'Server error'
+      })
+
+      const { restoreMessage } = useContactsStore.getState()
+
+      const result = await restoreMessage('msg-001')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Server error')
+    })
+  })
+
+  // 13. GETTERS (local computations)
   describe('Getters', () => {
     beforeEach(() => {
       act(() => {
@@ -469,7 +588,7 @@ describe('ContactsStore', () => {
     })
   })
 
-  // 12. STATISTICS
+  // 14. STATISTICS
   describe('Statistics', () => {
     test('should calculate message statistics correctly', () => {
       act(() => {
@@ -517,7 +636,7 @@ describe('ContactsStore', () => {
     })
   })
 
-  // 13. LOADING STATES
+  // 15. LOADING STATES
   describe('Loading States', () => {
     test('should set loading state during fetch', async () => {
       let resolvePromise
@@ -541,7 +660,7 @@ describe('ContactsStore', () => {
     })
   })
 
-  // 14. ERROR HANDLING
+  // 16. ERROR HANDLING
   describe('Error Handling', () => {
     test('should set and clear errors', () => {
       const { setError, clearError } = useContactsStore.getState()

@@ -55,13 +55,33 @@ export const addReplyToDiscussion = async (contactId, text) => {
   }
 }
 
-// Delete a message (ADMIN)
+// Archive a message - soft delete (ADMIN)
 export const deleteContact = async (contactId) => {
   try {
     const response = await apiClient.delete(`/contact/admin/messages/${contactId}`)
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error deleting message' }
+    return { success: false, error: error.error || 'Error archiving message' }
+  }
+}
+
+// Get archived/deleted messages (ADMIN)
+export const getDeletedContacts = async (params = {}) => {
+  try {
+    const response = await apiClient.get('/contact/admin/messages/deleted', { params })
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error fetching archived messages' }
+  }
+}
+
+// Restore an archived message (ADMIN)
+export const restoreContact = async (contactId) => {
+  try {
+    const response = await apiClient.patch(`/contact/admin/messages/${contactId}/restore`)
+    return { success: true, ...response }
+  } catch (error) {
+    return { success: false, error: error.error || 'Error restoring message' }
   }
 }
 

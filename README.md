@@ -58,7 +58,7 @@ npm run dev          # Start development server
 npm run build        # Production build
 npm run preview      # Preview production build
 npm run lint         # Lint code with ESLint
-npm test             # Run tests (1400+ tests)
+npm test             # Run tests (1500+ tests)
 npm run test:ui      # Vitest UI interface
 npm run test:watch   # Watch mode
 npm run test:coverage # Code coverage
@@ -78,7 +78,8 @@ restoh-frontend/
 │   │   ├── contactsApi.js
 │   │   ├── emailApi.js
 │   │   ├── reviewsApi.js
-│   │   └── restaurantReviewsApi.js
+│   │   ├── restaurantReviewsApi.js
+│   │   └── statsApi.js
 │   ├── services/         # Service layer (business logic)
 │   │   ├── menu/         # MenuService
 │   │   ├── reservations/ # ReservationService
@@ -112,12 +113,13 @@ restoh-frontend/
 - ✅ Account deletion (GDPR)
 
 ### For Administrators
-- ✅ Dashboard with statistics
+- ✅ Dashboard with real-time API statistics (quickStats)
 - ✅ Complete menu management
-- ✅ Order management (status, payments)
-- ✅ Reservation management (table assignment)
+- ✅ Order management (status, payments, Today filter)
+- ✅ Reservation management (table assignment, Today filter)
 - ✅ Contact messaging
 - ✅ User management
+- ✅ Dynamic stats filtering (Today button updates all statistics)
 
 ## Authentication
 
@@ -138,11 +140,12 @@ Edit `src/constants/index.js` to modify routes, statuses, etc.
 
 ## Tests
 
-The project has over **1400 tests** covering:
-- **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore
+The project has over **1500 tests** covering:
+- **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore, statsStore
 - **Hooks**: useAuth, useCart, useMenu, useOrders, useReservations
 - **Services**: MenuService, ReservationService, OrderService, AuthService, ContactService
-- **Components**: Pages, forms, navigation, common components
+- **Components**: Pages (Dashboard 56 tests), forms, navigation, common components
+- **API**: statsApi, authApi, ordersApi, reservationsApi, menuApi, etc.
 
 ```bash
 npm test              # All tests
@@ -233,8 +236,10 @@ For any questions or issues:
 
 ## Roadmap
 
-- [x] Complete unit tests (1400+ tests)
+- [x] Complete unit tests (1500+ tests)
 - [x] Code coverage report
+- [x] Dashboard API statistics integration
+- [x] Dynamic Today filter for stats
 - [ ] E2E tests with Playwright/Cypress
 - [ ] PWA (Progressive Web App)
 - [ ] Internationalization (i18n)

@@ -36,7 +36,7 @@ describe('ContactsManagement Component', () => {
   // Test data for basic features
   const mockMessagesBasic = [
     {
-      _id: 'msg-001',
+      id: 'msg-001',
       name: 'Marie Dubois',
       email: 'marie.dubois@email.com',
       phone: '06 12 34 56 78',
@@ -49,7 +49,7 @@ describe('ContactsManagement Component', () => {
       repliedAt: null
     },
     {
-      _id: 'msg-002',
+      id: 'msg-002',
       name: 'Pierre Martin',
       email: 'pierre.martin@company.fr',
       phone: '01 23 45 67 89',
@@ -62,7 +62,7 @@ describe('ContactsManagement Component', () => {
       repliedAt: null
     },
     {
-      _id: 'msg-003',
+      id: 'msg-003',
       name: 'Sophie Leroy',
       email: 'sophie.leroy@gmail.com',
       phone: null,
@@ -75,7 +75,7 @@ describe('ContactsManagement Component', () => {
       repliedAt: '2024-01-18T20:00:00Z'
     },
     {
-      _id: 'msg-004',
+      id: 'msg-004',
       name: 'Jean Dupont',
       email: 'jean.dupont@hotmail.com',
       phone: '07 98 76 54 32',
@@ -93,7 +93,7 @@ describe('ContactsManagement Component', () => {
   const mockMessagesEnhanced = [
     // Message with discussion from user and current admin (newlyReplied status to test marking as read)
     {
-      _id: 'msg-001',
+      id: 'msg-001',
       userId: 'user-123',
       name: 'John Doe',
       email: 'john@example.com',
@@ -103,7 +103,7 @@ describe('ContactsManagement Component', () => {
       status: 'newlyReplied',
       discussion: [
         {
-          _id: 'reply-001',
+          id: 'reply-001',
           userId: 'admin-current',
           name: 'Current Admin',
           role: 'admin',
@@ -112,7 +112,7 @@ describe('ContactsManagement Component', () => {
           status: 'read'
         },
         {
-          _id: 'reply-002',
+          id: 'reply-002',
           userId: 'user-123',
           name: 'John Doe',
           role: 'user',
@@ -125,7 +125,7 @@ describe('ContactsManagement Component', () => {
     },
     // Message with newlyReplied status
     {
-      _id: 'msg-002',
+      id: 'msg-002',
       userId: 'user-456',
       name: 'Jane Smith',
       email: 'jane@example.com',
@@ -135,7 +135,7 @@ describe('ContactsManagement Component', () => {
       status: 'newlyReplied',
       discussion: [
         {
-          _id: 'reply-003',
+          id: 'reply-003',
           userId: 'user-456',
           name: 'Jane Smith',
           role: 'user',
@@ -144,7 +144,7 @@ describe('ContactsManagement Component', () => {
           status: 'read'
         },
         {
-          _id: 'reply-004',
+          id: 'reply-004',
           userId: 'admin-other',
           name: 'Other Admin',
           role: 'admin',
@@ -157,7 +157,7 @@ describe('ContactsManagement Component', () => {
     },
     // Message from unregistered user (no userId)
     {
-      _id: 'msg-003',
+      id: 'msg-003',
       userId: null,
       name: 'Anonymous User',
       email: 'anonymous@example.com',
@@ -170,7 +170,7 @@ describe('ContactsManagement Component', () => {
     },
     // Message from deleted user
     {
-      _id: 'msg-004',
+      id: 'msg-004',
       userId: 'deleted-user',
       name: 'Deleted User',
       email: 'deleted@account.com',
@@ -183,7 +183,7 @@ describe('ContactsManagement Component', () => {
     },
     // Closed conversation
     {
-      _id: 'msg-005',
+      id: 'msg-005',
       userId: 'user-789',
       name: 'Bob Johnson',
       email: 'bob@example.com',
@@ -193,7 +193,7 @@ describe('ContactsManagement Component', () => {
       status: 'closed',
       discussion: [
         {
-          _id: 'reply-005',
+          id: 'reply-005',
           userId: 'admin-current',
           name: 'Current Admin',
           role: 'admin',
@@ -208,11 +208,14 @@ describe('ContactsManagement Component', () => {
 
   const mockStoreStateBasic = {
     messages: mockMessagesBasic,
+    deletedMessages: [],
     isLoading: false,
     fetchMessages: vi.fn(),
+    fetchDeletedMessages: vi.fn(),
     markAsRead: vi.fn(),
     markAsClosed: vi.fn(),
-    deleteMessage: vi.fn(),
+    archiveMessage: vi.fn(),
+    restoreMessage: vi.fn(),
     addReply: vi.fn(),
     markDiscussionMessageAsRead: vi.fn(),
     updateMessageStatus: vi.fn(),
@@ -226,12 +229,15 @@ describe('ContactsManagement Component', () => {
 
   const mockStoreStateEnhanced = {
     messages: mockMessagesEnhanced,
+    deletedMessages: [],
     isLoading: false,
     fetchMessages: vi.fn(),
+    fetchDeletedMessages: vi.fn(),
     markAsRead: vi.fn(),
     updateMessageStatus: vi.fn(),
     markAsClosed: vi.fn(),
-    deleteMessage: vi.fn(),
+    archiveMessage: vi.fn(),
+    restoreMessage: vi.fn(),
     addReply: vi.fn(),
     markDiscussionMessageAsRead: vi.fn(),
     getMessagesStats: vi.fn(() => ({
@@ -400,7 +406,7 @@ describe('ContactsManagement Component', () => {
       mockStoreStateBasic.markAsRead.mockResolvedValue({ success: true })
       mockStoreStateBasic.fetchMessages.mockResolvedValue({ success: true })
       mockStoreStateBasic.markDiscussionMessageAsRead.mockResolvedValue({ success: true })
-      mockStoreStateBasic.deleteMessage.mockResolvedValue({ success: true })
+      mockStoreStateBasic.archiveMessage.mockResolvedValue({ success: true })
 
       useContactsStore.mockReturnValue(mockStoreStateBasic)
       useAuth.mockReturnValue({
@@ -435,22 +441,22 @@ describe('ContactsManagement Component', () => {
       })
     })
 
-    it('should delete message with confirmation prompt', async () => {
+    it('should archive message with confirmation prompt', async () => {
       renderComponent()
 
       const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeInTheDocument()
+        expect(screen.getByText('Archive')).toBeInTheDocument()
       })
 
-      await user.click(screen.getByText('Delete'))
+      await user.click(screen.getByText('Archive'))
 
-      expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this message?')
+      expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to archive this message?')
 
       await waitFor(() => {
-        expect(mockStoreStateBasic.deleteMessage).toHaveBeenCalledWith('msg-001')
+        expect(mockStoreStateBasic.archiveMessage).toHaveBeenCalledWith('msg-001')
       })
     })
   })
@@ -571,7 +577,7 @@ describe('ContactsManagement Component', () => {
       })
     })
 
-    it('should prevent deletion when user cancels confirmation', async () => {
+    it('should prevent archiving when user cancels confirmation', async () => {
       window.confirm.mockReturnValue(false)
 
       renderComponent()
@@ -580,14 +586,14 @@ describe('ContactsManagement Component', () => {
       await user.click(messageElement)
 
       await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeInTheDocument()
+        expect(screen.getByText('Archive')).toBeInTheDocument()
       })
 
-      await user.click(screen.getByText('Delete'))
+      await user.click(screen.getByText('Archive'))
 
-      expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this message?')
+      expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to archive this message?')
 
-      expect(mockStoreStateBasic.deleteMessage).not.toHaveBeenCalled()
+      expect(mockStoreStateBasic.archiveMessage).not.toHaveBeenCalled()
     })
   })
 
@@ -822,14 +828,17 @@ describe('ContactsManagement Component', () => {
       })
     })
 
-    it('should keep Delete and Mark as Closed buttons visible for unregistered users', async () => {
+    it('should keep Archive and Mark as Closed buttons visible for unregistered users', async () => {
       renderComponent()
 
       const messageCard = screen.getByText('General inquiry')
       await user.click(messageCard.closest('div[class*="p-6"]'))
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+        // Find the Archive button in the modal (not the tab)
+        const archiveButtons = screen.getAllByRole('button', { name: /Archive/i })
+        const modalArchiveButton = archiveButtons.find(btn => btn.className.includes('text-red'))
+        expect(modalArchiveButton).toBeInTheDocument()
         expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
       })
     })
@@ -978,7 +987,7 @@ describe('ContactsManagement Component', () => {
       useAuth.mockReturnValue({ user: mockCurrentAdmin })
     })
 
-    it('should show Delete and Mark as Closed buttons even when reply form is hidden', async () => {
+    it('should show Archive and Mark as Closed buttons even when reply form is hidden', async () => {
       renderComponent()
 
       const messageCard = screen.getByText('General inquiry')
@@ -986,19 +995,25 @@ describe('ContactsManagement Component', () => {
 
       await waitFor(() => {
         expect(screen.queryByPlaceholderText('Type your message here...')).not.toBeInTheDocument()
-        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+        // Find the Archive button in the modal (not the tab)
+        const archiveButtons = screen.getAllByRole('button', { name: /Archive/i })
+        const modalArchiveButton = archiveButtons.find(btn => btn.className.includes('text-red'))
+        expect(modalArchiveButton).toBeInTheDocument()
         expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
       })
     })
 
-    it('should show Delete and Mark as Closed buttons for closed conversations', async () => {
+    it('should show Archive and Mark as Closed buttons for closed conversations', async () => {
       renderComponent()
 
       const messageCard = screen.getByText('Complaint')
       await user.click(messageCard.closest('div[class*="p-6"]'))
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+        // Find the Archive button in the modal (not the tab)
+        const archiveButtons = screen.getAllByRole('button', { name: /Archive/i })
+        const modalArchiveButton = archiveButtons.find(btn => btn.className.includes('text-red'))
+        expect(modalArchiveButton).toBeInTheDocument()
         const closedButtons = screen.getAllByRole('button', { name: /Closed/i })
         const closedButton = closedButtons.find(btn => btn.disabled)
         expect(closedButton).toBeDefined()

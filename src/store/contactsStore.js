@@ -7,6 +7,7 @@ const useContactsStore = create(
     (set, get) => ({
       // State
       messages: [],
+      deletedMessages: [],
       myMessages: [],
       isLoading: false,
       error: null,
@@ -200,20 +201,15 @@ const useContactsStore = create(
         }
       },
 
-      // Delete message (if API supports it)
-      deleteMessage: async (messageId) => {
+      // Archive message - soft delete (admin)
+      archiveMessage: async (messageId) => {
         set({ isLoading: true, error: null })
 
         try {
-          // Note: If backend doesn't support deletion,
-          // we could use updateMessageStatus with 'deleted' status
-          const result = await contactsApi.deleteContact?.(messageId)
-          if (!result) {
-            throw new Error('Deletion not supported by API')
-          }
+          const result = await contactsApi.deleteContact(messageId)
 
           if (result.success) {
-            // Reload messages after deletion
+            // Reload messages after archiving
             await get().fetchMessages()
             set({ isLoading: false })
             return { success: true }
@@ -225,7 +221,68 @@ const useContactsStore = create(
             return { success: false, error: result.error }
           }
         } catch (error) {
-          const errorMessage = error.error || 'Error deleting message'
+          const errorMessage = error.error || 'Error archiving message'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      // Fetch archived/deleted messages (admin)
+      fetchDeletedMessages: async (params = {}) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await contactsApi.getDeletedContacts(params)
+
+          if (result.success) {
+            set({
+              deletedMessages: result.data || [],
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error loading archived messages'
+          set({
+            error: errorMessage,
+            isLoading: false
+          })
+          return { success: false, error: errorMessage }
+        }
+      },
+
+      // Restore an archived message (admin)
+      restoreMessage: async (messageId) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const result = await contactsApi.restoreContact(messageId)
+
+          if (result.success) {
+            // Reload both lists after restoration
+            await get().fetchMessages()
+            await get().fetchDeletedMessages()
+            set({ isLoading: false })
+            return { success: true }
+          } else {
+            set({
+              error: result.error,
+              isLoading: false
+            })
+            return { success: false, error: result.error }
+          }
+        } catch (error) {
+          const errorMessage = error.error || 'Error restoring message'
           set({
             error: errorMessage,
             isLoading: false
