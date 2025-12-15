@@ -15,7 +15,7 @@ const useAuthStore = create(
     (set, get) => ({
       // State
       user: null,
-      // token: null, // NO LONGER NEEDED - Auth is handled by HTTP-only cookies
+      accessToken: null, // Stored in memory only, NOT persisted (security)
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -23,7 +23,27 @@ const useAuthStore = create(
       // Actions
       setUser: (user) => set({ user, isAuthenticated: !!user }),
 
-      // setToken: (token) => set({ token }), // NO LONGER NEEDED
+      // Set access token (called after login or refresh)
+      setAccessToken: (accessToken) => set({ accessToken }),
+
+      // Set both auth data at once (after login or session restore)
+      setAuth: (accessToken, user) => set({
+        accessToken,
+        user,
+        isAuthenticated: true,
+        error: null
+      }),
+
+      // Clear all auth state (logout or session expired)
+      clearAuth: () => {
+        clearAllStoresCache()
+        set({
+          accessToken: null,
+          user: null,
+          isAuthenticated: false,
+          error: null
+        })
+      },
 
       setLoading: (isLoading) => set({ isLoading }),
 
@@ -117,22 +137,14 @@ const useAuthStore = create(
 
       logout: async () => {
         try {
-          // Call logout API (to clear HTTP-only cookie on backend)
+          // Call logout API (revokes refresh token in database + clears cookies)
           await authApi.logout()
         } catch (error) {
           console.error('Logout error:', error)
           // Continue with client-side logout anyway
         } finally {
-          // Clear all cached data for security (orders, reservations, contacts)
-          clearAllStoresCache()
-
-          // Always clear local state
-          set({
-            user: null,
-            // token: null, // NO LONGER NEEDED
-            isAuthenticated: false,
-            error: null
-          })
+          // Clear all auth state and cached data
+          get().clearAuth()
         }
       },
 
@@ -202,14 +214,9 @@ const useAuthStore = create(
           const result = await authApi.deleteAccount(password)
 
           if (result.success) {
-            // Logout user after account deletion
-            set({
-              user: null,
-              // token: null, // NO LONGER NEEDED
-              isAuthenticated: false,
-              isLoading: false,
-              error: null
-            })
+            // Clear all auth state after account deletion
+            get().clearAuth()
+            set({ isLoading: false })
             return { success: true }
           } else {
             set({
@@ -244,34 +251,27 @@ const useAuthStore = create(
             })
             return { success: true }
           } else {
-            // If cookie is no longer valid, logout
-            set({
-              user: null,
-              // token: null, // NO LONGER NEEDED
-              isAuthenticated: false,
-              isLoading: false,
-              error: null
-            })
+            // If session is no longer valid, clear auth
+            get().clearAuth()
+            set({ isLoading: false })
             return { success: false, error: result.error }
           }
         } catch (error) {
-          set({
-            user: null,
-            // token: null, // NO LONGER NEEDED
-            isAuthenticated: false,
-            isLoading: false,
-            error: null
-          })
+          // Session invalid, clear auth
+          get().clearAuth()
+          set({ isLoading: false })
           return { success: false, error: error.error }
         }
       }
     }),
     {
       name: 'auth-storage',
+      // IMPORTANT: accessToken is NOT persisted (stored in memory only for security)
+      // Only user info is persisted to localStorage
       partialize: (state) => ({
         user: state.user,
-        // token: state.token, // NO LONGER NEEDED - Don't persist token
         isAuthenticated: state.isAuthenticated
+        // accessToken is intentionally excluded - it lives in memory only
       }),
     }
   )
