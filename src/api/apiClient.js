@@ -62,9 +62,19 @@ apiClient.interceptors.response.use(
           break
 
         case 403:
-          // Forbidden - Insufficient permissions
-          console.error('Permission denied:', data)
-          toast.error('You do not have the necessary permissions')
+          // Forbidden - Check if it's email verification issue or permission issue
+          if (data?.code === 'AUTH_EMAIL_NOT_VERIFIED') {
+            console.error('Email not verified:', data)
+            // Show specific toast with action suggestion
+            toast.error(
+              'Email verification required. Please verify your email to perform this action.',
+              { duration: 5000 }
+            )
+          } else {
+            // Generic permission denied
+            console.error('Permission denied:', data)
+            toast.error('You do not have the necessary permissions')
+          }
           break
 
         case 404:
