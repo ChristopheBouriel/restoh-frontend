@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
+import useAuthStore from '../store/authStore'
 
 // API base URL (from environment variables)
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -14,12 +15,16 @@ const apiClient = axios.create({
   withCredentials: true, // IMPORTANT: Send cookies with requests
 })
 
-// Request interceptor - NO LONGER NEEDED with cookie-based auth
-// The browser automatically sends cookies with each request when withCredentials: true
+// Request interceptor - Add Authorization header with access token
 apiClient.interceptors.request.use(
   (config) => {
-    // Authentication is now handled by HTTP-only cookies
-    // No need to manually add Authorization header
+    // Get access token from auth store (stored in memory, not localStorage)
+    const { accessToken } = useAuthStore.getState()
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+
     return config
   },
   (error) => {
