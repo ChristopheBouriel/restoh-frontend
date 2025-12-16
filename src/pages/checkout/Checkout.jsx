@@ -339,6 +339,34 @@ const Checkout = () => {
                 </div>
               </div>
 
+              {/* Phone for pickup */}
+              {formData.type === 'pickup' && (
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Contact Information
+                </h2>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone *
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="06 12 34 56 78"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    We&apos;ll call you when your order is ready for pickup
+                  </p>
+                </div>
+              </div>
+              )}
+
               {/* Delivery address - only if delivery */}
               {formData.type === 'delivery' && (
               <div className="bg-white rounded-lg shadow-sm border p-6">
