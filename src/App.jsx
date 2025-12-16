@@ -34,7 +34,7 @@ import NotificationsDemo from './pages/dev/NotificationsDemo'
 import { ROUTES } from './constants'
 
 function App() {
-  const { user, isAuthenticated, fetchCurrentUser } = useAuthStore()
+  const { user, isAuthenticated, initializeAuth } = useAuthStore()
   const { setCurrentUser } = useCartStore()
   const { fetchMenuItems } = useMenuStore()
   const { fetchOrders } = useOrdersStore()
@@ -42,14 +42,17 @@ function App() {
   const { initializeUsers } = useUsersStore()
   const { fetchMessages } = useContactsStore()
 
-  // Fetch current user from backend on app startup (if authenticated)
+  // Restore session on app startup using refresh token cookie
+  // This gets a new accessToken and fetches user data
   useEffect(() => {
-    const refreshUserData = async () => {
+    const restoreSession = async () => {
+      // Only try to restore if we think user was authenticated (from localStorage)
+      // This avoids unnecessary API calls for users who never logged in
       if (isAuthenticated) {
-        await fetchCurrentUser()
+        await initializeAuth()
       }
     }
-    refreshUserData()
+    restoreSession()
   }, []) // Run once on mount
 
   // Clean up old token from localStorage (migration to cookie auth)

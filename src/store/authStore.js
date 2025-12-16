@@ -58,9 +58,10 @@ const useAuthStore = create(
           const result = await authApi.login(credentials)
 
           if (result.success) {
+            // Store accessToken in memory (not persisted) and user data
             set({
+              accessToken: result.accessToken,
               user: result.user,
-              // token: result.token, // NO LONGER NEEDED - Cookie is set by server
               isAuthenticated: true,
               isLoading: false,
               error: null
@@ -235,7 +236,7 @@ const useAuthStore = create(
         }
       },
 
-      // Fetch current user profile (optional, useful at app load)
+      // Fetch current user profile (requires valid accessToken)
       fetchCurrentUser: async () => {
         set({ isLoading: true, error: null })
 
@@ -261,6 +262,50 @@ const useAuthStore = create(
           get().clearAuth()
           set({ isLoading: false })
           return { success: false, error: error.error }
+        }
+      },
+
+      // Initialize auth on app startup (restore session from refresh token cookie)
+      // This is called once when the app loads to restore the session
+      initializeAuth: async () => {
+        set({ isLoading: true, error: null })
+
+        try {
+          // Step 1: Try to refresh the access token using the refresh token cookie
+          const refreshResult = await authApi.refreshToken()
+
+          if (!refreshResult.success) {
+            // No valid refresh token - user needs to login again
+            get().clearAuth()
+            set({ isLoading: false })
+            return { success: false, error: 'No valid session' }
+          }
+
+          // Step 2: Store the new access token
+          set({ accessToken: refreshResult.accessToken })
+
+          // Step 3: Fetch user data with the new access token
+          const userResult = await authApi.getCurrentUser()
+
+          if (userResult.success) {
+            set({
+              user: userResult.user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          } else {
+            // Failed to get user data - clear auth
+            get().clearAuth()
+            set({ isLoading: false })
+            return { success: false, error: userResult.error }
+          }
+        } catch (error) {
+          // Session restoration failed - clear auth
+          get().clearAuth()
+          set({ isLoading: false })
+          return { success: false, error: error.error || 'Session restoration failed' }
         }
       }
     }),

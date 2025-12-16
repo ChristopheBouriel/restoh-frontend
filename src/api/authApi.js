@@ -47,13 +47,20 @@ export const logout = async () => {
   }
 }
 
-// Refresh JWT token
-export const refreshToken = async (refreshToken) => {
+// Refresh access token using refresh token cookie
+// Note: This is mainly used for session restoration on app init
+// The auto-refresh in apiClient interceptor handles most refresh cases
+export const refreshToken = async () => {
   try {
-    const response = await apiClient.post('/auth/refresh', { refreshToken })
+    // Refresh token is sent automatically via HttpOnly cookie
+    const response = await apiClient.post('/auth/refresh')
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error refreshing token' }
+    return {
+      success: false,
+      error: error.error || 'Error refreshing token',
+      code: error.code
+    }
   }
 }
 

@@ -10,11 +10,12 @@ vi.mock('../../api/authApi', () => ({
   updateProfile: vi.fn(),
   changePassword: vi.fn(),
   deleteAccount: vi.fn(),
-  getCurrentUser: vi.fn()
+  getCurrentUser: vi.fn(),
+  refreshToken: vi.fn()
 }))
 
 // Get mocked API functions via dynamic import
-let mockLogin, mockRegister, mockLogout, mockUpdateProfile, mockChangePassword, mockDeleteAccount, mockGetCurrentUser
+let mockLogin, mockRegister, mockLogout, mockUpdateProfile, mockChangePassword, mockDeleteAccount, mockGetCurrentUser, mockRefreshToken
 
 beforeAll(async () => {
   const authApi = await import('../../api/authApi')
@@ -25,6 +26,7 @@ beforeAll(async () => {
   mockChangePassword = authApi.changePassword
   mockDeleteAccount = authApi.deleteAccount
   mockGetCurrentUser = authApi.getCurrentUser
+  mockRefreshToken = authApi.refreshToken
 })
 
 describe('Auth Store', () => {
@@ -54,13 +56,12 @@ describe('Auth Store', () => {
     // Reset API mocks with default success responses
     mockLogin.mockResolvedValue({
       success: true,
-      user: { id: '1', email: 'test@example.com', name: 'Test User', role: 'client' },
-      token: 'mock-jwt-token'
+      accessToken: 'mock-access-token',
+      user: { id: '1', email: 'test@example.com', name: 'Test User', role: 'client' }
     })
     mockRegister.mockResolvedValue({
       success: true,
-      user: { id: '2', email: 'new@example.com', name: 'New User', role: 'client' },
-      token: 'mock-jwt-token'
+      user: { id: '2', email: 'new@example.com', name: 'New User', role: 'client' }
     })
     mockLogout.mockResolvedValue({ success: true })
     mockUpdateProfile.mockResolvedValue({
@@ -73,10 +74,15 @@ describe('Auth Store', () => {
       success: true,
       user: { id: '1', email: 'test@example.com', name: 'Test User', role: 'client' }
     })
+    mockRefreshToken.mockResolvedValue({
+      success: true,
+      accessToken: 'new-access-token'
+    })
 
     // Reset store state
     useAuthStore.setState({
       user: null,
+      accessToken: null,
       isAuthenticated: false,
       isLoading: false,
       error: null
@@ -91,9 +97,9 @@ describe('Auth Store', () => {
   describe('Initial State and Simple Actions', () => {
     it('should have correct initial state', () => {
       const { result } = renderHook(() => useAuthStore())
-      
+
       expect(result.current.user).toBeNull()
-      // Token is now stored in HTTP-only cookies, not in state
+      expect(result.current.accessToken).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.isLoading).toBe(false)
       expect(result.current.error).toBeNull()
@@ -587,6 +593,183 @@ describe('Auth Store', () => {
       expect(result.current.error).toBe('Connection error')
       expect(result.current.isAuthenticated).toBe(false)
       expect(loginResult.success).toBe(false)
+    })
+  })
+
+  // 8. ACCESS TOKEN MANAGEMENT
+  describe('Access Token Management', () => {
+    it('should store accessToken after successful login', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      const credentials = { email: 'test@example.com', password: 'password123' }
+
+      await act(async () => {
+        await result.current.login(credentials)
+      })
+
+      expect(result.current.accessToken).toBe('mock-access-token')
+      expect(result.current.user).toBeDefined()
+      expect(result.current.isAuthenticated).toBe(true)
+    })
+
+    it('should set accessToken with setAccessToken action', () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      act(() => {
+        result.current.setAccessToken('new-token-123')
+      })
+
+      expect(result.current.accessToken).toBe('new-token-123')
+    })
+
+    it('should set auth data with setAuth action', () => {
+      const { result } = renderHook(() => useAuthStore())
+      const mockUser = { id: '1', email: 'test@example.com', name: 'Test User' }
+
+      act(() => {
+        result.current.setAuth('auth-token-456', mockUser)
+      })
+
+      expect(result.current.accessToken).toBe('auth-token-456')
+      expect(result.current.user).toEqual(mockUser)
+      expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.error).toBeNull()
+    })
+
+    it('should clear all auth data with clearAuth action', () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      // Set initial auth state
+      act(() => {
+        result.current.setAuth('token-to-clear', { id: '1', name: 'Test' })
+      })
+
+      expect(result.current.accessToken).toBe('token-to-clear')
+      expect(result.current.isAuthenticated).toBe(true)
+
+      // Clear auth
+      act(() => {
+        result.current.clearAuth()
+      })
+
+      expect(result.current.accessToken).toBeNull()
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(result.current.error).toBeNull()
+    })
+
+    it('should clear accessToken on logout', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      // Login first
+      await act(async () => {
+        await result.current.login({ email: 'test@example.com', password: 'password123' })
+      })
+
+      expect(result.current.accessToken).toBe('mock-access-token')
+
+      // Logout
+      await act(async () => {
+        await result.current.logout()
+      })
+
+      expect(result.current.accessToken).toBeNull()
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+    })
+  })
+
+  // 9. SESSION INITIALIZATION (Refresh Token Flow)
+  describe('Session Initialization', () => {
+    it('should restore session successfully with initializeAuth', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      let initResult
+      await act(async () => {
+        initResult = await result.current.initializeAuth()
+      })
+
+      expect(mockRefreshToken).toHaveBeenCalled()
+      expect(mockGetCurrentUser).toHaveBeenCalled()
+      expect(result.current.accessToken).toBe('new-access-token')
+      expect(result.current.user).toEqual({
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'client'
+      })
+      expect(result.current.isAuthenticated).toBe(true)
+      expect(initResult.success).toBe(true)
+    })
+
+    it('should clear auth when refresh token is invalid', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      // Set initial authenticated state
+      act(() => {
+        result.current.setAuth('old-token', { id: '1', name: 'Old User' })
+      })
+
+      // Mock refresh to fail
+      mockRefreshToken.mockResolvedValue({
+        success: false,
+        error: 'Invalid refresh token',
+        code: 'AUTH_INVALID_REFRESH_TOKEN'
+      })
+
+      let initResult
+      await act(async () => {
+        initResult = await result.current.initializeAuth()
+      })
+
+      expect(mockRefreshToken).toHaveBeenCalled()
+      expect(mockGetCurrentUser).not.toHaveBeenCalled()
+      expect(result.current.accessToken).toBeNull()
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(initResult.success).toBe(false)
+    })
+
+    it('should clear auth when getCurrentUser fails after refresh', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      // Mock refresh success but getCurrentUser fails
+      mockRefreshToken.mockResolvedValue({
+        success: true,
+        accessToken: 'new-access-token'
+      })
+      mockGetCurrentUser.mockResolvedValue({
+        success: false,
+        error: 'User not found'
+      })
+
+      let initResult
+      await act(async () => {
+        initResult = await result.current.initializeAuth()
+      })
+
+      expect(mockRefreshToken).toHaveBeenCalled()
+      expect(mockGetCurrentUser).toHaveBeenCalled()
+      expect(result.current.accessToken).toBeNull()
+      expect(result.current.user).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(initResult.success).toBe(false)
+    })
+
+    it('should handle network error during session initialization', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      // Mock network error
+      mockRefreshToken.mockRejectedValue({ error: 'Network error' })
+
+      let initResult
+      await act(async () => {
+        initResult = await result.current.initializeAuth()
+      })
+
+      expect(result.current.accessToken).toBeNull()
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(initResult.success).toBe(false)
     })
   })
 })
