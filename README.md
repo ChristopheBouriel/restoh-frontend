@@ -123,11 +123,15 @@ restoh-frontend/
 
 ## Authentication
 
-The application uses HTTP-only cookies for authentication:
+The application uses a secure **Access Token + Refresh Token** architecture:
 
-- **Session**: Managed by HTTP-only cookies on the backend (secure)
+- **Access Token**: Short-lived (15 min), stored in memory only (not localStorage)
+- **Refresh Token**: Long-lived (7 days), stored in HTTP-only secure cookie
+- **Auto-refresh**: Expired tokens are automatically refreshed via interceptor
+- **Request queue**: Failed requests are queued and retried after token refresh
+- **Session restore**: `initializeAuth()` restores session on app startup using refresh token
 - **Local state**: `user` and `isAuthenticated` persisted in localStorage
-- **Auto-logout**: Redirect to `/login` when session expires
+- **Auto-logout**: Redirect to `/login` when refresh token is invalid
 - **Public pages**: Login, register, reset-password don't trigger redirects
 
 ## 🎨 Customization
@@ -240,6 +244,9 @@ For any questions or issues:
 - [x] Code coverage report
 - [x] Dashboard API statistics integration
 - [x] Dynamic Today filter for stats
+- [x] Access Token + Refresh Token authentication
+- [x] Auto-refresh interceptor with request queue
+- [ ] Remember me functionality
 - [ ] E2E tests with Playwright/Cypress
 - [ ] PWA (Progressive Web App)
 - [ ] Internationalization (i18n)
