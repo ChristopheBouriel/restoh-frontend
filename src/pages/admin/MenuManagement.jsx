@@ -257,9 +257,9 @@ const MenuManagement = () => {
 
   const getCuisineStyle = (cuisine) => {
     const styles = {
-      asian: { bg: 'bg-red-100', text: 'text-red-700', label: 'Asian' },
-      lao: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Lao' },
-      continental: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Continental' }
+      asian: { bg: 'bg-terracotta-100', text: 'text-terracotta-700', label: 'Asian' },
+      lao: { bg: 'bg-primary-100', text: 'text-primary-700', label: 'Lao' },
+      continental: { bg: 'bg-brown-100', text: 'text-brown-700', label: 'Continental' }
     }
     return styles[cuisine] || styles.continental
   }
@@ -334,8 +334,8 @@ const MenuManagement = () => {
             onClick={() => toggleFilter('suggested')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'suggested'
-                ? 'bg-purple-600 text-white'
-                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                ? 'bg-brown-600 text-white'
+                : 'bg-brown-100 text-brown-700 hover:bg-brown-200'
             }`}
           >
             <ChefHat size={14} />
@@ -346,8 +346,8 @@ const MenuManagement = () => {
             onClick={() => toggleFilter('popular')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'popular'
-                ? 'bg-amber-600 text-white'
-                : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                ? 'bg-apricot-600 text-white'
+                : 'bg-apricot-100 text-apricot-700 hover:bg-apricot-200'
             }`}
           >
             <Star size={14} />
@@ -358,8 +358,8 @@ const MenuManagement = () => {
             onClick={() => toggleFilter('excluded')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'excluded'
-                ? 'bg-gray-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-brown-600 text-white'
+                : 'bg-brown-100 text-brown-700 hover:bg-brown-200'
             }`}
           >
             <StarOff size={14} />
@@ -369,7 +369,7 @@ const MenuManagement = () => {
           {filterCounts.excluded > 0 && (
             <button
               onClick={handleResetAllPopularOverrides}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors ml-2"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-terracotta-600 text-white hover:bg-terracotta-700 transition-colors ml-2"
               title="Reset all excluded items"
             >
               <RotateCcw size={14} />
@@ -392,7 +392,7 @@ const MenuManagement = () => {
       {/* Liste des articles */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map((item) => (
-          <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
+          <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col border-2 border-primary-300">
             <div className="relative">
               <ImageWithFallback
                 src={item.image}
@@ -413,19 +413,19 @@ const MenuManagement = () => {
                   </span>
                 )}
                 {item.isSuggested && (
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-brown-100 text-brown-700">
                     <ChefHat size={12} />
                     Suggested
                   </span>
                 )}
                 {item.isPopular && !item.isPopularOverride && (
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-apricot-100 text-apricot-700">
                     <Star size={12} />
                     Popular
                   </span>
                 )}
                 {item.isPopularOverride && (
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-brown-200 text-brown-600">
                     <StarOff size={12} />
                     Excluded
                   </span>
@@ -461,7 +461,7 @@ const MenuManagement = () => {
                   <p className="text-xs text-gray-500 mb-1">Allergens:</p>
                   <div className="flex flex-wrap gap-1">
                     {item.allergens.map((allergen, idx) => (
-                      <span key={idx} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                      <span key={idx} className="text-xs bg-cream-200 text-cream-800 px-2 py-1 rounded">
                         {allergen}
                       </span>
                     ))}
@@ -473,7 +473,7 @@ const MenuManagement = () => {
               <div className="flex space-x-2 mt-auto">
                 <button
                   onClick={() => openEditModal(item)}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600 transition-colors"
                 >
                   <Edit size={16} />
                   <span>Edit</span>
@@ -483,8 +483,8 @@ const MenuManagement = () => {
                   onClick={() => handleToggleAvailability(item.id)}
                   className={`flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
                     item.isAvailable
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      ? 'bg-terracotta-200 text-terracotta-800 hover:bg-terracotta-300'
+                      : 'bg-apricot-100 text-apricot-700 hover:bg-apricot-200'
                   }`}
                   title={item.isAvailable ? 'Disable' : 'Enable'}
                 >
@@ -493,7 +493,7 @@ const MenuManagement = () => {
 
                 <button
                   onClick={() => handleDeleteItem(item.id, item.name)}
-                  className="flex items-center justify-center px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                  className="flex items-center justify-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                   title="Delete"
                 >
                   <Trash2 size={16} />
@@ -506,8 +506,8 @@ const MenuManagement = () => {
                   onClick={() => handleToggleSuggested(item.id, item.name)}
                   className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
                     item.isSuggested
-                      ? 'bg-purple-600 text-white hover:bg-purple-700'
-                      : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                      ? 'bg-brown-600 text-white hover:bg-brown-700'
+                      : 'bg-brown-100 text-brown-700 hover:bg-brown-200'
                   }`}
                   title={item.isSuggested ? 'Remove from suggestions' : 'Add to suggestions'}
                 >
@@ -519,8 +519,10 @@ const MenuManagement = () => {
                   onClick={() => handleTogglePopularOverride(item.id, item.name)}
                   className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
                     item.isPopularOverride
-                      ? 'bg-gray-600 text-white hover:bg-gray-700'
-                      : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      ? 'bg-brown-600 text-white hover:bg-brown-700'
+                      : item.isPopular
+                        ? 'bg-apricot-600 text-white hover:bg-apricot-700'
+                        : 'bg-apricot-100 text-apricot-700 hover:bg-apricot-200'
                   }`}
                   title={item.isPopularOverride ? 'Include in popular' : 'Exclude from popular'}
                 >

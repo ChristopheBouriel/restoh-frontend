@@ -142,9 +142,9 @@ const Menu = () => {
 
   const getCuisineStyle = (cuisine) => {
     const styles = {
-      asian: { bg: 'bg-red-100', text: 'text-red-700', label: 'Asian' },
-      lao: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Lao' },
-      continental: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Continental' }
+      asian: { bg: 'bg-terracotta-100', text: 'text-terracotta-700', label: 'Asian' },
+      lao: { bg: 'bg-primary-100', text: 'text-primary-700', label: 'Lao' },
+      continental: { bg: 'bg-brown-100', text: 'text-brown-700', label: 'Continental' }
     }
     return styles[cuisine] || styles.continental
   }
@@ -304,7 +304,7 @@ const Menu = () => {
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col ${
+                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col border-2 border-primary-300 ${
                   !item.isAvailable ? 'opacity-60' : ''
                 }`}
               >
@@ -391,7 +391,7 @@ const Menu = () => {
                       <p className="text-xs text-gray-500 mb-1">Allergens:</p>
                       <div className="flex flex-wrap gap-1">
                         {item.allergens.map((allergen, idx) => (
-                          <span key={idx} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                          <span key={idx} className="text-xs bg-cream-200 text-cream-800 px-2 py-1 rounded">
                             {allergen}
                           </span>
                         ))}
@@ -405,7 +405,7 @@ const Menu = () => {
                         e.stopPropagation()
                         handleItemClick(item)
                       }}
-                      className="px-4 py-2 rounded-lg font-medium transition-colors border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 rounded-lg font-medium transition-colors border border-brown-300 text-brown-700 hover:bg-brown-50 hover:border-brown-400"
                     >
                       Reviews
                     </button>
@@ -418,7 +418,7 @@ const Menu = () => {
                       className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
                         item.isAvailable
                           ? 'bg-primary-600 text-white hover:bg-primary-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-brown-200 text-brown-500 cursor-not-allowed'
                       }`}
                     >
                       {item.isAvailable ? 'Add to cart' : 'Unavailable'}
