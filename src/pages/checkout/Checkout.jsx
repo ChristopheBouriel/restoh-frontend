@@ -250,7 +250,7 @@ const Checkout = () => {
                   Customer information
                 </h2>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full name
@@ -262,7 +262,7 @@ const Checkout = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email
