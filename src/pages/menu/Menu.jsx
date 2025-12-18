@@ -204,7 +204,7 @@ const Menu = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-brown-200 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
@@ -231,7 +231,7 @@ const Menu = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-brown-200 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -242,7 +242,7 @@ const Menu = () => {
         </div>
 
         {/* Filters and search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border-2 border-primary-300">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border-2 border-brown-400">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search bar */}
             <div className="relative flex-1">
@@ -304,7 +304,7 @@ const Menu = () => {
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col border-2 border-primary-300 ${
+                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col border-2 border-brown-400 ${
                   !item.isAvailable ? 'opacity-60' : ''
                 }`}
               >
@@ -329,7 +329,7 @@ const Menu = () => {
                   {/* Badges Popular & Suggested */}
                   <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                     {item.isSuggested && (
-                      <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-white border-2 border-brown-500 text-brown-700">
+                      <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-white border-2 border-brown-400 text-brown-700">
                         <ChefHat size={12} />
                         Chef's pick
                       </span>

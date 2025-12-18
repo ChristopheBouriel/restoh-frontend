@@ -155,7 +155,7 @@ const Checkout = () => {
   // Order confirmation view
   if (orderCompleted) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-brown-200 py-8">
         <div className="max-w-2xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -201,7 +201,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-brown-200 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Order form */}
