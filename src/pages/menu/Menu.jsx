@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Search, Filter, X } from 'lucide-react'
+import { Search, Filter, X, ChefHat, Star } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
 import { useMenu } from '../../hooks/useMenu'
 import { MenuService } from '../../services/menu'
@@ -242,7 +242,7 @@ const Menu = () => {
         </div>
 
         {/* Filters and search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border-2 border-primary-300">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search bar */}
             <div className="relative flex-1">
@@ -326,6 +326,21 @@ const Menu = () => {
                       </span>
                     </div>
                   )}
+                  {/* Badges Popular & Suggested */}
+                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                    {item.isSuggested && (
+                      <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-white border-2 border-brown-500 text-brown-700">
+                        <ChefHat size={12} />
+                        Chef's pick
+                      </span>
+                    )}
+                    {item.isPopular && !item.isPopularOverride && (
+                      <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-white border-2 border-apricot-500 text-apricot-700">
+                        <Star size={12} />
+                        Popular
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-2">

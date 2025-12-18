@@ -302,7 +302,7 @@ const MenuManagement = () => {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border-2 border-primary-300">
         <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
@@ -400,34 +400,16 @@ const MenuManagement = () => {
                 className="w-full h-48 object-cover"
               />
               <div className="absolute top-2 right-2 flex flex-wrap gap-1 max-w-[60%] justify-end">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                <span className={`px-2 py-1 rounded-full text-xs font-medium border-2 ${
                   item.isAvailable
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                    ? 'bg-white border-primary-500 text-primary-500'
+                    : 'bg-terracotta-200 text-terracotta-800 border-terracotta-200'
                 }`}>
                   {item.isAvailable ? 'Available' : 'Unavailable'}
                 </span>
                 {item.isVegetarian && (
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-white border-2 border-emerald-700 text-emerald-700">
                     🌱 Veg
-                  </span>
-                )}
-                {item.isSuggested && (
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-brown-100 text-brown-700">
-                    <ChefHat size={12} />
-                    Suggested
-                  </span>
-                )}
-                {item.isPopular && !item.isPopularOverride && (
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-apricot-100 text-apricot-700">
-                    <Star size={12} />
-                    Popular
-                  </span>
-                )}
-                {item.isPopularOverride && (
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-brown-200 text-brown-600">
-                    <StarOff size={12} />
-                    Excluded
                   </span>
                 )}
               </div>
@@ -473,7 +455,7 @@ const MenuManagement = () => {
               <div className="flex space-x-2 mt-auto">
                 <button
                   onClick={() => openEditModal(item)}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600 transition-colors"
+                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
                 >
                   <Edit size={16} />
                   <span>Edit</span>
@@ -481,10 +463,10 @@ const MenuManagement = () => {
 
                 <button
                   onClick={() => handleToggleAvailability(item.id)}
-                  className={`flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
+                  className={`flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors border-2 ${
                     item.isAvailable
-                      ? 'bg-terracotta-200 text-terracotta-800 hover:bg-terracotta-300'
-                      : 'bg-apricot-100 text-apricot-700 hover:bg-apricot-200'
+                      ? 'bg-terracotta-200 border-terracotta-200 text-terracotta-800 hover:bg-terracotta-300 hover:border-terracotta-300'
+                      : 'bg-white border-primary-500 text-primary-500 hover:bg-primary-50'
                   }`}
                   title={item.isAvailable ? 'Disable' : 'Enable'}
                 >
@@ -521,7 +503,7 @@ const MenuManagement = () => {
                     item.isPopularOverride
                       ? 'bg-brown-600 text-white hover:bg-brown-700'
                       : item.isPopular
-                        ? 'bg-apricot-600 text-white hover:bg-apricot-700'
+                        ? 'bg-apricot-700 text-white hover:bg-apricot-800'
                         : 'bg-apricot-100 text-apricot-700 hover:bg-apricot-200'
                   }`}
                   title={item.isPopularOverride ? 'Include in popular' : 'Exclude from popular'}
