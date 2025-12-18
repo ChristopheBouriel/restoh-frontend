@@ -247,7 +247,7 @@ const UsersManagement = () => {
           // Loading skeleton
           <>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-white rounded-lg border p-4 animate-pulse">
+              <div key={i} className="bg-white rounded-lg border border-brown-400 p-4 animate-pulse">
                 <div className="flex items-center">
                   <div className="h-8 w-8 bg-gray-200 rounded mr-3"></div>
                   <div className="flex-1">
@@ -260,7 +260,7 @@ const UsersManagement = () => {
           </>
         ) : stats ? (
           <>
-            <div className="bg-white rounded-lg border p-4">
+            <div className="bg-white rounded-lg border border-brown-400 p-4">
               <div className="flex items-center">
                 <User className="h-8 w-8 text-blue-500 mr-3 flex-shrink-0" />
                 <div className="flex-1 flex flex-col justify-between">
@@ -270,7 +270,7 @@ const UsersManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border p-4">
+            <div className="bg-white rounded-lg border border-brown-400 p-4">
               <div className="flex items-center">
                 <User className="h-8 w-8 text-green-500 mr-3 flex-shrink-0" />
                 <div className="flex-1 flex flex-col justify-between">
@@ -280,7 +280,7 @@ const UsersManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border p-4">
+            <div className="bg-white rounded-lg border border-brown-400 p-4">
               <div className="flex items-center">
                 <TrendingUp className="h-8 w-8 text-emerald-500 mr-3 flex-shrink-0" />
                 <div className="flex-1 flex flex-col justify-between">
@@ -290,7 +290,7 @@ const UsersManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border p-4">
+            <div className="bg-white rounded-lg border border-brown-400 p-4">
               <div className="flex items-center">
                 <Calendar className="h-8 w-8 text-purple-500 mr-3 flex-shrink-0" />
                 <div className="flex-1 flex flex-col justify-between">
@@ -300,7 +300,7 @@ const UsersManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border p-4">
+            <div className="bg-white rounded-lg border border-brown-400 p-4">
               <div className="flex items-center">
                 <ShoppingBag className="h-8 w-8 text-indigo-500 mr-3 flex-shrink-0" />
                 <div className="flex-1 flex flex-col justify-between">
@@ -318,7 +318,7 @@ const UsersManagement = () => {
       </div>
 
       {/* Filters and search */}
-      <div className="bg-white rounded-lg border p-6 mb-6">
+      <div className="bg-white rounded-lg border border-brown-400 p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Search and filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
@@ -376,7 +376,7 @@ const UsersManagement = () => {
       )}
 
       {/* Users list */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-white rounded-lg border border-brown-400">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
             Users ({filteredUsers.length})

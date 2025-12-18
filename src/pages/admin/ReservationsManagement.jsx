@@ -431,7 +431,7 @@ const ReservationsManagement = () => {
 
       {/* Statistics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-gray-500 mr-3" />
             <div>
@@ -441,7 +441,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-green-500 mr-3" />
             <div>
@@ -451,7 +451,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-purple-500 mr-3" />
             <div>
@@ -461,7 +461,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-green-500 mr-3" />
             <div>
@@ -471,7 +471,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-blue-500 mr-3" />
             <div>
@@ -481,7 +481,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-purple-500 mr-3" />
             <div>
@@ -491,7 +491,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-green-500 mr-3" />
             <div>
@@ -501,7 +501,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-red-500 mr-3" />
             <div>
@@ -511,7 +511,7 @@ const ReservationsManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-orange-500 mr-3" />
             <div>
@@ -524,7 +524,7 @@ const ReservationsManagement = () => {
 
       {/* Filters - Recent Tab */}
       {activeTab === 'recent' && (
-        <div className="bg-white rounded-lg border p-6 mb-6">
+        <div className="bg-white rounded-lg border border-brown-400 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
             <div className="flex items-center space-x-3">
@@ -597,7 +597,7 @@ const ReservationsManagement = () => {
 
       {/* Filters - History Tab */}
       {activeTab === 'history' && (
-        <div className="bg-white rounded-lg border p-6 mb-6">
+        <div className="bg-white rounded-lg border border-brown-400 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -685,7 +685,7 @@ const ReservationsManagement = () => {
       )}
 
       {/* Reservations List */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-white rounded-lg border border-brown-400">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
             Reservations ({displayedReservations.length})

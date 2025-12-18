@@ -273,7 +273,7 @@ const MenuManagement = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white p-4 rounded-lg shadow-sm">
+            <div key={i} className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
               <div className="h-40 bg-gray-200 rounded mb-4"></div>
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -302,7 +302,7 @@ const MenuManagement = () => {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border-2 border-primary-300">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border border-brown-400">
         <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
@@ -392,7 +392,7 @@ const MenuManagement = () => {
       {/* Liste des articles */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map((item) => (
-          <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col border-2 border-primary-300">
+          <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col border border-brown-400">
             <div className="relative">
               <ImageWithFallback
                 src={item.image}
@@ -542,7 +542,7 @@ const MenuManagement = () => {
       {/* Modal d'ajout/modification */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-brown-400">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">

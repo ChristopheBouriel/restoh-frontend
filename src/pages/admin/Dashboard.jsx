@@ -152,7 +152,7 @@ const Dashboard = () => {
       {apiStats?.quickStats ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Revenue */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
@@ -177,7 +177,7 @@ const Dashboard = () => {
           </div>
 
           {/* Orders */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Orders Today</p>
@@ -202,7 +202,7 @@ const Dashboard = () => {
           </div>
 
           {/* Reservations */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Reservations Today</p>
@@ -227,7 +227,7 @@ const Dashboard = () => {
           </div>
 
           {/* Active Users */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Active Users</p>
@@ -242,7 +242,7 @@ const Dashboard = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm animate-pulse">
+            <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-brown-400 animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
               <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-2/3"></div>
@@ -259,7 +259,7 @@ const Dashboard = () => {
           {/* Row 1: Revenue & Orders */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Monthly Revenue */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
@@ -284,7 +284,7 @@ const Dashboard = () => {
             </div>
 
             {/* Order Types */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-medium text-gray-600">Monthly Orders</p>
                 <p className="text-2xl font-bold text-gray-900">{apiStats.orders.thisMonth.total}</p>
@@ -315,7 +315,7 @@ const Dashboard = () => {
           {/* Row 2: Reservations & Guests */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Monthly Reservations */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Monthly Reservations</p>
@@ -329,7 +329,7 @@ const Dashboard = () => {
             </div>
 
             {/* Monthly Guests */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Monthly Guests</p>
@@ -346,7 +346,7 @@ const Dashboard = () => {
           {/* Row 3: Upcoming Reservations & Menu Items */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Upcoming Reservations */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Upcoming Reservations</p>
@@ -360,7 +360,7 @@ const Dashboard = () => {
             </div>
 
             {/* Menu Items */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Menu Items</p>
@@ -383,7 +383,7 @@ const Dashboard = () => {
       {/* Recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent orders */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
             <Link
@@ -429,7 +429,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent reservations */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Recent Reservations</h2>
             <Link

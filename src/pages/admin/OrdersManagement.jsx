@@ -388,7 +388,7 @@ const OrdersManagement = () => {
 
       {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total orders</p>
@@ -398,7 +398,7 @@ const OrdersManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pending</p>
@@ -408,7 +408,7 @@ const OrdersManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">In progress</p>
@@ -418,7 +418,7 @@ const OrdersManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Ready Orders</p>
@@ -430,7 +430,7 @@ const OrdersManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border p-6">
+      <div className="bg-white rounded-lg border border-brown-400 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           {activeTab === 'recent' && (
@@ -555,11 +555,11 @@ const OrdersManagement = () => {
 
       {/* Orders List */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64 bg-white rounded-lg border">
+        <div className="flex items-center justify-center h-64 bg-white rounded-lg border border-brown-400">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       ) : activeTab === 'history' && !startDate && !endDate ? (
-        <div className="bg-white rounded-lg border p-12 text-center">
+        <div className="bg-white rounded-lg border border-brown-400 p-12 text-center">
           <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Select a date range</h3>
           <p className="text-gray-500">
@@ -567,7 +567,7 @@ const OrdersManagement = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-brown-400 overflow-hidden">
           {filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />

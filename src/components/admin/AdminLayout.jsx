@@ -29,7 +29,7 @@ const AdminLayout = () => {
   if (!isAdmin) {
     // Show message instead of redirecting directly
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-brown-200">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access denied</h1>
           <p className="text-gray-600 mb-6">You do not have permission to access the admin panel.</p>
@@ -89,7 +89,7 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-100 flex">
+    <div className="h-screen bg-brown-200 flex">
       {/* Sidebar mobile overlay */}
       {isSidebarOpen && (
         <div 
@@ -180,12 +180,12 @@ const AdminLayout = () => {
             <div className="flex items-center space-x-4">
               <Link
                 to={ROUTES.HOME}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm text-primary-600 hover:text-primary-700 transition-colors"
               >
                 ← Return to site
               </Link>
-              
-              <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
+
+              <button className="p-2 text-primary-600 hover:text-primary-700 transition-colors">
                 <Settings size={20} />
               </button>
             </div>
@@ -193,7 +193,7 @@ const AdminLayout = () => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-50 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-brown-200 overflow-y-auto">
           <Outlet />
         </main>
       </div>
