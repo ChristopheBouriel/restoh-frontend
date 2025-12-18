@@ -151,7 +151,7 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact information */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6 mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                 Our contact information
               </h2>
@@ -193,7 +193,7 @@ const Contact = () => {
             </div>
             
             {/* Opening hours */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                 <Clock className="w-6 h-6 mr-2" />
                 Opening hours
@@ -218,7 +218,7 @@ const Contact = () => {
 
           {/* Contact form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
                 <MessageSquare className="w-6 h-6 mr-2" />
                 {messageSent && !user ? 'Message sent successfully!' : 'Send us a message'}
@@ -287,7 +287,7 @@ const Contact = () => {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-primary"
                       placeholder="Your name"
                     />
                   </div>
@@ -303,7 +303,7 @@ const Contact = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-primary"
                       placeholder="your@email.com"
                     />
                   </div>
@@ -319,7 +319,7 @@ const Contact = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="input-primary"
                     placeholder="01 23 45 67 89"
                   />
                 </div>
@@ -335,7 +335,7 @@ const Contact = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="input-primary"
                     placeholder="The subject of your message"
                   />
                 </div>
@@ -351,7 +351,7 @@ const Contact = () => {
                     onChange={handleChange}
                     required
                     rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="input-primary"
                     placeholder="Your message..."
                   />
                   <p className="text-sm text-gray-500 mt-1">
@@ -395,7 +395,7 @@ const Contact = () => {
 
         {/* FAQ section */}
         <div className="mt-12">
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Frequently asked questions
             </h2>

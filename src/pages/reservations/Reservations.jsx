@@ -400,7 +400,7 @@ const Reservations = () => {
 
         <div className="grid grid-cols-1 gap-8">
           {/* New Reservation */}
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 max-w-full overflow-hidden">
+          <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-4 sm:p-6 max-w-full overflow-hidden">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
               {editingId ? (
                 <>
@@ -508,7 +508,7 @@ const Reservations = () => {
                     value={selectedDate}
                     onChange={setSelectedDate}
                     minDate={today}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-1.5 border-2 border-primary-400 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Select a date"
                   />
                 </div>
@@ -519,11 +519,11 @@ const Reservations = () => {
                     <Users className="w-4 h-4 inline mr-2" />
                     Number of guests
                   </label>
-                  <div className="flex items-center w-full border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent bg-white overflow-hidden">
+                  <div className="flex items-center w-full border-2 border-primary-400 rounded-md focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent bg-white overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setPartySize(Math.max(1, partySize - 1))}
-                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-colors font-bold text-lg h-full"
+                      className="px-4 py-2 bg-primary-400 hover:bg-primary-600 text-white flex items-center justify-center transition-colors font-bold text-lg h-full"
                     >
                       -
                     </button>
@@ -533,7 +533,7 @@ const Reservations = () => {
                     <button
                       type="button"
                       onClick={() => setPartySize(partySize + 1)}
-                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-colors font-bold text-lg h-full"
+                      className="px-4 py-2 bg-primary-400 hover:bg-primary-600 text-white flex items-center justify-center transition-colors font-bold text-lg h-full"
                     >
                       +
                     </button>
@@ -551,7 +551,7 @@ const Reservations = () => {
                     onChange={(e) => setContactPhone(e.target.value)}
                     placeholder="06 12 34 56 78"
                     required
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 border-2 border-primary-400 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -681,7 +681,7 @@ const Reservations = () => {
           </div>
 
           {/* My Reservations */}
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               My reservations
             </h2>

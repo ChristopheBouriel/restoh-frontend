@@ -180,7 +180,7 @@ const Profile = () => {
     <div className="min-h-screen bg-brown-200 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6 mb-6">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
               <User className="w-8 h-8 text-primary-600" />
@@ -193,7 +193,7 @@ const Profile = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-brown-400 mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               {tabs.map((tab) => {
@@ -218,7 +218,7 @@ const Profile = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
           {activeTab === 'personal' && (
             <div>
               {/* Email verification banner */}

@@ -304,10 +304,10 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
   return (
     <div ref={pickerRef} className="relative">
       {/* Conteneur de l'input avec bouton calendrier */}
-      <div className={`flex items-center bg-white border border-gray-300 rounded-md transition-colors ${
-        isOpen 
-          ? 'outline-none ring-0 border-gray-300' 
-          : 'focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 hover:border-orange-500'
+      <div className={`flex items-center bg-white border-2 border-primary-300 rounded-md transition-colors ${
+        isOpen
+          ? 'outline-none ring-0 border-primary-300'
+          : 'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent hover:border-primary-400'
       } ${className || 'w-full'}`}>
         
         {/* Input manuel */}
@@ -319,7 +319,7 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
           placeholder="DD/MM/YYYY"
-          className="flex-1 px-3 py-1.5 text-s bg-transparent border-none outline-none text-gray-900 placeholder-gray-500"
+          className="flex-1 px-1 text-s bg-transparent border-none outline-none text-gray-900 placeholder-gray-500"
         />
         
         {/* Bouton calendrier */}
@@ -327,7 +327,7 @@ const CustomDatePicker = ({ value, onChange, placeholder = "Sélectionner une da
           ref={buttonRef}
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="px-2 py-1.5 text-gray-400 hover:text-orange-500 transition-colors"
+          className="px-2 py-2 text-gray-400 hover:text-orange-500 transition-colors"
         >
           <Calendar className={`h-4 w-4 transition-all duration-200 ${
             isOpen ? 'text-orange-500' : ''

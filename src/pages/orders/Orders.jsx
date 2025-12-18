@@ -81,7 +81,7 @@ const Orders = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6 mb-6">
           <div className="flex flex-wrap gap-2">
             {[
               { key: 'all', label: 'All orders' },
@@ -125,7 +125,7 @@ const Orders = () => {
               const StatusIcon = statusInfo.icon
 
               return (
-                <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
+                <div key={order.id} className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-2">
@@ -243,7 +243,7 @@ const Orders = () => {
               )
             })
           ) : (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-12 text-center">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 No orders found

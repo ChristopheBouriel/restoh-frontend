@@ -157,7 +157,7 @@ const Checkout = () => {
     return (
       <div className="min-h-screen bg-brown-200 py-8">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="bg-white rounded-lg shadow-lg border border-brown-400 p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="w-8 h-8 text-green-600" />
             </div>
@@ -244,7 +244,7 @@ const Checkout = () => {
               )}
 
               {/* Customer information */}
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <User className="w-5 h-5 mr-2" />
                   Customer information
@@ -259,7 +259,7 @@ const Checkout = () => {
                       type="text"
                       value={user.name}
                       disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                      className="w-full px-3 py-2 border-2 border-primary-300 rounded-md bg-gray-50"
                     />
                   </div>
 
@@ -271,14 +271,14 @@ const Checkout = () => {
                       type="email"
                       value={user.email}
                       disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                      className="w-full px-3 py-2 border-2 border-primary-300 rounded-md bg-gray-50"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Order Type */}
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Order Type
                 </h2>
@@ -315,7 +315,7 @@ const Checkout = () => {
               </div>
 
               {/* Special requests */}
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <MessageSquare className="w-5 h-5 mr-2" />
                   Special requests
@@ -331,7 +331,7 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     rows={3}
                     placeholder="Allergies, dietary restrictions, preparation preferences..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="input-primary"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     These requests apply to your entire order
@@ -341,7 +341,7 @@ const Checkout = () => {
 
               {/* Phone for pickup */}
               {formData.type === 'pickup' && (
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <User className="w-5 h-5 mr-2" />
                   Contact Information
@@ -358,7 +358,7 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="06 12 34 56 78"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="input-primary"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     We&apos;ll call you when your order is ready for pickup
@@ -369,7 +369,7 @@ const Checkout = () => {
 
               {/* Delivery address - only if delivery */}
               {formData.type === 'delivery' && (
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
                   Delivery Address
@@ -387,7 +387,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="123 Rue de la Paix"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="input-primary"
                     />
                   </div>
 
@@ -403,7 +403,7 @@ const Checkout = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="Paris"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="input-primary"
                       />
                     </div>
 
@@ -420,7 +420,7 @@ const Checkout = () => {
                         placeholder="75001"
                         maxLength="5"
                         pattern="[0-9]{5}"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="input-primary"
                       />
                     </div>
                   </div>
@@ -436,7 +436,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="06 12 34 56 78"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="input-primary"
                     />
                   </div>
                   
@@ -450,7 +450,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       rows={2}
                       placeholder="Floor, access code, special instructions..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="input-primary"
                     />
                   </div>
                 </div>
@@ -458,7 +458,7 @@ const Checkout = () => {
               )}
 
               {/* Payment */}
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <CreditCard className="w-5 h-5 mr-2" />
                   Payment
@@ -520,7 +520,7 @@ const Checkout = () => {
 
           {/* Order summary */}
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-8">
+            <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6 sticky top-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Order summary
@@ -551,7 +551,7 @@ const Checkout = () => {
                 ))}
               </div>
               
-              <div className="border-t pt-4 mt-4 space-y-2">
+              <div className="border-t-2 border-primary-300 pt-4 mt-4 space-y-2">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total ({totalItemsAvailable} items)</span>
                   <span className="text-primary-600">{formattedTotalPriceAvailable}</span>

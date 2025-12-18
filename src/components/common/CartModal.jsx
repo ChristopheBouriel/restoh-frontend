@@ -106,9 +106,9 @@ const CartModal = () => {
                 <div 
                   key={item.id} 
                   className={`flex items-center space-x-3 rounded-lg p-3 ${
-                    !item.isAvailable || !item.stillExists 
-                      ? 'bg-red-50 border border-red-200' 
-                      : 'bg-gray-50'
+                    !item.isAvailable || !item.stillExists
+                      ? 'bg-red-50 border border-red-200'
+                      : 'bg-brown-100'
                   }`}
                 >
                   {/* Image */}

@@ -6,8 +6,14 @@
   html {
     font-family: 'Inter', system-ui, sans-serif;
   }
-  
+
   body {
     @apply bg-white text-gray-900;
+  }
+}
+
+@layer components {
+  .input-primary {
+    @apply w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
   }
 }

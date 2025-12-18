@@ -170,7 +170,7 @@ const MyMessages = () => {
 
         {selectedMessage ? (
           /* Message Detail View */
-          <div className="bg-white rounded-lg shadow-sm border">
+          <div className="bg-white rounded-lg shadow-sm border border-brown-400">
             {/* Header with back button */}
             <div className="p-6 border-b">
               <button
@@ -291,7 +291,7 @@ const MyMessages = () => {
           </div>
         ) : (
           /* Messages List View */
-          <div className="bg-white rounded-lg shadow-sm border">
+          <div className="bg-white rounded-lg shadow-sm border border-brown-400">
             {myMessages.length === 0 ? (
               <div className="text-center py-12">
                 <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />

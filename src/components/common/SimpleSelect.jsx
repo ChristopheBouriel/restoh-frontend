@@ -40,12 +40,12 @@ const SimpleSelect = ({ value, onChange, options = [], className = '', disabled 
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`flex items-center justify-between px-3 ${sizeClasses[size]} border border-gray-300 rounded-lg transition-colors group ${
+        className={`flex items-center justify-between px-3 ${sizeClasses[size]} border-2 border-primary-300 rounded-lg transition-colors group ${
           disabled
             ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
             : isOpen
-              ? 'bg-white outline-none ring-0 border-gray-300'
-              : 'bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 hover:border-primary-500'
+              ? 'bg-white outline-none ring-0 border-primary-300'
+              : 'bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent hover:border-primary-400'
         } ${className || 'w-auto min-w-[100px]'}`}
       >
         <span className="text-gray-900 pr-3">{selectedOption?.label}</span>
