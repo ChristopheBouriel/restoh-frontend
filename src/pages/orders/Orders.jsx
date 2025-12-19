@@ -97,8 +97,8 @@ const Orders = () => {
                 onClick={() => setFilter(key)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   filter === key
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 {label}

@@ -402,7 +402,7 @@ const Dashboard = () => {
                   <Link
                     key={order.id}
                     to={`/admin/orders?orderId=${order.id}`}
-                    className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                    className="flex items-start justify-between p-4 border border-primary-300 rounded-lg hover:border-primary-500 hover:shadow-[0_4px_12px_rgba(253,186,116,0.5)] transition-all cursor-pointer"
                   >
                     {/* Left side */}
                     <div className="flex-1">
@@ -465,7 +465,7 @@ const Dashboard = () => {
                   <Link
                     key={reservation.id}
                     to={`/admin/reservations?reservationId=${reservation.id}`}
-                    className="flex items-start justify-between p-4 border rounded-lg hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                    className="flex items-start justify-between p-4 border border-primary-300 rounded-lg hover:border-primary-500 hover:shadow-[0_4px_12px_rgba(253,186,116,0.5)] transition-all cursor-pointer"
                   >
                     {/* Left side */}
                     <div className="flex-1">

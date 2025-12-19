@@ -46,10 +46,10 @@ const MyMessages = () => {
   }, [selectedMessage])
 
   const statusConfig = {
-    new: { label: 'Sent', color: 'bg-blue-100 text-blue-800', icon: Mail },
-    read: { label: 'Read', color: 'bg-yellow-100 text-yellow-800', icon: Mail },
+    new: { label: 'Sent', color: 'bg-terracotta-100 text-terracotta-800', icon: Mail },
+    read: { label: 'Read', color: 'bg-brown-100 text-brown-800', icon: Mail },
     replied: { label: 'Replied', color: 'bg-green-100 text-green-800', icon: MessageSquare },
-    newlyReplied: { label: 'New Reply', color: 'bg-purple-100 text-purple-800', icon: Mail },
+    newlyReplied: { label: 'New Reply', color: 'bg-apricot-100 text-apricot-800', icon: Mail },
     closed: { label: 'Closed', color: 'bg-gray-100 text-gray-800', icon: MessageSquare }
   }
 
@@ -220,7 +220,7 @@ const MyMessages = () => {
                       className={`rounded-lg p-4 border-l-4 ${
                         reply.role === 'admin'
                           ? 'bg-green-50 border-green-400'
-                          : 'bg-blue-50 border-blue-400'
+                          : 'bg-brown-50 border-brown-400'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -231,8 +231,8 @@ const MyMessages = () => {
                           </span>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             reply.status === 'read'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-brown-100 text-brown-800'
+                              : 'bg-terracotta-100 text-terracotta-800'
                           }`}>
                             {reply.status === 'read' ? 'Read' : 'New'}
                           </span>
@@ -311,7 +311,7 @@ const MyMessages = () => {
                     <div
                       key={message._id}
                       className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        hasNewReply ? 'bg-purple-50' : ''
+                        hasNewReply ? 'bg-apricot-50' : ''
                       }`}
                       onClick={() => handleMessageClick(message)}
                     >

@@ -54,12 +54,12 @@ const ContactsManagement = () => {
   const statusConfig = {
     new: {
       label: 'New',
-      color: 'bg-blue-100 text-blue-800',
+      color: 'bg-terracotta-100 text-terracotta-800',
       icon: Mail
     },
     read: {
       label: 'Read',
-      color: 'bg-yellow-100 text-yellow-800',
+      color: 'bg-brown-100 text-brown-800',
       icon: Eye
     },
     replied: {
@@ -69,7 +69,7 @@ const ContactsManagement = () => {
     },
     newlyReplied: {
       label: 'New Reply',
-      color: 'bg-purple-100 text-purple-800',
+      color: 'bg-apricot-100 text-apricot-800',
       icon: Mail
     },
     closed: {
@@ -222,36 +222,36 @@ const ContactsManagement = () => {
 
         <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Mail className="w-5 h-5 text-blue-600" />
+            <div className="p-2 bg-terracotta-100 rounded-lg">
+              <Mail className="w-5 h-5 text-terracotta-600" />
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">New</p>
-              <p className="text-lg font-semibold text-blue-600">{stats.new}</p>
+              <p className="text-lg font-semibold text-terracotta-600">{stats.new}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Eye className="w-5 h-5 text-yellow-600" />
+            <div className="p-2 bg-brown-100 rounded-lg">
+              <Eye className="w-5 h-5 text-brown-600" />
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Read</p>
-              <p className="text-lg font-semibold text-yellow-600">{stats.read}</p>
+              <p className="text-lg font-semibold text-brown-600">{stats.read}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Mail className="w-5 h-5 text-purple-600" />
+            <div className="p-2 bg-apricot-100 rounded-lg">
+              <Mail className="w-5 h-5 text-apricot-600" />
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">New Reply</p>
-              <p className="text-lg font-semibold text-purple-600">{stats.newlyReplied}</p>
+              <p className="text-lg font-semibold text-apricot-600">{stats.newlyReplied}</p>
             </div>
           </div>
         </div>
@@ -318,8 +318,8 @@ const ContactsManagement = () => {
                 onClick={() => setFilterStatus('all')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filterStatus === 'all'
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 All ({stats.total})
@@ -328,8 +328,8 @@ const ContactsManagement = () => {
                 onClick={() => setFilterStatus('new')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filterStatus === 'new'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 New ({stats.new})
@@ -338,8 +338,8 @@ const ContactsManagement = () => {
                 onClick={() => setFilterStatus('read')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filterStatus === 'read'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 Read ({stats.read})
@@ -348,8 +348,8 @@ const ContactsManagement = () => {
                 onClick={() => setFilterStatus('newlyReplied')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filterStatus === 'newlyReplied'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 New Reply ({stats.newlyReplied})
@@ -358,8 +358,8 @@ const ContactsManagement = () => {
                 onClick={() => setFilterStatus('replied')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filterStatus === 'replied'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 Replied ({stats.replied})
@@ -368,8 +368,8 @@ const ContactsManagement = () => {
                 onClick={() => setFilterStatus('closed')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filterStatus === 'closed'
-                    ? 'bg-gray-100 text-gray-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 Closed ({stats.closed})
@@ -402,7 +402,7 @@ const ContactsManagement = () => {
                   <div
                     key={message.id}
                     className={`p-6 hover:bg-gray-50 cursor-pointer ${
-                      message.status === 'new' ? 'bg-blue-50 border-l-4 border-blue-400' : ''
+                      message.status === 'new' ? 'bg-terracotta-50 border-l-4 border-terracotta-400' : ''
                     }`}
                     onClick={() => handleMessageClick(message)}
                   >
@@ -628,7 +628,7 @@ const ContactsManagement = () => {
                         className={`rounded-lg p-4 border-l-4 ${
                           reply.role === 'admin'
                             ? 'bg-green-50 border-green-400'
-                            : 'bg-blue-50 border-blue-400'
+                            : 'bg-brown-50 border-brown-400'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
@@ -639,8 +639,8 @@ const ContactsManagement = () => {
                             </span>
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                               reply.status === 'read'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-blue-100 text-blue-800'
+                                ? 'bg-brown-100 text-brown-800'
+                                : 'bg-terracotta-100 text-terracotta-800'
                             }`}>
                               {reply.status === 'read' ? 'Read' : 'New'}
                             </span>

@@ -473,7 +473,7 @@ const OrdersManagement = () => {
             value={searchOrderNumber}
             onChange={(e) => setSearchOrderNumber(e.target.value)}
             placeholder="Enter order number..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
 
