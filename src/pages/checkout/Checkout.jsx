@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { CreditCard, MapPin, User, ShoppingBag, Check, MessageSquare } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
 import { useAuth } from '../../hooks/useAuth'
@@ -9,55 +10,75 @@ import ImageWithFallback from '../../components/common/ImageWithFallback'
 import InlineAlert from '../../components/common/InlineAlert'
 import { toast } from 'react-hot-toast'
 import { ROUTES } from '../../constants'
+import { validationRules } from '../../utils/formValidators'
 
 const Checkout = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { 
-    availableItems, 
-    totalItemsAvailable, 
-    formattedTotalPriceAvailable, 
+  const {
+    availableItems,
+    totalItemsAvailable,
+    formattedTotalPriceAvailable,
     totalPriceAvailable,
     clearCart,
-    formatPrice 
+    formatPrice
   } = useCart()
   const { createOrder } = useOrdersStore()
-  
+
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderCompleted, setOrderCompleted] = useState(false)
   const [completedOrderId, setCompletedOrderId] = useState('')
   const [inlineError, setInlineError] = useState(null) // Error with details for InlineAlert
 
-  const [formData, setFormData] = useState({
-    street: '',
-    city: '',
-    zipCode: '',
-    phone: '',
-    instructions: '',
-    specialRequests: '',
-    paymentMethod: 'card',
-    type: 'delivery'
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      street: '',
+      city: '',
+      zipCode: '',
+      phone: '',
+      instructions: '',
+      specialRequests: '',
+      paymentMethod: 'card',
+      type: 'delivery'
+    }
   })
+
+  // Watch order type for conditional rendering
+  const orderType = watch('type')
+  const paymentMethod = watch('paymentMethod')
 
   // Prefill phone and address from user profile
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
-        ...prev,
+      reset({
         phone: user.phone || '',
         street: user.address?.street || '',
         city: user.address?.city || '',
-        zipCode: user.address?.zipCode || ''
-      }))
+        zipCode: user.address?.zipCode || '',
+        instructions: '',
+        specialRequests: '',
+        paymentMethod: 'card',
+        type: 'delivery'
+      })
     }
-  }, [user])
+  }, [user, reset])
 
   // Auto-switch to card if pickup is selected with cash
   useEffect(() => {
-    if (formData.type === 'pickup' && formData.paymentMethod === 'cash') {
-      setFormData(prev => ({ ...prev, paymentMethod: 'card' }))
+    if (orderType === 'pickup' && paymentMethod === 'cash') {
+      setValue('paymentMethod', 'card')
     }
-  }, [formData.type, formData.paymentMethod])
+  }, [orderType, paymentMethod, setValue])
 
   // Redirect if cart is empty or user not logged in
   if (!user) {
@@ -70,16 +91,7 @@ const Checkout = () => {
     return null
   }
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const onSubmit = async (data) => {
     setIsProcessing(true)
 
     // Clear any previous inline error
@@ -101,17 +113,17 @@ const Checkout = () => {
         userId: user.id,
         items: formattedItems,
         totalPrice: totalPriceAvailable,
-        deliveryAddress: formData.type === 'delivery' ? {
-          street: formData.street,
-          city: formData.city,
-          zipCode: formData.zipCode,
-          instructions: formData.instructions || null
+        deliveryAddress: data.type === 'delivery' ? {
+          street: data.street,
+          city: data.city,
+          zipCode: data.zipCode,
+          instructions: data.instructions || null
         } : null,
-        phone: formData.phone,
-        specialInstructions: formData.specialRequests || null,
-        paymentMethod: formData.paymentMethod,
-        paymentStatus: formData.paymentMethod === 'card' ? 'paid' : 'pending',
-        orderType: formData.type
+        phone: data.phone,
+        specialInstructions: data.specialRequests || null,
+        paymentMethod: data.paymentMethod,
+        paymentStatus: data.paymentMethod === 'card' ? 'paid' : 'pending',
+        orderType: data.type
       }
 
       // Validate order data before sending to API
@@ -211,7 +223,7 @@ const Checkout = () => {
               <p className="text-gray-600">Complete your delivery information</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* InlineAlert for payment errors */}
               {/* Case 1: Invalid amount error */}
               {inlineError && inlineError.code === 'INVALID_AMOUNT' && inlineError.details && (
@@ -287,10 +299,8 @@ const Checkout = () => {
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
-                      name="type"
                       value="delivery"
-                      checked={formData.type === 'delivery'}
-                      onChange={handleInputChange}
+                      {...register('type')}
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
@@ -301,10 +311,8 @@ const Checkout = () => {
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
-                      name="type"
                       value="pickup"
-                      checked={formData.type === 'pickup'}
-                      onChange={handleInputChange}
+                      {...register('type')}
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
@@ -322,13 +330,12 @@ const Checkout = () => {
                 </h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="specialRequests" className="block text-sm font-medium text-gray-700 mb-2">
                     Any special requests for your order? (optional)
                   </label>
                   <textarea
-                    name="specialRequests"
-                    value={formData.specialRequests}
-                    onChange={handleInputChange}
+                    id="specialRequests"
+                    {...register('specialRequests')}
                     rows={3}
                     placeholder="Allergies, dietary restrictions, preparation preferences..."
                     className="input-primary"
@@ -340,7 +347,7 @@ const Checkout = () => {
               </div>
 
               {/* Phone for pickup */}
-              {formData.type === 'pickup' && (
+              {orderType === 'pickup' && (
               <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <User className="w-5 h-5 mr-2" />
@@ -348,18 +355,19 @@ const Checkout = () => {
                 </h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="phone-pickup" className="block text-sm font-medium text-gray-700 mb-2">
                     Phone *
                   </label>
                   <input
+                    id="phone-pickup"
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="06 12 34 56 78"
-                    className="input-primary"
+                    {...register('phone', validationRules.phoneRequired)}
+                    placeholder="0612345678"
+                    className={`input-primary ${errors.phone ? 'border-red-300' : ''}`}
                   />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                  )}
                   <p className="mt-1 text-xs text-gray-500">
                     We&apos;ll call you when your order is ready for pickup
                   </p>
@@ -368,7 +376,7 @@ const Checkout = () => {
               )}
 
               {/* Delivery address - only if delivery */}
-              {formData.type === 'delivery' && (
+              {orderType === 'delivery' && (
               <div className="bg-white rounded-lg shadow-sm border border-brown-400 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
@@ -377,77 +385,85 @@ const Checkout = () => {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
                       Street *
                     </label>
                     <input
+                      id="street"
                       type="text"
-                      name="street"
-                      value={formData.street}
-                      onChange={handleInputChange}
-                      required
+                      {...register('street', validationRules.address)}
                       placeholder="123 Rue de la Paix"
-                      className="input-primary"
+                      className={`input-primary ${errors.street ? 'border-red-300' : ''}`}
                     />
+                    {errors.street && (
+                      <p className="mt-1 text-sm text-red-600">{errors.street.message}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
                         City *
                       </label>
                       <input
+                        id="city"
                         type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        required
+                        {...register('city', { required: 'City is required' })}
                         placeholder="Paris"
-                        className="input-primary"
+                        className={`input-primary ${errors.city ? 'border-red-300' : ''}`}
                       />
+                      {errors.city && (
+                        <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-2">
                         Zip Code *
                       </label>
                       <input
+                        id="zipCode"
                         type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleInputChange}
-                        required
+                        {...register('zipCode', {
+                          required: 'Zip code is required',
+                          pattern: {
+                            value: /^[0-9]{5}$/,
+                            message: 'Invalid zip code (5 digits)'
+                          }
+                        })}
                         placeholder="75001"
                         maxLength="5"
-                        pattern="[0-9]{5}"
-                        className="input-primary"
+                        className={`input-primary ${errors.zipCode ? 'border-red-300' : ''}`}
                       />
+                      {errors.zipCode && (
+                        <p className="mt-1 text-sm text-red-600">{errors.zipCode.message}</p>
+                      )}
                     </div>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="phone-delivery" className="block text-sm font-medium text-gray-700 mb-2">
                       Phone *
                     </label>
                     <input
+                      id="phone-delivery"
                       type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="06 12 34 56 78"
-                      className="input-primary"
+                      {...register('phone', validationRules.phoneRequired)}
+                      placeholder="0612345678"
+                      className={`input-primary ${errors.phone ? 'border-red-300' : ''}`}
                     />
+                    {errors.phone && (
+                      <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                    )}
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
                       Delivery instructions
                     </label>
                     <textarea
-                      name="instructions"
-                      value={formData.instructions}
-                      onChange={handleInputChange}
+                      id="instructions"
+                      {...register('instructions')}
                       rows={2}
                       placeholder="Floor, access code, special instructions..."
                       className="input-primary"
@@ -463,15 +479,13 @@ const Checkout = () => {
                   <CreditCard className="w-5 h-5 mr-2" />
                   Payment
                 </h2>
-                
+
                 <div className="space-y-3">
-                  <label className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="radio"
-                      name="paymentMethod"
                       value="card"
-                      checked={formData.paymentMethod === 'card'}
-                      onChange={handleInputChange}
+                      {...register('paymentMethod')}
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
@@ -479,18 +493,16 @@ const Checkout = () => {
                     </span>
                   </label>
 
-                  <label className={`flex items-center ${formData.type === 'pickup' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                  <label className={`flex items-center ${orderType === 'pickup' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                     <input
                       type="radio"
-                      name="paymentMethod"
                       value="cash"
-                      checked={formData.paymentMethod === 'cash'}
-                      onChange={handleInputChange}
-                      disabled={formData.type === 'pickup'}
+                      {...register('paymentMethod')}
+                      disabled={orderType === 'pickup'}
                       className="mr-3"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      💰 Cash on delivery {formData.type === 'pickup' && '(not available for pickup)'}
+                      💰 Cash on delivery {orderType === 'pickup' && '(not available for pickup)'}
                     </span>
                   </label>
                 </div>

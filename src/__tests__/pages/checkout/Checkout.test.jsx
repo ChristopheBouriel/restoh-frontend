@@ -130,7 +130,7 @@ describe('Checkout Component', () => {
     const streetField = screen.getByPlaceholderText('123 Rue de la Paix')
     const cityField = screen.getByPlaceholderText('Paris')
     const zipCodeField = screen.getByPlaceholderText('75001')
-    const phoneField = screen.getByPlaceholderText('06 12 34 56 78')
+    const phoneField = screen.getByPlaceholderText('0612345678')
     const notesField = screen.getByPlaceholderText('Floor, access code, special instructions...')
 
     await user.type(streetField, '123 Rue de la Paix')
@@ -174,18 +174,19 @@ describe('Checkout Component', () => {
     await user.click(submitButton)
 
     // Form should not submit (createOrder should not be called)
+    // React Hook Form prevents submission when validation fails
     expect(mockCreateOrder).not.toHaveBeenCalled()
 
-    // Required field validation is handled by HTML5 required attribute
+    // Verify required fields exist (React Hook Form handles validation via JavaScript)
     const streetField = screen.getByPlaceholderText('123 Rue de la Paix')
     const cityField = screen.getByPlaceholderText('Paris')
     const zipCodeField = screen.getByPlaceholderText('75001')
-    const phoneField = screen.getByPlaceholderText('06 12 34 56 78')
+    const phoneField = screen.getByPlaceholderText('0612345678')
 
-    expect(streetField).toBeRequired()
-    expect(cityField).toBeRequired()
-    expect(zipCodeField).toBeRequired()
-    expect(phoneField).toBeRequired()
+    expect(streetField).toBeInTheDocument()
+    expect(cityField).toBeInTheDocument()
+    expect(zipCodeField).toBeInTheDocument()
+    expect(phoneField).toBeInTheDocument()
   })
 
   // 3. ORDER PROCESSING (3 tests)
@@ -197,7 +198,7 @@ describe('Checkout Component', () => {
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
     await user.type(screen.getByPlaceholderText('75001'), '75001')
-    await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
+    await user.type(screen.getByPlaceholderText('0612345678'), '0123456789')
     await user.type(screen.getByPlaceholderText('Floor, access code, special instructions...'), 'Ring at 2nd')
 
     // Submit form
@@ -248,7 +249,7 @@ describe('Checkout Component', () => {
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
     await user.type(screen.getByPlaceholderText('75001'), '75001')
-    await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
+    await user.type(screen.getByPlaceholderText('0612345678'), '0123456789')
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
@@ -276,7 +277,7 @@ describe('Checkout Component', () => {
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
     await user.type(screen.getByPlaceholderText('75001'), '75001')
-    await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
+    await user.type(screen.getByPlaceholderText('0612345678'), '0123456789')
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
 
     // Wait for order processing to complete and error to be handled
@@ -329,7 +330,7 @@ describe('Checkout Component', () => {
     await user.type(screen.getByPlaceholderText('123 Rue de la Paix'), '123 Rue de la Paix')
     await user.type(screen.getByPlaceholderText('Paris'), 'Paris')
     await user.type(screen.getByPlaceholderText('75001'), '75001')
-    await user.type(screen.getByPlaceholderText('06 12 34 56 78'), '0123456789')
+    await user.type(screen.getByPlaceholderText('0612345678'), '0123456789')
     await user.click(screen.getByRole('button', { name: /Order - 44.30€/i }))
 
     // Wait for success state
