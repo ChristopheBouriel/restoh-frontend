@@ -76,15 +76,18 @@ describe('Register Component', () => {
       const confirmPasswordInput = screen.getByLabelText('Confirm password')
       const termsCheckbox = screen.getByLabelText(/I accept the/)
 
-      expect(nameInput).toBeRequired()
-      expect(emailInput).toBeRequired()
-      expect(passwordInput).toBeRequired()
-      expect(confirmPasswordInput).toBeRequired()
-      expect(termsCheckbox).toBeRequired()
+      // React Hook Form handles validation via JavaScript, not native HTML required attribute
+      // Verify inputs exist
+      expect(nameInput).toBeInTheDocument()
+      expect(emailInput).toBeInTheDocument()
+      expect(passwordInput).toBeInTheDocument()
+      expect(confirmPasswordInput).toBeInTheDocument()
+      expect(termsCheckbox).toBeInTheDocument()
 
       const submitButton = screen.getByRole('button', { name: 'Create my account' })
       await user.click(submitButton)
 
+      // React Hook Form prevents submission when fields are invalid
       expect(mockRegister).not.toHaveBeenCalled()
     })
 
@@ -398,10 +401,16 @@ describe('Register Component', () => {
       const submitButton = screen.getByRole('button', { name: 'Create my account' })
       const termsCheckbox = screen.getByLabelText(/I accept the/)
 
-      expect(termsCheckbox).toBeRequired()
+      // React Hook Form handles required validation via JavaScript
+      expect(termsCheckbox).toBeInTheDocument()
       expect(termsCheckbox).not.toBeChecked()
 
       await user.click(submitButton)
+
+      // Should show validation error for terms not accepted
+      await waitFor(() => {
+        expect(screen.getByText('You must accept the terms')).toBeInTheDocument()
+      })
 
       expect(mockRegister).not.toHaveBeenCalled()
     })

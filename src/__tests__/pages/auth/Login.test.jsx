@@ -71,24 +71,24 @@ describe('Login Component', () => {
 
     test('should have proper form structure and attributes', () => {
       render(<LoginWrapper />)
-      
+
       const emailInput = screen.getByLabelText('Email address')
       const passwordInput = screen.getByLabelText('Password')
       const submitButton = screen.getByRole('button', { name: 'Login' })
-      
+
       // Input attributes
       expect(emailInput).toHaveAttribute('type', 'email')
       expect(emailInput).toHaveAttribute('name', 'email')
-      expect(emailInput).toHaveAttribute('required')
+      // React Hook Form handles validation via JavaScript, not native HTML required attribute
       expect(emailInput).toHaveAttribute('autoComplete', 'email')
       expect(emailInput).toHaveAttribute('placeholder', 'Enter your email')
-      
+
       expect(passwordInput).toHaveAttribute('type', 'password')
       expect(passwordInput).toHaveAttribute('name', 'password')
-      expect(passwordInput).toHaveAttribute('required')
+      // React Hook Form handles validation via JavaScript
       expect(passwordInput).toHaveAttribute('autoComplete', 'current-password')
       expect(passwordInput).toHaveAttribute('placeholder', 'Enter your password')
-      
+
       // Submit button
       expect(submitButton).toHaveAttribute('type', 'submit')
       expect(submitButton).not.toBeDisabled()
@@ -196,18 +196,20 @@ describe('Login Component', () => {
     test('should prevent default form submission behavior', async () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
-      
+
       const form = screen.getByText('Login').closest('form')
       const emailInput = screen.getByLabelText('Email address')
       const passwordInput = screen.getByLabelText('Password')
-      
+
       await user.type(emailInput, 'test@example.com')
       await user.type(passwordInput, 'password123')
-      
-      // Test that form submission calls login
+
+      // Test that form submission calls login (React Hook Form handles onSubmit)
       fireEvent.submit(form)
-      
-      expect(mockLogin).toHaveBeenCalled()
+
+      await waitFor(() => {
+        expect(mockLogin).toHaveBeenCalled()
+      })
     })
 
     test('should handle empty form submission', async () => {

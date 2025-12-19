@@ -303,36 +303,14 @@ describe('MenuManagement Component', () => {
   test('should show delete confirmation when delete button clicked', async () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
-    
-    // Find the delete button specifically - it should have both bg-red-100 and not contain eye icons
-    const allButtons = screen.getAllByRole('button')
-    
-    // The delete button should be in the last position and have bg-red-100 but not contain an eye icon
-    const deleteButton = allButtons.find(button => {
-      const classList = button.className || ''
-      const hasRedStyling = classList.includes('bg-red-100') && classList.includes('text-red-700')
-      const hasTrashIcon = button.innerHTML.includes('trash') || button.querySelector('svg')?.innerHTML.includes('M3 6h18')
-      return hasRedStyling && hasTrashIcon
-    })
-    
-    if (!deleteButton) {
-      // Fallback: just find any red button that's not an availability toggle
-      const redButtons = allButtons.filter(button => {
-        const classList = button.className || ''
-        return classList.includes('bg-red-100') && classList.includes('text-red-700')
-      })
-      // The delete button should be the one without eye icons (those are availability toggles)
-      const actualDeleteButton = redButtons.find(button => {
-        const hasEyeIcon = button.innerHTML.includes('eye') || button.querySelector('svg')?.innerHTML.includes('eye')
-        return !hasEyeIcon
-      })
-      
-      expect(actualDeleteButton).toBeInTheDocument()
-      await user.click(actualDeleteButton)
-    } else {
-      await user.click(deleteButton)
-    }
-    
+
+    // Find delete button by its title attribute
+    const deleteButtons = screen.getAllByTitle('Delete')
+    expect(deleteButtons.length).toBeGreaterThan(0)
+
+    // Click the first delete button
+    await user.click(deleteButtons[0])
+
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete "Pizza Margherita"?')
     expect(mockDeleteItem).toHaveBeenCalledWith('1')
   })
@@ -402,17 +380,14 @@ describe('MenuManagement Component', () => {
   test('should toggle item availability when availability button clicked', async () => {
     const user = userEvent.setup()
     render(<MenuManagementWrapper />)
-    
-    // Find and click availability toggle button for first available item
-    const availabilityButtons = screen.getAllByRole('button')
-    const toggleButton = availabilityButtons.find(button => 
-      button.querySelector('svg') && 
-      (button.getAttribute('class')?.includes('bg-red-100') || 
-       button.getAttribute('class')?.includes('bg-green-100'))
-    )
-    
-    await user.click(toggleButton)
-    
+
+    // Find availability toggle button by its title attribute
+    // First item is available, so the button title is "Disable"
+    const toggleButtons = screen.getAllByTitle('Disable')
+    expect(toggleButtons.length).toBeGreaterThan(0)
+
+    await user.click(toggleButtons[0])
+
     expect(mockToggleAvailability).toHaveBeenCalledWith('1')
   })
 

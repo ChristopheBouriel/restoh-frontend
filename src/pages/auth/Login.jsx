@@ -1,33 +1,32 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Mail, Lock, Clock } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../constants'
 import InlineAlert from '../../components/common/InlineAlert'
+import { validationRules } from '../../utils/formValidators'
 
 const Login = () => {
   const { login, isLoading, error } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
   const [inlineError, setInlineError] = useState(null)
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
+  const onSubmit = async (data) => {
     // Clear previous inline error
     setInlineError(null)
 
-    const result = await login(formData)
+    const result = await login(data)
 
     console.log('Login result (full):', JSON.stringify(result, null, 2))
 
@@ -64,7 +63,7 @@ const Login = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* InlineAlert for invalid credentials - error type (red) */}
             {/* Exclude special codes that have their own custom display */}
             {inlineError && inlineError.details &&
@@ -164,16 +163,18 @@ const Login = () => {
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm"
+                  {...register('email', validationRules.email)}
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border-2 ${
+                    errors.email ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Enter your email"
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -187,13 +188,12 @@ const Login = () => {
                 </div>
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border-2 border-primary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm"
+                  {...register('password', validationRules.passwordRequired)}
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${
+                    errors.password ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -208,6 +208,9 @@ const Login = () => {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              )}
             </div>
 
             {/* Remember me & Forgot password */}
@@ -226,7 +229,7 @@ const Login = () => {
 
               <div className="text-sm">
                 <Link
-                  to="/forgot-password"
+                  to={ROUTES.FORGOT_PASSWORD}
                   className="font-medium text-primary-600 hover:text-primary-500"
                 >
                   Forgot password?

@@ -1,32 +1,46 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { Mail, ArrowLeft } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { emailApi } from '../../api'
 import { ROUTES } from '../../constants'
+import { validationRules } from '../../utils/formValidators'
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState('')
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const onSubmit = async (data) => {
     setIsLoading(true)
 
     try {
-      const result = await emailApi.forgotPassword(email)
+      const result = await emailApi.forgotPassword(data.email)
 
       if (result.success) {
+        setSubmittedEmail(data.email)
         setIsSuccess(true)
         toast.success('Reset link sent! Check your email.')
       } else {
         // OWASP recommandation: toujours afficher un message de succès
         // pour éviter l'énumération d'emails (même si l'email n'existe pas)
+        setSubmittedEmail(data.email)
         setIsSuccess(true)
       }
-    } catch (error) {
+    } catch (err) {
       // En cas d'erreur serveur, on affiche quand même le succès (sécurité)
+      setSubmittedEmail(data.email)
       setIsSuccess(true)
     } finally {
       setIsLoading(false)
@@ -55,7 +69,7 @@ const ForgotPassword = () => {
 
               <div className="space-y-3 text-sm text-gray-600">
                 <p>
-                  If an account exists with <strong className="text-gray-900">{email}</strong>,
+                  If an account exists with <strong className="text-gray-900">{submittedEmail}</strong>,
                   you will receive a password reset link shortly.
                 </p>
                 <p>
@@ -106,7 +120,7 @@ const ForgotPassword = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -118,16 +132,18 @@ const ForgotPassword = () => {
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm"
+                  {...register('email', validationRules.email)}
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border-2 ${
+                    errors.email ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="your@email.com"
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              )}
             </div>
 
             {/* Submit button */}
