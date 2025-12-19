@@ -1,71 +1,52 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useAuthStore from '../../store/authStore'
-import { AuthService } from '../../services/auth'
 import { emailApi } from '../../api'
 import { ROUTES } from '../../constants'
 import InlineAlert from '../../components/common/InlineAlert'
+import { validationRules, validatePasswordMatch } from '../../utils/formValidators'
 
 const Register = () => {
-  const navigate = useNavigate()
-  const { register, isLoading, error } = useAuthStore()
+  // Rename store's register to registerUser to avoid conflict with RHF's register
+  const { register: registerUser, isLoading, error } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [formErrors, setFormErrors] = useState({})
   const [inlineError, setInlineError] = useState(null)
   const [registrationSuccess, setRegistrationSuccess] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState('')
   const [isResending, setIsResending] = useState(false)
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    
-    // Clear specific error when user starts typing
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
-  }
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm({
+    mode: 'onBlur', // Validate when field loses focus
+    reValidateMode: 'onChange' // Re-validate on change after first error
+  })
 
-  // Validate form using AuthService
-  const validateForm = () => {
-    const validation = AuthService.validateRegistrationData(formData)
-    setFormErrors(validation.errors)
-    return validation.isValid
-  }
+  // Watch password for confirmation validation
+  const password = watch('password')
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    if (!validateForm()) return
-
+  const onSubmit = async (data) => {
     // Clear previous inline error
     setInlineError(null)
 
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password
+    const result = await registerUser({
+      name: data.name,
+      email: data.email,
+      password: data.password
     })
 
     if (result && result.success) {
       // User is NOT logged in after registration (handled in store)
       // Just show success screen
-      setRegisteredEmail(formData.email)
+      setRegisteredEmail(data.email)
       setRegistrationSuccess(true)
       toast.success('Account created! Please verify your email.')
     } else if (result && !result.success) {
@@ -89,7 +70,7 @@ const Register = () => {
       } else {
         toast.error(result.error || 'Failed to resend email')
       }
-    } catch (error) {
+    } catch (err) {
       toast.error('Failed to resend email')
     } finally {
       setIsResending(false)
@@ -179,7 +160,7 @@ const Register = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* InlineAlert for errors with details (e.g., EMAIL_ALREADY_EXISTS) */}
             {inlineError && inlineError.details && inlineError.details.field === 'email' && (
               <InlineAlert
@@ -208,20 +189,17 @@ const Register = () => {
                 </div>
                 <input
                   id="name"
-                  name="name"
                   type="text"
                   autoComplete="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
+                  {...register('name', validationRules.name)}
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border-2 ${
-                    formErrors.name ? 'border-red-300' : 'border-primary-300'
+                    errors.name ? 'border-red-300' : 'border-primary-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Your full name"
                 />
               </div>
-              {formErrors.name && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
               )}
             </div>
 
@@ -236,20 +214,17 @@ const Register = () => {
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
+                  {...register('email', validationRules.email)}
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border-2 ${
-                    formErrors.email ? 'border-red-300' : 'border-primary-300'
+                    errors.email ? 'border-red-300' : 'border-primary-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
-                  placeholder="votre@email.com"
+                  placeholder="your@email.com"
                 />
               </div>
-              {formErrors.email && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
 
@@ -264,14 +239,11 @@ const Register = () => {
                 </div>
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
+                  {...register('password', validationRules.password)}
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${
-                    formErrors.password ? 'border-red-300' : 'border-primary-300'
+                    errors.password ? 'border-red-300' : 'border-primary-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Minimum 6 characters"
                 />
@@ -287,8 +259,8 @@ const Register = () => {
                   )}
                 </button>
               </div>
-              {formErrors.password && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
 
@@ -303,14 +275,14 @@ const Register = () => {
                 </div>
                 <input
                   id="confirmPassword"
-                  name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
+                  {...register('confirmPassword', {
+                    required: 'Please confirm your password',
+                    validate: (value) => validatePasswordMatch(value, password)
+                  })}
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${
-                    formErrors.confirmPassword ? 'border-red-300' : 'border-primary-300'
+                    errors.confirmPassword ? 'border-red-300' : 'border-primary-300'
                   } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Confirm your password"
                 />
@@ -326,8 +298,8 @@ const Register = () => {
                   )}
                 </button>
               </div>
-              {formErrors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</p>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
               )}
             </div>
 
@@ -335,9 +307,8 @@ const Register = () => {
             <div className="flex items-center">
               <input
                 id="agree-terms"
-                name="agree-terms"
                 type="checkbox"
-                required
+                {...register('agreeTerms', { required: 'You must accept the terms' })}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
@@ -351,6 +322,9 @@ const Register = () => {
                 </Link>
               </label>
             </div>
+            {errors.agreeTerms && (
+              <p className="text-sm text-red-600">{errors.agreeTerms.message}</p>
+            )}
 
             {/* Submit button */}
             <div>
