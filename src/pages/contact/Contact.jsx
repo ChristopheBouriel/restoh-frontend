@@ -1,16 +1,41 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { Phone, Mail, MapPin, Clock, Send, MessageSquare, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useContactsStore from '../../store/contactsStore'
 import { useAuth } from '../../hooks/useAuth'
 import SimpleSelect from '../../components/common/SimpleSelect'
+import { validationRules } from '../../utils/formValidators'
 
 const Contact = () => {
   const navigate = useNavigate()
   const { createMessage, isLoading } = useContactsStore()
   const { user } = useAuth()
   const [messageSent, setMessageSent] = useState(false)
+  const [contactReason, setContactReason] = useState('general')
+
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isValid }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: ''
+    }
+  })
+
+  // Watch message for character count
+  const messageValue = watch('message', '')
 
   // Redirect admins to admin panel
   useEffect(() => {
@@ -20,26 +45,18 @@ const Contact = () => {
     }
   }, [user, navigate])
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: '',
-    contactReason: 'general'
-  })
-
   // Pre-fill form with user data if logged in
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
-        ...prev,
+      reset({
         name: user.name || '',
         email: user.email || '',
-        phone: user.phone || ''
-      }))
+        phone: user.phone || '',
+        subject: '',
+        message: ''
+      })
     }
-  }, [user])
+  }, [user, reset])
 
 
   const contactReasons = [
@@ -51,80 +68,29 @@ const Contact = () => {
     { value: 'job', label: 'Job application' }
   ]
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const validateForm = () => {
-    const errors = []
-    
-    if (!formData.name.trim()) {
-      errors.push('Name is required')
-    }
-
-    if (!formData.email.trim()) {
-      errors.push('Email is required')
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.push('Email is not valid')
-    }
-
-    if (!formData.subject.trim()) {
-      errors.push('Subject is required')
-    }
-
-    if (!formData.message.trim()) {
-      errors.push('Message is required')
-    } else if (formData.message.trim().length < 10) {
-      errors.push('Message must contain at least 10 characters')
-    }
-    
-    return errors
-  }
-
-  // Check if form is valid to enable/disable button
-  const isFormValid = () => {
-    return formData.name.trim() && 
-           formData.email.trim() && 
-           /\S+@\S+\.\S+/.test(formData.email) &&
-           formData.subject.trim() && 
-           formData.message.trim().length >= 10
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    const errors = validateForm()
-    if (errors.length > 0) {
-      toast.error(errors[0])
-      return
-    }
-    
+  const onSubmit = async (data) => {
     try {
       // Send message via store
       const result = await createMessage({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || null,
-        subject: `${contactReasons.find(r => r.value === formData.contactReason)?.label} - ${formData.subject}`,
-        message: formData.message
+        name: data.name,
+        email: data.email,
+        phone: data.phone || null,
+        subject: `${contactReasons.find(r => r.value === contactReason)?.label} - ${data.subject}`,
+        message: data.message
       })
-      
+
       if (result.success) {
         // For registered users, show toast and reset form
         if (user) {
           toast.success('Message sent successfully! We will respond quickly.')
-          setFormData({
+          reset({
             name: user.name || '',
             email: user.email || '',
             phone: user.phone || '',
             subject: '',
-            message: '',
-            contactReason: 'general'
+            message: ''
           })
+          setContactReason('general')
         } else {
           // For unregistered users, show confirmation message
           setMessageSent(true)
@@ -245,14 +211,14 @@ const Contact = () => {
                   <button
                     onClick={() => {
                       setMessageSent(false)
-                      setFormData({
+                      reset({
                         name: '',
                         email: '',
                         phone: '',
                         subject: '',
-                        message: '',
-                        contactReason: 'general'
+                        message: ''
                       })
+                      setContactReason('general')
                     }}
                     className="w-full flex justify-center items-center px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                   >
@@ -260,7 +226,7 @@ const Contact = () => {
                   </button>
                 </div>
               ) : (
-              <form onSubmit={handleSubmit} className="space-y-6" role="form">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" role="form">
                 {/* Contact reason */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -268,8 +234,8 @@ const Contact = () => {
                   </label>
                   <SimpleSelect
                     options={contactReasons}
-                    value={formData.contactReason}
-                    onChange={(value) => setFormData(prev => ({ ...prev, contactReason: value }))}
+                    value={contactReason}
+                    onChange={(value) => setContactReason(value)}
                     className="w-full"
                     size="md"
                   />
@@ -278,94 +244,100 @@ const Contact = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                       Full name *
                     </label>
                     <input
+                      id="name"
                       type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="input-primary"
+                      {...register('name', validationRules.name)}
+                      className={`input-primary ${errors.name ? 'border-red-300' : ''}`}
                       placeholder="Your name"
                     />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                    )}
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                       Email *
                     </label>
                     <input
+                      id="email"
                       type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="input-primary"
+                      {...register('email', validationRules.email)}
+                      className={`input-primary ${errors.email ? 'border-red-300' : ''}`}
                       placeholder="your@email.com"
                     />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    )}
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                     Phone (optional)
                   </label>
                   <input
+                    id="phone"
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="input-primary"
-                    placeholder="01 23 45 67 89"
+                    {...register('phone', validationRules.phone)}
+                    className={`input-primary ${errors.phone ? 'border-red-300' : ''}`}
+                    placeholder="0612345678"
                   />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                  )}
                 </div>
 
                 {/* Subject */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
                     Subject *
                   </label>
                   <input
+                    id="subject"
                     type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    className="input-primary"
+                    {...register('subject', validationRules.subject)}
+                    className={`input-primary ${errors.subject ? 'border-red-300' : ''}`}
                     placeholder="The subject of your message"
                   />
+                  {errors.subject && (
+                    <p className="mt-1 text-sm text-red-600">{errors.subject.message}</p>
+                  )}
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
                     Message *
                   </label>
                   <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
+                    id="message"
+                    {...register('message', validationRules.message)}
                     rows={6}
-                    className="input-primary"
+                    className={`input-primary ${errors.message ? 'border-red-300' : ''}`}
                     placeholder="Your message..."
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    {formData.message.length} characters (minimum 10)
+                    {messageValue.length} characters (minimum 10)
                   </p>
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
+                  )}
                 </div>
 
                 {/* Submit button */}
                 <div>
                   <button
                     type="submit"
-                    disabled={isLoading || !isFormValid()}
+                    disabled={isLoading || !isValid}
                     className={`w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${
-                      isLoading || !isFormValid()
+                      isLoading || !isValid
                         ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500'
                     } transition-colors`}

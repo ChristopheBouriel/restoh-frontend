@@ -111,7 +111,7 @@ describe('Contact Component', () => {
     // Get form fields
     const nameField = screen.getByPlaceholderText('Your name')
     const emailField = screen.getByPlaceholderText('your@email.com')
-    const phoneField = screen.getByPlaceholderText('01 23 45 67 89')
+    const phoneField = screen.getByPlaceholderText('0612345678')
     const subjectField = screen.getByPlaceholderText('The subject of your message')
     const messageField = screen.getByPlaceholderText('Your message...')
 
@@ -179,11 +179,22 @@ describe('Contact Component', () => {
     })
 
     // Fill subject and message (name, email, phone are pre-filled)
-    await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
-    await user.type(screen.getByPlaceholderText('Your message...'), 'This is a test message with enough characters')
+    const subjectField = screen.getByPlaceholderText('The subject of your message')
+    const messageField = screen.getByPlaceholderText('Your message...')
+
+    await user.type(subjectField, 'Test subject')
+    await user.tab()
+    await user.type(messageField, 'This is a test message with enough characters')
+    await user.tab()
+
+    // Wait for button to be enabled
+    const submitButton = screen.getByRole('button', { name: /Send message/i })
+    await vi.waitFor(() => {
+      expect(submitButton).not.toBeDisabled()
+    })
 
     // Submit form
-    await user.click(screen.getByRole('button', { name: /Send message/i }))
+    await user.click(submitButton)
 
     // Wait for form to be reset
     // For authenticated users, form is reset to user's data (not empty)
@@ -195,7 +206,7 @@ describe('Contact Component', () => {
     // Name, email, phone should be reset to user data
     expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
     expect(screen.getByPlaceholderText('your@email.com')).toHaveValue('jean@email.com')
-    expect(screen.getByPlaceholderText('01 23 45 67 89')).toHaveValue('0123456789')
+    expect(screen.getByPlaceholderText('0612345678')).toHaveValue('0123456789')
     expect(screen.getByText('General inquiry')).toBeInTheDocument() // Reset to default
   })
 
@@ -221,25 +232,39 @@ describe('Contact Component', () => {
   test('should disable submit button when form is invalid', async () => {
     const user = userEvent.setup()
     render(<ContactWrapper />)
-    
-    // Initially, button should be disabled (empty form)
+
+    // Wait for form to be pre-filled with user data
+    await vi.waitFor(() => {
+      expect(screen.getByPlaceholderText('Your name')).toHaveValue('Jean Dupont')
+    })
+
+    // Initially, button should be disabled (subject and message are empty)
     const submitButton = screen.getByRole('button', { name: /Send message/i })
     expect(submitButton).toBeDisabled()
-    
-    // Fill form with valid data but message too short
-    await user.type(screen.getByPlaceholderText('Your name'), 'Jean Dupont')
-    await user.type(screen.getByPlaceholderText('your@email.com'), 'jean@email.com')
-    await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
-    await user.type(screen.getByPlaceholderText('Your message...'), 'Court') // Only 5 characters
-    
+
+    // Fill subject but message too short
+    const subjectField = screen.getByPlaceholderText('The subject of your message')
+    const messageField = screen.getByPlaceholderText('Your message...')
+
+    await user.type(subjectField, 'Test subject')
+    await user.tab()
+    await user.type(messageField, 'Court') // Only 5 characters
+    await user.tab() // Trigger blur for validation
+
     // Button should still be disabled because message is too short
-    expect(submitButton).toBeDisabled()
-    
-    // Complete the message to make it valid
-    await user.type(screen.getByPlaceholderText('Your message...'), ' message valide')
-    
+    await vi.waitFor(() => {
+      expect(submitButton).toBeDisabled()
+    })
+
+    // Complete the message to make it valid (clear and retype)
+    await user.clear(messageField)
+    await user.type(messageField, 'This is a valid message with enough characters')
+    await user.tab() // Trigger blur for validation
+
     // Now button should be enabled
-    expect(submitButton).not.toBeDisabled()
+    await vi.waitFor(() => {
+      expect(submitButton).not.toBeDisabled()
+    })
   })
 
   test('should disable button when email format is invalid', async () => {
@@ -253,24 +278,34 @@ describe('Contact Component', () => {
 
     const submitButton = screen.getByRole('button', { name: /Send message/i })
     const emailField = screen.getByPlaceholderText('your@email.com')
+    const subjectField = screen.getByPlaceholderText('The subject of your message')
+    const messageField = screen.getByPlaceholderText('Your message...')
 
     // Fill subject and message (name is already pre-filled)
-    await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
-    await user.type(screen.getByPlaceholderText('Your message...'), 'Valid message with enough characters')
+    await user.type(subjectField, 'Test subject')
+    await user.tab()
+    await user.type(messageField, 'Valid message with enough characters')
+    await user.tab()
 
     // Clear email and type invalid format
     await user.clear(emailField)
     await user.type(emailField, 'invalid-email')
+    await user.tab() // Trigger blur for validation
 
     // Button should be disabled because email format is invalid
-    expect(submitButton).toBeDisabled()
+    await vi.waitFor(() => {
+      expect(submitButton).toBeDisabled()
+    })
 
     // Fix email format
     await user.clear(emailField)
     await user.type(emailField, 'jean@email.com')
+    await user.tab() // Trigger blur for validation
 
     // Now button should be enabled
-    expect(submitButton).not.toBeDisabled()
+    await vi.waitFor(() => {
+      expect(submitButton).not.toBeDisabled()
+    })
   })
 
   // 4. FORM SUBMISSION (3 tests)
@@ -350,11 +385,22 @@ describe('Contact Component', () => {
     })
 
     // Name, email, phone are already pre-filled - only fill subject and message
-    await user.type(screen.getByPlaceholderText('The subject of your message'), 'Test subject')
-    await user.type(screen.getByPlaceholderText('Your message...'), 'Valid message with enough characters')
+    const subjectField = screen.getByPlaceholderText('The subject of your message')
+    const messageField = screen.getByPlaceholderText('Your message...')
+
+    await user.type(subjectField, 'Test subject')
+    await user.tab()
+    await user.type(messageField, 'Valid message with enough characters')
+    await user.tab()
+
+    // Wait for button to be enabled
+    const submitButton = screen.getByRole('button', { name: /Send message/i })
+    await vi.waitFor(() => {
+      expect(submitButton).not.toBeDisabled()
+    })
 
     // Submit form
-    await user.click(screen.getByRole('button', { name: /Send message/i }))
+    await user.click(submitButton)
 
     // Wait for error handling
     await vi.waitFor(() => {
