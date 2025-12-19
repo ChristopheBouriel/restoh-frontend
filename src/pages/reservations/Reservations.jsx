@@ -574,8 +574,8 @@ const Reservations = () => {
                         onClick={() => setSelectedSlotId(slotObj.slot)}
                         className={`p-2 text-sm rounded-md border transition-colors ${
                           selectedSlotId === slotObj.slot
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary-400 text-white border-primary-400'
+                            : 'bg-white text-gray-700 border-primary-400 hover:bg-primary-400'
                         }`}
                       >
                         {slotObj.label}
@@ -595,8 +595,8 @@ const Reservations = () => {
                         onClick={() => setSelectedSlotId(slotObj.slot)}
                         className={`p-2 text-sm rounded-md border transition-colors ${
                           selectedSlotId === slotObj.slot
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary-400 text-white border-primary-400'
+                            : 'bg-white text-gray-700 border-primary-400 hover:bg-primary-400'
                         }`}
                       >
                         {slotObj.label}
@@ -640,7 +640,7 @@ const Reservations = () => {
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   placeholder="Allergies, table preferences, special occasion..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
 
@@ -694,7 +694,7 @@ const Reservations = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filterStatus === 'upcoming'
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-primary-100 text-primary-700 hover:bg-primary-200'
                   }`}
                 >
                   Upcoming
@@ -704,7 +704,7 @@ const Reservations = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filterStatus === 'past'
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-primary-400 text-white hover:bg-primary-600'
                   }`}
                 >
                   Past
@@ -714,7 +714,7 @@ const Reservations = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filterStatus === 'all'
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-primary-400 text-white hover:bg-primary-600'
                   }`}
                 >
                   All
@@ -769,7 +769,7 @@ const Reservations = () => {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleEdit(reservation)}
-                            className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                            className="flex items-center space-x-1 px-3 py-1 text-sm border-2 border-primary-400 text-primary-600 rounded-md hover:bg-primary-200 transition-colors"
                           >
                             <Edit className="w-3 h-3" />
                             <span>Edit</span>
