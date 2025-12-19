@@ -301,20 +301,23 @@ const MyMessages = () => {
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200">
-                {myMessages.map((message) => {
+              <div>
+                {myMessages.map((message, index) => {
                   const displayStatus = getDisplayStatus(message)
                   const StatusIcon = statusConfig[displayStatus]?.icon || Mail
                   const hasNewReply = displayStatus === 'newlyReplied'
 
                   return (
-                    <div
-                      key={message._id}
-                      className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        hasNewReply ? 'bg-apricot-50' : ''
-                      }`}
-                      onClick={() => handleMessageClick(message)}
-                    >
+                    <div key={message._id}>
+                      {index > 0 && (
+                        <div className="mx-6 h-px bg-primary-400" />
+                      )}
+                      <div
+                        className={`p-6 hover:bg-primary-50 cursor-pointer transition-colors ${
+                          hasNewReply ? 'bg-apricot-50' : ''
+                        }`}
+                        onClick={() => handleMessageClick(message)}
+                      >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
@@ -346,6 +349,7 @@ const MyMessages = () => {
                         </div>
 
                         <ChevronLeft className="w-5 h-5 text-gray-400 transform rotate-180" />
+                      </div>
                       </div>
                     </div>
                   )

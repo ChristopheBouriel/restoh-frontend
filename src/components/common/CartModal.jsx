@@ -260,7 +260,7 @@ const CartModal = () => {
                   closeCart()
                   navigate(ROUTES.MENU)
                 }}
-                className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                className="w-full bg-white border-2 border-primary-600 text-primary-600 py-2 rounded-lg font-medium hover:border-primary-700 hover:text-primary-700 transition-colors"
               >
                 Continue shopping
               </button>
