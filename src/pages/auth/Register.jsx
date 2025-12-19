@@ -214,9 +214,9 @@ const Register = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    formErrors.name ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border-2 ${
+                    formErrors.name ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Your full name"
                 />
               </div>
@@ -242,9 +242,9 @@ const Register = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    formErrors.email ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border-2 ${
+                    formErrors.email ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="votre@email.com"
                 />
               </div>
@@ -270,9 +270,9 @@ const Register = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
-                    formErrors.password ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${
+                    formErrors.password ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Minimum 6 characters"
                 />
                 <button
@@ -309,9 +309,9 @@ const Register = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
-                    formErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${
+                    formErrors.confirmPassword ? 'border-red-300' : 'border-primary-300'
+                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Confirm your password"
                 />
                 <button

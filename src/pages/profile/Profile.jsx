@@ -288,7 +288,7 @@ const Profile = () => {
                         value={profileData.name}
                         onChange={handleProfileChange}
                         disabled={!isEditing}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                       />
                     </div>
                   </div>
@@ -306,7 +306,7 @@ const Profile = () => {
                         value={profileData.email}
                         onChange={handleProfileChange}
                         disabled={!isEditing}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                       />
                     </div>
                   </div>
@@ -325,7 +325,7 @@ const Profile = () => {
                         onChange={handleProfileChange}
                         disabled={!isEditing}
                         placeholder="06 12 34 56 78"
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                       />
                     </div>
                   </div>
@@ -342,7 +342,7 @@ const Profile = () => {
                       onChange={handleProfileChange}
                       disabled={!isEditing}
                       placeholder="75001"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                      className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                     />
                   </div>
                 </div>
@@ -361,7 +361,7 @@ const Profile = () => {
                       onChange={handleProfileChange}
                       disabled={!isEditing}
                       placeholder="123 Main Street"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                      className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                     />
                   </div>
                 </div>
@@ -379,7 +379,7 @@ const Profile = () => {
                       onChange={handleProfileChange}
                       disabled={!isEditing}
                       placeholder="Paris"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                      className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                     />
                   </div>
 
@@ -394,7 +394,7 @@ const Profile = () => {
                       onChange={handleProfileChange}
                       disabled={!isEditing}
                       placeholder="Île-de-France"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                      className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
                     />
                   </div>
                 </div>
@@ -457,7 +457,7 @@ const Profile = () => {
                     value={passwordData.currentPassword}
                     onChange={handlePasswordChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
@@ -472,7 +472,7 @@ const Profile = () => {
                     onChange={handlePasswordChange}
                     required
                     minLength={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
@@ -486,7 +486,7 @@ const Profile = () => {
                     value={passwordData.confirmPassword}
                     onChange={handlePasswordChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 

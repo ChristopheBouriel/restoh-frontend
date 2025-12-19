@@ -160,7 +160,7 @@ const Orders = () => {
                     <div className="mt-4 md:mt-0 flex flex-col space-y-2">
                       <button
                         onClick={() => setShowDetails(showDetails === order.id ? null : order.id)}
-                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         <span>{showDetails === order.id ? 'Hide' : 'View details'}</span>
