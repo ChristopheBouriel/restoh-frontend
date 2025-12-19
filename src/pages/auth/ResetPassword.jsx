@@ -1,43 +1,40 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { emailApi } from '../../api'
-import { AuthService } from '../../services/auth'
 import { ROUTES } from '../../constants'
+import { validationRules, validatePasswordMatch } from '../../utils/formValidators'
 
 const ResetPassword = () => {
   const { token } = useParams()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const password = watch('password')
+
+  const onSubmit = async (data) => {
     setError('')
-
-    // Validation using AuthService
-    const passwordValidation = AuthService.validatePassword(password)
-    if (!passwordValidation.isValid) {
-      setError(passwordValidation.error)
-      return
-    }
-
-    const matchValidation = AuthService.validatePasswordMatch(password, confirmPassword)
-    if (!matchValidation.isValid) {
-      setError(matchValidation.error)
-      return
-    }
-
     setIsLoading(true)
 
     try {
-      const result = await emailApi.resetPassword(token, password)
+      const result = await emailApi.resetPassword(token, data.password)
 
       if (result.success) {
         setIsSuccess(true)
@@ -51,7 +48,7 @@ const ResetPassword = () => {
         setError(result.error || 'Password reset failed')
         toast.error(result.error)
       }
-    } catch (error) {
+    } catch (err) {
       setError('An unexpected error occurred')
       toast.error('Password reset failed')
     } finally {
@@ -118,7 +115,7 @@ const ResetPassword = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* Error message */}
             {error && (
               <div className="rounded-md bg-red-50 p-4">
@@ -153,15 +150,11 @@ const ResetPassword = () => {
                 </div>
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border-2 border-primary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm"
+                  {...register('password', validationRules.password)}
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${errors.password ? 'border-red-300' : 'border-primary-300'} rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Enter new password (min 6 characters)"
-                  minLength={6}
                 />
                 <button
                   type="button"
@@ -175,6 +168,9 @@ const ResetPassword = () => {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -188,13 +184,13 @@ const ResetPassword = () => {
                 </div>
                 <input
                   id="confirmPassword"
-                  name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border-2 border-primary-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm"
+                  {...register('confirmPassword', {
+                    required: 'Please confirm your password',
+                    validate: (value) => validatePasswordMatch(value, password)
+                  })}
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border-2 ${errors.confirmPassword ? 'border-red-300' : 'border-primary-300'} rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm`}
                   placeholder="Confirm new password"
                 />
                 <button
@@ -209,6 +205,9 @@ const ResetPassword = () => {
                   )}
                 </button>
               </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+              )}
             </div>
 
             {/* Submit button */}

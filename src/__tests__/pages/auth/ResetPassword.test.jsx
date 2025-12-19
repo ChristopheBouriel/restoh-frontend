@@ -60,12 +60,10 @@ describe('ResetPassword Component', () => {
 
       expect(passwordInput).toBeInTheDocument()
       expect(passwordInput).toHaveAttribute('type', 'password')
-      expect(passwordInput).toHaveAttribute('required')
-      expect(passwordInput).toHaveAttribute('minLength', '6')
+      // React Hook Form handles validation via JS, not native HTML attributes
 
       expect(confirmInput).toBeInTheDocument()
       expect(confirmInput).toHaveAttribute('type', 'password')
-      expect(confirmInput).toHaveAttribute('required')
     })
 
     it('should have show/hide password toggles', () => {
@@ -184,14 +182,25 @@ describe('ResetPassword Component', () => {
       expect(emailApi.resetPassword).not.toHaveBeenCalled()
     })
 
-    it('should require both fields to be filled', () => {
+    it('should require both fields to be filled', async () => {
       render(<ResetPassword />)
 
       const passwordInput = screen.getByLabelText('New Password')
       const confirmInput = screen.getByLabelText('Confirm Password')
+      const submitButton = screen.getByRole('button', { name: 'Reset Password' })
 
-      expect(passwordInput).toHaveAttribute('required')
-      expect(confirmInput).toHaveAttribute('required')
+      // React Hook Form handles validation via JS, not native HTML attributes
+      expect(passwordInput).toBeInTheDocument()
+      expect(confirmInput).toBeInTheDocument()
+
+      // Try to submit empty form - should show validation errors
+      await user.click(submitButton)
+
+      await waitFor(() => {
+        expect(screen.getByText('Password is required')).toBeInTheDocument()
+      })
+
+      expect(emailApi.resetPassword).not.toHaveBeenCalled()
     })
   })
 

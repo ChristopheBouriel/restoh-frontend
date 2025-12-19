@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 import { User, Mail, Phone, MapPin, Lock, Save, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
-import { AuthService } from '../../services/auth'
 import { emailApi } from '../../api'
 import DeleteAccountModal from '../../components/profile/DeleteAccountModal'
+import { validationRules, validatePasswordMatch } from '../../utils/formValidators'
 
 const Profile = () => {
   const { user, updateProfile, deleteAccount, changePassword, isLoading } = useAuth()
@@ -13,31 +14,54 @@ const Profile = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
 
-  const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    street: user?.address?.street || '',
-    city: user?.address?.city || '',
-    zipCode: user?.address?.zipCode || '',
-    state: user?.address?.state || '',
-  })
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  })
-
   const [notifications, setNotifications] = useState({
     newsletter: user?.notifications?.newsletter ?? false,
     promotions: user?.notifications?.promotions ?? false,
   })
 
-  // Sync profileData with user when user changes
+  // React Hook Form for profile
+  const {
+    register: registerProfile,
+    handleSubmit: handleSubmitProfile,
+    reset: resetProfile,
+    formState: { errors: profileErrors }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      street: user?.address?.street || '',
+      city: user?.address?.city || '',
+      zipCode: user?.address?.zipCode || '',
+      state: user?.address?.state || '',
+    }
+  })
+
+  // React Hook Form for password change
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    watch: watchPassword,
+    reset: resetPassword,
+    formState: { errors: passwordErrors }
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    }
+  })
+
+  const newPassword = watchPassword('newPassword')
+
+  // Sync profile form with user when user changes
   useEffect(() => {
     if (user) {
-      setProfileData({
+      resetProfile({
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
@@ -51,21 +75,7 @@ const Profile = () => {
         promotions: user.notifications?.promotions ?? false,
       })
     }
-  }, [user])
-
-  const handleProfileChange = (e) => {
-    setProfileData({
-      ...profileData,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  const handlePasswordChange = (e) => {
-    setPasswordData({
-      ...passwordData,
-      [e.target.name]: e.target.value
-    })
-  }
+  }, [user, resetProfile])
 
   const handleNotificationChange = (e) => {
     setNotifications({
@@ -74,19 +84,17 @@ const Profile = () => {
     })
   }
 
-  const handleSaveProfile = async (e) => {
-    e.preventDefault()
-
+  const onSaveProfile = async (data) => {
     // Restructure data to match backend schema
     const dataToSend = {
-      name: profileData.name,
-      email: profileData.email,
-      phone: profileData.phone,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
       address: {
-        street: profileData.street,
-        city: profileData.city,
-        zipCode: profileData.zipCode,
-        state: profileData.state
+        street: data.street,
+        city: data.city,
+        zipCode: data.zipCode,
+        state: data.state
       },
       notifications
     }
@@ -97,49 +105,20 @@ const Profile = () => {
     }
   }
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault()
-
-    // Validation using AuthService
-    const validation = AuthService.validatePasswordChange(
-      passwordData.currentPassword,
-      passwordData.newPassword
-    )
-
-    if (!validation.isValid) {
-      const firstError = Object.values(validation.errors)[0]
-      toast.error(firstError)
-      return
-    }
-
-    // Check password confirmation match
-    const matchValidation = AuthService.validatePasswordMatch(
-      passwordData.newPassword,
-      passwordData.confirmPassword
-    )
-
-    if (!matchValidation.isValid) {
-      toast.error(matchValidation.error)
-      return
-    }
-
+  const onChangePassword = async (data) => {
     try {
       const { success, error } = await changePassword(
-        passwordData.currentPassword,
-        passwordData.newPassword
+        data.currentPassword,
+        data.newPassword
       )
-      
+
       if (success) {
         toast.success('Password changed successfully')
-        setPasswordData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        })
+        resetPassword()
       } else {
         toast.error(error || 'Error changing password')
       }
-    } catch (error) {
+    } catch (err) {
       toast.error('Error changing password')
     }
   }
@@ -273,73 +252,78 @@ const Profile = () => {
                 )}
               </div>
 
-              <form onSubmit={handleSaveProfile} className="space-y-6">
+              <form onSubmit={handleSubmitProfile(onSaveProfile)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Nom */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                       Full name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <input
+                        id="name"
                         type="text"
-                        name="name"
-                        value={profileData.name}
-                        onChange={handleProfileChange}
+                        {...registerProfile('name', validationRules.name)}
                         disabled={!isEditing}
-                        className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                        className={`w-full pl-10 pr-3 py-2 border-2 ${profileErrors.name ? 'border-red-300' : 'border-primary-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50`}
                       />
                     </div>
+                    {profileErrors.name && (
+                      <p className="mt-1 text-sm text-red-600">{profileErrors.name.message}</p>
+                    )}
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                       Email address
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <input
+                        id="email"
                         type="email"
-                        name="email"
-                        value={profileData.email}
-                        onChange={handleProfileChange}
+                        {...registerProfile('email', validationRules.email)}
                         disabled={!isEditing}
-                        className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                        className={`w-full pl-10 pr-3 py-2 border-2 ${profileErrors.email ? 'border-red-300' : 'border-primary-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50`}
                       />
                     </div>
+                    {profileErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">{profileErrors.email.message}</p>
+                    )}
                   </div>
 
                   {/* Téléphone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                       Phone
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <input
+                        id="phone"
                         type="tel"
-                        name="phone"
-                        value={profileData.phone}
-                        onChange={handleProfileChange}
+                        {...registerProfile('phone', validationRules.phone)}
                         disabled={!isEditing}
-                        placeholder="06 12 34 56 78"
-                        className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
+                        placeholder="0612345678"
+                        className={`w-full pl-10 pr-3 py-2 border-2 ${profileErrors.phone ? 'border-red-300' : 'border-primary-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50`}
                       />
                     </div>
+                    {profileErrors.phone && (
+                      <p className="mt-1 text-sm text-red-600">{profileErrors.phone.message}</p>
+                    )}
                   </div>
 
                   {/* Zip Code */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-2">
                       Zip Code
                     </label>
                     <input
+                      id="zipCode"
                       type="text"
-                      name="zipCode"
-                      value={profileData.zipCode}
-                      onChange={handleProfileChange}
+                      {...registerProfile('zipCode')}
                       disabled={!isEditing}
                       placeholder="75001"
                       className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
@@ -349,16 +333,15 @@ const Profile = () => {
 
                 {/* Street Address */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
                     Street Address
                   </label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
+                      id="street"
                       type="text"
-                      name="street"
-                      value={profileData.street}
-                      onChange={handleProfileChange}
+                      {...registerProfile('street')}
                       disabled={!isEditing}
                       placeholder="123 Main Street"
                       className="w-full pl-10 pr-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
@@ -369,14 +352,13 @@ const Profile = () => {
                 {/* City and State */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
                       City
                     </label>
                     <input
+                      id="city"
                       type="text"
-                      name="city"
-                      value={profileData.city}
-                      onChange={handleProfileChange}
+                      {...registerProfile('city')}
                       disabled={!isEditing}
                       placeholder="Paris"
                       className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
@@ -384,14 +366,13 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
                       State / Province
                     </label>
                     <input
+                      id="state"
                       type="text"
-                      name="state"
-                      value={profileData.state}
-                      onChange={handleProfileChange}
+                      {...registerProfile('state')}
                       disabled={!isEditing}
                       placeholder="Île-de-France"
                       className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50"
@@ -446,48 +427,53 @@ const Profile = () => {
                 Change password
               </h2>
 
-              <form onSubmit={handleChangePassword} className="max-w-md space-y-6">
+              <form onSubmit={handleSubmitPassword(onChangePassword)} className="max-w-md space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
                     Current password
                   </label>
                   <input
+                    id="currentPassword"
                     type="password"
-                    name="currentPassword"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                    required
-                    className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    {...registerPassword('currentPassword', { required: 'Current password is required' })}
+                    className={`w-full px-3 py-2 border-2 ${passwordErrors.currentPassword ? 'border-red-300' : 'border-primary-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
                   />
+                  {passwordErrors.currentPassword && (
+                    <p className="mt-1 text-sm text-red-600">{passwordErrors.currentPassword.message}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
                     New password
                   </label>
                   <input
+                    id="newPassword"
                     type="password"
-                    name="newPassword"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    required
-                    minLength={6}
-                    className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    {...registerPassword('newPassword', validationRules.password)}
+                    className={`w-full px-3 py-2 border-2 ${passwordErrors.newPassword ? 'border-red-300' : 'border-primary-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
                   />
+                  {passwordErrors.newPassword && (
+                    <p className="mt-1 text-sm text-red-600">{passwordErrors.newPassword.message}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm new password
                   </label>
                   <input
+                    id="confirmPassword"
                     type="password"
-                    name="confirmPassword"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    required
-                    className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    {...registerPassword('confirmPassword', {
+                      required: 'Please confirm your password',
+                      validate: (value) => validatePasswordMatch(value, newPassword)
+                    })}
+                    className={`w-full px-3 py-2 border-2 ${passwordErrors.confirmPassword ? 'border-red-300' : 'border-primary-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
                   />
+                  {passwordErrors.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600">{passwordErrors.confirmPassword.message}</p>
+                  )}
                 </div>
 
                 <button

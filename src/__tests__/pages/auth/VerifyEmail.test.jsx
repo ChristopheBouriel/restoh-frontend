@@ -194,6 +194,12 @@ describe('VerifyEmail Component', () => {
     })
 
     it('should not auto-redirect on error', async () => {
+      // Wait for any pending timers from previous tests to complete
+      await new Promise(resolve => setTimeout(resolve, 3500))
+
+      // Clear any navigation calls from previous tests
+      mockNavigate.mockClear()
+
       mockUseParams.mockReturnValue({ token: 'invalid-token' })
       emailApi.verifyEmail.mockResolvedValueOnce({
         success: false,

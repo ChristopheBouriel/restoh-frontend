@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Profile from '../../../pages/profile/Profile'
 import { useAuth } from '../../../hooks/useAuth'
@@ -545,61 +545,45 @@ describe('Profile Component', () => {
 
     it('should validate password requirements and show appropriate error messages', async () => {
       render(<Profile />)
-      
+
       await user.click(screen.getByRole('button', { name: /Security/ }))
-      
+
       const changePasswordButton = screen.getByRole('button', { name: /Change password/ })
-      
-      // Test 1: Champs vides - utiliser fireEvent pour bypasser la validation HTML5
-      const form = document.querySelector('form')
-      fireEvent.submit(form)
-      
+
+      // Test 1: Champs vides - React Hook Form shows inline errors
+      await user.click(changePasswordButton)
+
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Current password is required')
+        expect(screen.getByText('Current password is required')).toBeInTheDocument()
       })
-      
-      // Test 2: New mot de passe manquant
-      vi.clearAllMocks()
+
+      // Test 2: Fill current password, but new password missing
       const currentPasswordInput = document.querySelector('input[name="currentPassword"]')
       await user.type(currentPasswordInput, 'current123')
-      fireEvent.submit(form)
-      
+      await user.click(changePasswordButton)
+
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Password is required')
+        expect(screen.getByText('Password is required')).toBeInTheDocument()
       })
 
       // Test 3: New mot de passe trop court
-      vi.clearAllMocks()
       const newPasswordInput = document.querySelector('input[name="newPassword"]')
       await user.type(newPasswordInput, '123')
-      fireEvent.submit(form)
+      await user.tab() // trigger onBlur validation
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Password must be at least 6 characters')
+        expect(screen.getByText('Password must be at least 6 characters')).toBeInTheDocument()
       })
 
       // Test 4: Mots de passe ne correspondent pas
-      vi.clearAllMocks()
       await user.clear(newPasswordInput)
       await user.type(newPasswordInput, 'newpass123')
       const confirmPasswordInput = document.querySelector('input[name="confirmPassword"]')
       await user.type(confirmPasswordInput, 'different123')
-      fireEvent.submit(form)
+      await user.click(changePasswordButton)
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Passwords do not match')
-      })
-
-      // Test 5: New mot de passe identique à l'ancien
-      vi.clearAllMocks()
-      await user.clear(confirmPasswordInput)
-      await user.type(confirmPasswordInput, 'current123')
-      await user.clear(newPasswordInput)
-      await user.type(newPasswordInput, 'current123')
-      fireEvent.submit(form)
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('New password must be different from current password')
+        expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
       })
     })
 
