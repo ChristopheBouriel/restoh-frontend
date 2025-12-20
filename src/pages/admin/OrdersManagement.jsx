@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Package, Eye, Clock, CheckCircle, Truck, XCircle, RefreshCw, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
@@ -568,6 +568,11 @@ const OrdersManagement = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-brown-400 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Orders ({filteredOrders.length})
+            </h2>
+          </div>
           {filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -584,38 +589,46 @@ const OrdersManagement = () => {
               {/* Desktop Table View */}
               <div className="hidden lg:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-primary-100">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Order
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Customer
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Items
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Total
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredOrders.map((order) => {
+                  <tbody className="bg-white">
+                    {filteredOrders.map((order, index) => {
                       const statusInfo = getStatusConfig(order.status)
                       const StatusIcon = statusInfo.icon
                       return (
-                        <tr key={order.id} className={getDeletedUserRowClass(order)}>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                        <React.Fragment key={order.id}>
+                          {index > 0 && (
+                            <tr>
+                              <td colSpan="7" className="px-6 py-0">
+                                <div className="h-px bg-primary-400" />
+                              </td>
+                            </tr>
+                          )}
+                          <tr className={getDeletedUserRowClass(order)}>
+                            <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
                               #{order.orderNumber}
                             </div>
@@ -673,6 +686,7 @@ const OrdersManagement = () => {
                             </div>
                           </td>
                         </tr>
+                        </React.Fragment>
                       )
                     })}
                   </tbody>
@@ -680,12 +694,16 @@ const OrdersManagement = () => {
               </div>
 
               {/* Mobile Cards View */}
-              <div className="lg:hidden divide-y divide-gray-200">
-                {filteredOrders.map((order) => {
+              <div className="lg:hidden">
+                {filteredOrders.map((order, index) => {
                   const statusInfo = getStatusConfig(order.status)
                   const StatusIcon = statusInfo.icon
                   return (
-                    <div key={order.id} className={`p-4 ${getDeletedUserRowClass(order)}`}>
+                    <div key={order.id}>
+                      {index > 0 && (
+                        <div className="mx-4 h-px bg-primary-400" />
+                      )}
+                      <div className={`p-4 ${getDeletedUserRowClass(order)}`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           <span className="text-sm font-medium text-gray-900">#{order.orderNumber}</span>
@@ -736,6 +754,7 @@ const OrdersManagement = () => {
                             ]}
                           />
                         )}
+                      </div>
                       </div>
                     </div>
                   )

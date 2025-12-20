@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Eye, Search, Shield, User, Mail, Phone, Calendar, TrendingUp, ShoppingCart, ShoppingBag, Calendar as CalendarIcon, Package, ChevronDown, ChevronUp, Loader2, Trash2 } from 'lucide-react'
 import useUsersStore from '../../store/usersStore'
 import { ordersApi, reservationsApi } from '../../api'
@@ -392,31 +392,39 @@ const UsersManagement = () => {
             {/* Desktop View - Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-primary-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Activity
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id || user.id} className="hover:bg-gray-50">
+                <tbody className="bg-white">
+                  {filteredUsers.map((user, index) => (
+                    <React.Fragment key={user.id || user.id}>
+                      {index > 0 && (
+                        <tr>
+                          <td colSpan="6" className="px-6 py-0">
+                            <div className="h-px bg-primary-400" />
+                          </td>
+                        </tr>
+                      )}
+                      <tr className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
@@ -498,15 +506,20 @@ const UsersManagement = () => {
                         </div>
                       </td>
                     </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile/Tablet View - Cards */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <div key={user.id || user.id} className="p-4 hover:bg-gray-50">
+            <div className="lg:hidden">
+              {filteredUsers.map((user, index) => (
+                <div key={user.id || user.id}>
+                  {index > 0 && (
+                    <div className="mx-4 h-px bg-primary-400" />
+                  )}
+                  <div className="p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <button
@@ -571,6 +584,7 @@ const UsersManagement = () => {
                     {!user.isEmailVerified && (
                       <div className="text-xs text-orange-600">⚠ Email not verified</div>
                     )}
+                  </div>
                   </div>
                 </div>
               ))}

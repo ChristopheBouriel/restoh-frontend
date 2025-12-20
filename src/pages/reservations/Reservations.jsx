@@ -694,7 +694,7 @@ const Reservations = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filterStatus === 'upcoming'
                       ? 'bg-primary-600 text-white'
-                      : 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+                      : 'bg-primary-400 text-white hover:bg-primary-600'
                   }`}
                 >
                   Upcoming

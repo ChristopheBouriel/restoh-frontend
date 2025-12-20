@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Eye, Users, Calendar, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import SimpleSelect from '../../components/common/SimpleSelect'
@@ -588,7 +588,7 @@ const ReservationsManagement = () => {
                 value={searchReservationNumber}
                 onChange={(e) => setSearchReservationNumber(e.target.value)}
                 placeholder="Enter reservation number..."
-                className="w-full px-3 py-2 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-1.5 border-2 border-primary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -708,35 +708,43 @@ const ReservationsManagement = () => {
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-primary-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Client
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Guests
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Table
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-medium text-primary-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {displayedReservations.map((reservation) => (
-                    <tr key={reservation.id} className={getDeletedUserRowClass(reservation)}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                <tbody className="bg-white">
+                  {displayedReservations.map((reservation, index) => (
+                    <React.Fragment key={reservation.id}>
+                      {index > 0 && (
+                        <tr>
+                          <td colSpan="7" className="px-6 py-0">
+                            <div className="h-px bg-primary-400" />
+                          </td>
+                        </tr>
+                      )}
+                      <tr className={getDeletedUserRowClass(reservation)}>
+                        <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           #{reservation.reservationNumber}
                         </div>
@@ -802,15 +810,20 @@ const ReservationsManagement = () => {
                         </div>
                       </td>
                     </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Cards */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {displayedReservations.map((reservation) => (
-                <div key={reservation.id} className={`p-4 ${getDeletedUserRowClass(reservation)}`}>
+            <div className="lg:hidden">
+              {displayedReservations.map((reservation, index) => (
+                <div key={reservation.id}>
+                  {index > 0 && (
+                    <div className="mx-4 h-px bg-primary-400" />
+                  )}
+                  <div className={`p-4 ${getDeletedUserRowClass(reservation)}`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <button
@@ -875,6 +888,7 @@ const ReservationsManagement = () => {
                         <strong>Special requests:</strong> {reservation.specialRequests}
                       </div>
                     )}
+                  </div>
                   </div>
                 </div>
               ))}
