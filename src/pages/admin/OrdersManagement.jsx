@@ -446,7 +446,7 @@ const OrdersManagement = () => {
                 className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                   showTodayOnly
                     ? 'bg-primary-600 text-white hover:bg-primary-700'
-                    : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 <Calendar className="h-4 w-4" />
@@ -455,7 +455,7 @@ const OrdersManagement = () => {
               <button
                 onClick={fetchRecentOrdersData}
                 disabled={isLoadingRecent}
-                className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-2 px-3 py-1.5 text-sm bg-white border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoadingRecent ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
@@ -530,28 +530,23 @@ const OrdersManagement = () => {
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-          <div className="flex items-center space-x-4">
-            {(filterStatus !== 'all' || searchOrderNumber || (activeTab === 'history' && (startDate || endDate))) && (
-              <button
-                onClick={() => {
-                  setFilterStatus('all')
-                  setSearchOrderNumber('')
-                  if (activeTab === 'history') {
-                    setStartDate('')
-                    setEndDate('')
-                  }
-                }}
-                className="text-sm text-orange-600 hover:text-orange-800 underline"
-              >
-                Clear filters
-              </button>
-            )}
+        {(filterStatus !== 'all' || searchOrderNumber || (activeTab === 'history' && (startDate || endDate))) && (
+          <div className="flex items-center">
+            <button
+              onClick={() => {
+                setFilterStatus('all')
+                setSearchOrderNumber('')
+                if (activeTab === 'history') {
+                  setStartDate('')
+                  setEndDate('')
+                }
+              }}
+              className="text-sm text-orange-600 hover:text-orange-800 underline"
+            >
+              Clear filters
+            </button>
           </div>
-          <span className="text-sm text-gray-500">
-            {filteredOrders.length} order(s) displayed
-          </span>
-        </div>
+        )}
       </div>
 
       {/* Orders List */}

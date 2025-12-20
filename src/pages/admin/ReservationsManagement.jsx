@@ -538,7 +538,7 @@ const ReservationsManagement = () => {
                 className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                   showTodayOnly
                     ? 'bg-primary-600 text-white hover:bg-primary-700'
-                    : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                    : 'bg-primary-400 text-white hover:bg-primary-600'
                 }`}
               >
                 <Calendar className="h-4 w-4" />
@@ -547,7 +547,7 @@ const ReservationsManagement = () => {
               <button
                 onClick={handleManualRefresh}
                 disabled={recentLoading}
-                className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-2 px-3 py-1.5 text-sm bg-white border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <RefreshCw className={`h-4 w-4 ${recentLoading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
