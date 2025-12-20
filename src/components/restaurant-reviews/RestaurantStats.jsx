@@ -27,7 +27,7 @@ const RestaurantStats = ({ stats, showLink = true, compact = false, hideTitle = 
   // Minimal version for Home page (no title, no buttons)
   if (hideTitle) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+      <div className="bg-white rounded-lg p-6 border border-primary-600" style={{ boxShadow: 'inset 0 2px 6px rgba(234, 88, 12, 0.3)' }}>
         {totalReviews > 0 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-center">

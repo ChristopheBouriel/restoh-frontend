@@ -24,7 +24,7 @@ const RestaurantReviewCard = ({ review, canEdit = false, canDelete = false, onEd
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-primary-600 rounded-lg p-4" style={{ boxShadow: '4px 6px 12px rgba(234, 88, 12, 0.3)' }}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">

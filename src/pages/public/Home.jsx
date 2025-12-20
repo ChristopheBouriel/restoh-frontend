@@ -281,7 +281,7 @@ const Home = () => {
       )}
 
       {/* Customer Reviews */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Stats Widget - Narrow & Centered */}
           <div className="flex justify-center mb-8">
@@ -290,14 +290,10 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Title */}
+          {/* Title and Action Buttons */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-              What Our Customers Say
-            </h2>
-
             {/* Action Buttons */}
-            <div className="flex justify-center gap-4 max-w-md mx-auto">
+            <div className="flex justify-center gap-4 max-w-md mx-auto mb-6">
               <Link
                 to={ROUTES.REVIEWS}
                 className="flex-1 px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-medium text-center"
@@ -311,6 +307,10 @@ const Home = () => {
                 Write a Review
               </Link>
             </div>
+
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              What Our Customers Say
+            </h2>
           </div>
 
           {/* Reviews List */}
