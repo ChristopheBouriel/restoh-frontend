@@ -70,7 +70,7 @@ const Carousel = ({
   return (
     <div className={`relative ${className}`}>
       {/* Carousel container */}
-      <div className="overflow-hidden">
+      <div className="overflow-hidden pb-4">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{

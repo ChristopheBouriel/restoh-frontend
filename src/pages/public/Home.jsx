@@ -76,59 +76,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-      
-      {/* Our Strengths */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose RestOh! ?
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ChefHat className="w-8 h-8 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Experienced Chefs</h3>
-              <p className="text-gray-600">
-                Our team of passionate chefs creates exceptional dishes
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Premium Quality</h3>
-              <p className="text-gray-600">
-                Fresh ingredients and superior quality for every dish
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Fast Service</h3>
-              <p className="text-gray-600">
-                Quick ordering and delivery for your satisfaction
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Warm Atmosphere</h3>
-              <p className="text-gray-600">
-                A welcoming setting for all your meals and events
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Popular Dishes */}
       <section className="py-16">
@@ -204,18 +151,71 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Our Strengths */}
+      <section className="py-8 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl lg:text-3xl font-bold text-primary-500">
+              Why Choose RestOh! ?
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="bg-primary-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <ChefHat className="w-6 h-6 text-primary-600" />
+              </div>
+              <h3 className="text-base font-semibold text-white mb-1">Experienced Chefs</h3>
+              <p className="text-primary-100 text-sm">
+                Passionate chefs creating exceptional dishes
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-primary-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Star className="w-6 h-6 text-primary-600" />
+              </div>
+              <h3 className="text-base font-semibold text-white mb-1">Premium Quality</h3>
+              <p className="text-primary-100 text-sm">
+                Fresh ingredients for every dish
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-primary-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Clock className="w-6 h-6 text-primary-600" />
+              </div>
+              <h3 className="text-base font-semibold text-white mb-1">Fast Service</h3>
+              <p className="text-primary-100 text-sm">
+                Quick ordering and delivery
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-primary-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Users className="w-6 h-6 text-primary-600" />
+              </div>
+              <h3 className="text-base font-semibold text-white mb-1">Warm Atmosphere</h3>
+              <p className="text-primary-100 text-sm">
+                Welcoming setting for all occasions
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Chef's Recommendations */}
       {suggestedItems.length > 0 && (
-        <section className="py-16 bg-gradient-to-br from-orange-100 to-orange-200">
+        <section className="py-16 bg-brown-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <ChefHat className="w-10 h-10 text-amber-700" />
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                <ChefHat className="w-10 h-10 text-brown-700" />
+                <h2 className="text-3xl lg:text-4xl font-bold text-brown-700">
                   Chef's Recommendations
                 </h2>
               </div>
-              <p className="text-xl text-gray-600">
+              <p className="text-xl text-gray-700">
                 Hand-picked selections by our culinary team
               </p>
             </div>
@@ -244,29 +244,29 @@ const Home = () => {
                 showDots={true}
               >
                 {suggestedItems.map((dish) => (
-                  <div key={dish.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col border-2 border-amber-100">
+                  <div key={dish.id} className="bg-white rounded-xl overflow-hidden h-full flex flex-col border border-brown-700" style={{ boxShadow: '0px 6px 12px rgba(166, 132, 108, 0.5)' }}>
                     <div className="relative h-56 bg-gray-200 overflow-hidden">
                       <ImageWithFallback
                         src={dish.image}
                         alt={dish.name}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute top-3 left-3 flex items-center gap-1 bg-amber-700 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      <div className="absolute top-3 left-3 flex items-center gap-1 bg-brown-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                         <ChefHat size={14} />
                         <span>Chef's Pick</span>
                       </div>
                     </div>
                     <div className="p-6 flex-1 flex flex-col">
-                      <span className="text-sm text-amber-700 font-medium capitalize">{dish.category}</span>
+                      <span className="text-sm text-brown-600 font-medium capitalize">{dish.category}</span>
                       <h3 className="text-xl font-bold mb-2 text-gray-900">{dish.name}</h3>
                       {dish.description && (
                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{dish.description}</p>
                       )}
                       <div className="flex justify-between items-center mt-auto">
-                        <span className="text-2xl font-bold text-amber-700">€{dish.price.toFixed(2)}</span>
+                        <span className="text-2xl font-bold text-brown-700">€{dish.price.toFixed(2)}</span>
                         <button
                           onClick={() => handleAddToCart(dish)}
-                          className="bg-amber-700 text-white px-5 py-2 rounded-lg hover:bg-amber-800 transition-colors font-medium"
+                          className="bg-brown-600 text-white px-5 py-2 rounded-lg hover:bg-brown-800 transition-colors font-medium"
                         >
                           + Cart
                         </button>
