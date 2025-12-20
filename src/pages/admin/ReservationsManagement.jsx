@@ -282,11 +282,11 @@ const ReservationsManagement = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmed': return 'bg-blue-100 text-blue-800'
+      case 'confirmed': return 'bg-brown-100 text-brown-800'
       case 'seated': return 'bg-purple-100 text-purple-800'
       case 'completed': return 'bg-green-100 text-green-800'
-      case 'cancelled': return 'bg-red-100 text-red-800'
-      case 'no-show': return 'bg-orange-100 text-orange-800'
+      case 'cancelled': return 'bg-gray-100 text-gray-800'
+      case 'no-show': return 'bg-terracotta-100 text-terracotta-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -443,17 +443,7 @@ const ReservationsManagement = () => {
 
         <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-green-500 mr-3" />
-            <div>
-              <p className="text-sm font-medium text-gray-600">Today</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.todayTotal}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-brown-400 p-4">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-purple-500 mr-3" />
+            <Users className="h-8 w-8 text-gray-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Total guests</p>
               <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalGuests}</p>
@@ -463,7 +453,17 @@ const ReservationsManagement = () => {
 
         <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
-            <Users className="h-8 w-8 text-green-500 mr-3" />
+            <Calendar className="h-8 w-8 text-primary-500 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Today</p>
+              <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.todayTotal}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-brown-400 p-4">
+          <div className="flex items-center">
+            <Users className="h-8 w-8 text-primary-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Today's guests</p>
               <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.todayGuests}</p>
@@ -473,7 +473,7 @@ const ReservationsManagement = () => {
 
         <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-blue-500 mr-3" />
+            <Clock className="h-8 w-8 text-brown-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Confirmed</p>
               <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.confirmed}</p>
@@ -503,7 +503,7 @@ const ReservationsManagement = () => {
 
         <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-red-500 mr-3" />
+            <Clock className="h-8 w-8 text-gray-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">Cancelled</p>
               <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.cancelled}</p>
@@ -513,7 +513,7 @@ const ReservationsManagement = () => {
 
         <div className="bg-white rounded-lg border border-brown-400 p-4">
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-orange-500 mr-3" />
+            <Clock className="h-8 w-8 text-terracotta-500 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-600">No-show</p>
               <p className="text-2xl font-bold text-gray-900 tabular-nums">{stats.noShow || 0}</p>

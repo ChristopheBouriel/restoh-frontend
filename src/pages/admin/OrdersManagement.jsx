@@ -284,17 +284,18 @@ const OrdersManagement = () => {
       delivered: Truck,
       cancelled: XCircle
     }
-    const colorMap = {
-      yellow: 'bg-yellow-100 text-yellow-800',
-      blue: 'bg-blue-100 text-blue-800',
-      purple: 'bg-orange-100 text-orange-800', // preparing uses orange in this component
-      green: 'bg-green-100 text-green-800',
-      gray: 'bg-gray-100 text-gray-800',
-      red: 'bg-red-100 text-red-800'
+    // Custom color mapping to match theme (terracotta, brown, apricot, green)
+    const statusColorMap = {
+      pending: 'bg-terracotta-100 text-terracotta-800',
+      confirmed: 'bg-brown-100 text-brown-800',
+      preparing: 'bg-apricot-100 text-apricot-800',
+      ready: 'bg-primary-100 text-primary-800',
+      delivered: 'bg-green-100 text-green-800',
+      cancelled: 'bg-gray-100 text-gray-800'
     }
     return {
       label: baseInfo.label,
-      color: colorMap[baseInfo.color] || 'bg-gray-100 text-gray-800',
+      color: statusColorMap[status] || 'bg-gray-100 text-gray-800',
       icon: iconMap[status] || Package
     }
   }
@@ -402,9 +403,9 @@ const OrdersManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+              <p className="text-2xl font-bold text-terracotta-600">{stats.pending}</p>
             </div>
-            <Clock className="h-8 w-8 text-yellow-400" />
+            <Clock className="h-8 w-8 text-terracotta-400" />
           </div>
         </div>
 
@@ -412,9 +413,9 @@ const OrdersManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">In progress</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.confirmed + stats.preparing}</p>
+              <p className="text-2xl font-bold text-brown-600">{stats.confirmed + stats.preparing}</p>
             </div>
-            <CheckCircle className="h-8 w-8 text-blue-400" />
+            <CheckCircle className="h-8 w-8 text-brown-400" />
           </div>
         </div>
 
@@ -422,9 +423,9 @@ const OrdersManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Ready Orders</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.ready}</p>
+              <p className="text-2xl font-bold text-primary-600">{stats.ready}</p>
             </div>
-            <Truck className="h-8 w-8 text-orange-400" />
+            <Truck className="h-8 w-8 text-primary-400" />
           </div>
         </div>
       </div>
