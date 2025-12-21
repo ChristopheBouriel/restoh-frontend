@@ -95,40 +95,32 @@ const Dashboard = () => {
       .slice(0, 10)
   }, [reservations])
 
-  // Order status info using OrderService
+  // Order status info - matching OrdersManagement colors
   const getOrderStatusInfo = (status) => {
-    const baseInfo = OrderService.getStatusDisplayInfo(status)
-    const colorMap = {
-      yellow: 'bg-yellow-100 text-yellow-800',
-      blue: 'bg-blue-100 text-blue-800',
-      purple: 'bg-orange-100 text-orange-800', // preparing
-      green: 'bg-purple-100 text-purple-800', // ready (Dashboard uses purple for ready)
-      gray: 'bg-green-100 text-green-800', // delivered (Dashboard uses green)
-      red: 'bg-red-100 text-red-800'
+    const statusMap = {
+      pending: { label: 'Pending', color: 'bg-terracotta-100 text-terracotta-800' },
+      confirmed: { label: 'Confirmed', color: 'bg-brown-100 text-brown-800' },
+      preparing: { label: 'Preparing', color: 'bg-apricot-100 text-apricot-800' },
+      ready: { label: 'Ready', color: 'bg-purple-100 text-purple-800' },
+      delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800' },
+      cancelled: { label: 'Cancelled', color: 'bg-gray-100 text-gray-800' }
     }
-    // Custom mapping to preserve Dashboard's original colors
-    const effectiveColor = status === 'delivered' ? 'bg-green-100 text-green-800'
-      : status === 'ready' ? 'bg-purple-100 text-purple-800'
-      : colorMap[baseInfo.color] || 'bg-gray-100 text-gray-800'
-
-    return {
-      label: baseInfo.label,
-      color: effectiveColor
-    }
+    return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' }
   }
 
+  // Reservation status info - matching ReservationsManagement colors
   const getReservationStatusInfo = (status) => {
     switch (status) {
       case 'confirmed':
-        return { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle }
+        return { label: 'Confirmed', color: 'bg-brown-100 text-brown-800', icon: CheckCircle }
       case 'seated':
         return { label: 'Seated', color: 'bg-purple-100 text-purple-800', icon: Users }
       case 'completed':
         return { label: 'Completed', color: 'bg-green-100 text-green-800', icon: CheckCircle }
       case 'cancelled':
-        return { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle }
+        return { label: 'Cancelled', color: 'bg-gray-100 text-gray-800', icon: XCircle }
       case 'no-show':
-        return { label: 'No-show', color: 'bg-orange-100 text-orange-800', icon: XCircle }
+        return { label: 'No-show', color: 'bg-terracotta-100 text-terracotta-800', icon: XCircle }
       default:
         return { label: 'Unknown', color: 'bg-gray-100 text-gray-800', icon: Clock }
     }
@@ -184,8 +176,8 @@ const Dashboard = () => {
                 <p className="text-2xl font-bold text-gray-900">{apiStats.quickStats.todayOrders}</p>
                 <p className="text-xs text-gray-500">{apiStats.orders.thisMonth.total} this month</p>
               </div>
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <ShoppingBag className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <ShoppingBag className="w-6 h-6 text-primary-600" />
               </div>
             </div>
             <div className="mt-4 flex items-center">
@@ -291,8 +283,8 @@ const Dashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Store className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-brown-50 rounded-lg">
+                    <Store className="w-5 h-5 text-brown-600" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Pickup</p>
@@ -300,8 +292,8 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <Truck className="w-5 h-5 text-green-600" />
+                  <div className="p-2 bg-apricot-50 rounded-lg">
+                    <Truck className="w-5 h-5 text-apricot-600" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Delivery</p>
@@ -336,8 +328,8 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold text-gray-900">{apiStats.reservations.thisMonth.totalGuests}</p>
                   <p className="text-xs text-gray-500">{apiStats.reservations.lastMonth.totalGuests} last month</p>
                 </div>
-                <div className="p-2 bg-purple-50 rounded-lg">
-                  <Users className="w-6 h-6 text-purple-600" />
+                <div className="p-2 bg-primary-50 rounded-lg">
+                  <Users className="w-6 h-6 text-primary-600" />
                 </div>
               </div>
             </div>
@@ -353,8 +345,8 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold text-gray-900">{upcomingReservations.count}</p>
                   <p className="text-xs text-gray-500">{upcomingReservations.guests} guests until end of month</p>
                 </div>
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Clock className="w-6 h-6 text-blue-600" />
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Clock className="w-6 h-6 text-purple-600" />
                 </div>
               </div>
             </div>
