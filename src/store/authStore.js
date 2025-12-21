@@ -208,11 +208,11 @@ const useAuthStore = create(
         }
       },
 
-      deleteAccount: async (password) => {
+      deleteAccount: async (password, options = {}) => {
         set({ isLoading: true, error: null })
 
         try {
-          const result = await authApi.deleteAccount(password)
+          const result = await authApi.deleteAccount(password, options)
 
           if (result.success) {
             // Clear all auth state after account deletion
@@ -224,7 +224,13 @@ const useAuthStore = create(
               error: result.error,
               isLoading: false
             })
-            return { success: false, error: result.error }
+            // Return full error info including code and reservations
+            return {
+              success: false,
+              error: result.error,
+              code: result.code,
+              reservations: result.reservations
+            }
           }
         } catch (error) {
           const errorMessage = error.error || 'Account deletion error'

@@ -207,9 +207,12 @@ apiClient.interceptors.response.use(
       return Promise.reject({
         success: false,
         error: data?.error || data?.message || 'An error occurred',
+        message: data?.message,
         code: data?.code,
         status,
-        details: data?.details
+        details: data?.details,
+        data: data?.data, // For structured response data (e.g., reservations)
+        reservations: data?.reservations || data?.data?.reservations // For delete account with active reservations
       })
 
     } else if (error.request) {

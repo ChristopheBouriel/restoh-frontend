@@ -98,13 +98,21 @@ export const changePassword = async (currentPassword, newPassword) => {
 }
 
 // Delete account (GDPR)
-export const deleteAccount = async (password) => {
+// Options:
+// - password: required
+// - confirmCancelReservations: optional, set to true to confirm cancellation of active reservations
+export const deleteAccount = async (password, options = {}) => {
   try {
     const response = await apiClient.delete('/auth/delete-account', {
-      data: { password }
+      data: { password, ...options }
     })
     return { success: true, ...response }
   } catch (error) {
-    return { success: false, error: error.error || 'Error deleting account' }
+    return {
+      success: false,
+      error: error.error || error.message || 'Error deleting account',
+      code: error.code,
+      reservations: error.reservations || error.data?.reservations
+    }
   }
 }

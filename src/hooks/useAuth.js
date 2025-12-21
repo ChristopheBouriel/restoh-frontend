@@ -90,23 +90,17 @@ export const useAuth = () => {
     }
   }
 
-  const handleDeleteAccount = async (password) => {
-    const result = await deleteAccount(password)
+  const handleDeleteAccount = async (password, options = {}) => {
+    const result = await deleteAccount(password, options)
 
     if (result.success) {
       toast.success('Account deleted successfully')
       navigate(ROUTES.HOME)
       return { success: true }
     } else {
-      // If backend returns details (e.g., validation errors)
-      if (result.details && Object.keys(result.details).length > 0) {
-        // Return error with details for InlineAlert
-        return result
-      } else {
-        // Simple error, show toast
-        toast.error(result.error || error || 'Error deleting account')
-        return result
-      }
+      // Return full result for handling in modal (code, reservations, etc.)
+      // Don't show toast here - let the modal handle the display
+      return result
     }
   }
 

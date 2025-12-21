@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { User, Mail, Phone, MapPin, Lock, Save, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
-import { emailApi } from '../../api'
+import { authApi, emailApi } from '../../api'
+import useAuthStore from '../../store/authStore'
 import DeleteAccountModal from '../../components/profile/DeleteAccountModal'
 import { validationRules, validatePasswordMatch } from '../../utils/formValidators'
+import { ROUTES } from '../../constants'
 
 const Profile = () => {
-  const { user, updateProfile, deleteAccount, changePassword, isLoading } = useAuth()
+  const navigate = useNavigate()
+  const { user, updateProfile, changePassword, isLoading } = useAuth()
+  const clearAuth = useAuthStore((state) => state.clearAuth)
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteModalStep, setDeleteModalStep] = useState('initial')
+  const [deleteBlockMessage, setDeleteBlockMessage] = useState('')
+  const [activeReservations, setActiveReservations] = useState([])
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
 
   const [notifications, setNotifications] = useState({
@@ -123,11 +132,44 @@ const Profile = () => {
     }
   }
 
-  const handleDeleteAccount = async (password) => {
-    const success = await deleteAccount(password)
-    if (success) {
+  const handleDeleteAccount = async (password, options = {}) => {
+    setIsDeleting(true)
+
+    // Call API directly to avoid store re-renders that reset modal state
+    const result = await authApi.deleteAccount(password, options)
+
+    if (result.success) {
+      // Success - clear auth and redirect
+      setIsDeleting(false)
       setShowDeleteModal(false)
+      setDeleteModalStep('initial')
+      clearAuth()
+      toast.success('Account deleted successfully')
+      navigate(ROUTES.HOME)
+    } else if (result.code === 'UNPAID_DELIVERY_ORDERS') {
+      // Blocked - cannot delete account
+      setIsDeleting(false)
+      setDeleteBlockMessage(result.error)
+      setDeleteModalStep('blocked')
+    } else if (result.code === 'ACTIVE_RESERVATIONS') {
+      // Has active reservations - show confirmation step
+      setIsDeleting(false)
+      setActiveReservations(result.reservations || [])
+      setDeleteModalStep('confirm-reservations')
+    } else {
+      // Generic error
+      setIsDeleting(false)
+      toast.error(result.error || 'Error deleting account')
     }
+
+    return result
+  }
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false)
+    setDeleteModalStep('initial')
+    setDeleteBlockMessage('')
+    setActiveReservations([])
   }
 
   const handleResendVerification = async () => {
@@ -505,9 +547,12 @@ const Profile = () => {
         {/* Delete Account Modal */}
         <DeleteAccountModal
           isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
+          onClose={handleCloseDeleteModal}
           onConfirm={handleDeleteAccount}
-          isLoading={isLoading}
+          isLoading={isDeleting}
+          step={deleteModalStep}
+          blockMessage={deleteBlockMessage}
+          activeReservations={activeReservations}
         />
       </div>
     </div>
