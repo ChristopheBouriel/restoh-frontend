@@ -3,6 +3,17 @@ import { persist } from 'zustand/middleware'
 import * as reservationsApi from '../api/reservationsApi'
 import { ReservationService } from '../services/reservations'
 
+// Compare two arrays of reservations by their IDs and updatedAt timestamps
+const reservationsChanged = (oldReservations, newReservations) => {
+  if (oldReservations.length !== newReservations.length) return true
+
+  const oldMap = new Map(oldReservations.map(r => [r.id, r.updatedAt]))
+  for (const reservation of newReservations) {
+    if (oldMap.get(reservation.id) !== reservation.updatedAt) return true
+  }
+  return false
+}
+
 const useReservationsStore = create(
   persist(
     (set, get) => ({
@@ -23,22 +34,27 @@ const useReservationsStore = create(
       fetchReservations: async (isAdmin = false) => {
         // If admin mode, always fetch from API (don't use cache)
         if (isAdmin) {
-          // Clear state first to avoid showing stale data
-          set({ reservations: [], isAdminData: true, isLoading: true, error: null })
+          set({ isAdminData: true, isLoading: true, error: null })
 
           try {
             const result = await reservationsApi.getRecentReservations({ limit: 1000 })
 
             if (result.success) {
               // Handle multiple possible response structures
-              const reservationsData = result.data || result.reservations || []
+              const newReservations = result.data || result.reservations || []
+              const currentReservations = get().reservations
 
-              set({
-                reservations: reservationsData,
-                isAdminData: true, // Mark as admin data (won't be persisted)
-                isLoading: false,
-                error: null
-              })
+              // Only update if data actually changed
+              if (reservationsChanged(currentReservations, newReservations)) {
+                set({
+                  reservations: newReservations,
+                  isAdminData: true,
+                  isLoading: false,
+                  error: null
+                })
+              } else {
+                set({ isLoading: false, error: null })
+              }
               return { success: true }
             } else {
               set({
@@ -58,19 +74,26 @@ const useReservationsStore = create(
         }
 
         // For non-admin users: always fetch fresh data
-        // Clear any admin data first to avoid showing other users' data
-        set({ reservations: [], isAdminData: false, isLoading: true, error: null })
+        set({ isAdminData: false, isLoading: true, error: null })
 
         try {
           const result = await reservationsApi.getUserReservations()
 
           if (result.success) {
-            set({
-              reservations: result.data || [],
-              isAdminData: false, // Mark as user data (can be persisted)
-              isLoading: false,
-              error: null
-            })
+            const newReservations = result.data || []
+            const currentReservations = get().reservations
+
+            // Only update if data actually changed
+            if (reservationsChanged(currentReservations, newReservations)) {
+              set({
+                reservations: newReservations,
+                isAdminData: false,
+                isLoading: false,
+                error: null
+              })
+            } else {
+              set({ isLoading: false, error: null })
+            }
             return { success: true }
           } else {
             set({

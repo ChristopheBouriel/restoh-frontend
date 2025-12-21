@@ -3,6 +3,17 @@ import { persist } from 'zustand/middleware'
 import * as ordersApi from '../api/ordersApi'
 import { OrderService } from '../services/orders'
 
+// Compare two arrays of orders by their IDs and updatedAt timestamps
+const ordersChanged = (oldOrders, newOrders) => {
+  if (oldOrders.length !== newOrders.length) return true
+
+  const oldMap = new Map(oldOrders.map(o => [o.id, o.updatedAt]))
+  for (const order of newOrders) {
+    if (oldMap.get(order.id) !== order.updatedAt) return true
+  }
+  return false
+}
+
 const useOrdersStore = create(
   persist(
     (set, get) => ({
@@ -28,19 +39,26 @@ const useOrdersStore = create(
       fetchOrders: async (isAdmin = false) => {
         // Admin always fetches fresh data, never use cache
         if (isAdmin) {
-          // Clear state first to avoid showing stale data
-          set({ orders: [], isAdminData: true, isLoading: true, error: null })
+          set({ isAdminData: true, isLoading: true, error: null })
 
           try {
             const result = await ordersApi.getRecentOrders({ limit: 1000 })
 
             if (result.success) {
-              set({
-                orders: result.data || [],
-                isAdminData: true, // Mark as admin data (won't be persisted)
-                isLoading: false,
-                error: null
-              })
+              const newOrders = result.data || []
+              const currentOrders = get().orders
+
+              // Only update if data actually changed
+              if (ordersChanged(currentOrders, newOrders)) {
+                set({
+                  orders: newOrders,
+                  isAdminData: true,
+                  isLoading: false,
+                  error: null
+                })
+              } else {
+                set({ isLoading: false, error: null })
+              }
               return { success: true }
             } else {
               set({
@@ -60,19 +78,26 @@ const useOrdersStore = create(
         }
 
         // For non-admin users: always fetch fresh data
-        // Cache is only used to avoid flash on page refresh, not to skip fetching
         set({ isAdminData: false, isLoading: true, error: null })
 
         try {
           const result = await ordersApi.getUserOrders()
 
           if (result.success) {
-            set({
-              orders: result.data || [],
-              isAdminData: false, // Mark as user data (can be persisted)
-              isLoading: false,
-              error: null
-            })
+            const newOrders = result.data || []
+            const currentOrders = get().orders
+
+            // Only update if data actually changed
+            if (ordersChanged(currentOrders, newOrders)) {
+              set({
+                orders: newOrders,
+                isAdminData: false,
+                isLoading: false,
+                error: null
+              })
+            } else {
+              set({ isLoading: false, error: null })
+            }
             return { success: true }
           } else {
             set({
