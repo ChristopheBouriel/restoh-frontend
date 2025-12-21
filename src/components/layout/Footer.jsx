@@ -43,13 +43,17 @@ const Footer = () => {
           {/* Hours */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Hours</h3>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <Clock className="w-5 h-5 text-primary-500 mr-3 flex-shrink-0" />
-                <div className="text-gray-300">
-                  <div>Mon - Fri: 11:00 AM - 2:30 PM</div>
-                  <div className="ml-8">6:00 PM - 10:30 PM</div>
-                  <div>Sat - Sun: 11:00 PM - 10:30 PM</div>
+            <div className="flex items-start">
+              <Clock className="w-5 h-5 text-primary-500 mr-3 flex-shrink-0 mt-0.5" />
+              <div className="text-gray-300 space-y-3">
+                <div>
+                  <div className="font-medium">Monday - Friday:</div>
+                  <div className="ml-4">11:00 AM - 2:30 PM</div>
+                  <div className="ml-4">6:00 PM - 10:30 PM</div>
+                </div>
+                <div>
+                  <div className="font-medium">Saturday - Sunday:</div>
+                  <div className="ml-4">11:00 AM - 10:30 PM</div>
                 </div>
               </div>
             </div>
