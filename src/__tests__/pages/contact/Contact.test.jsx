@@ -85,11 +85,11 @@ describe('Contact Component', () => {
 
   test('should show opening hours and FAQ section', () => {
     render(<ContactWrapper />)
-    
+
     // Opening hours
     expect(screen.getByText('Opening hours')).toBeInTheDocument()
-    expect(screen.getByText('Monday - Friday')).toBeInTheDocument()
-    expect(screen.getByText(/11h30 - 14h30/)).toBeInTheDocument()
+    expect(screen.getByText('Monday - Friday:')).toBeInTheDocument()
+    expect(screen.getByText(/11h00 - 14h30/)).toBeInTheDocument()
     
     // FAQ questions
     expect(screen.getByText('How to book a table?')).toBeInTheDocument()

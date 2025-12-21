@@ -1,20 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import Profile from '../../../pages/profile/Profile'
 import { useAuth } from '../../../hooks/useAuth'
 import { toast } from 'react-hot-toast'
 import * as emailApi from '../../../api/emailApi'
+import * as authApi from '../../../api/authApi'
 
 // Mocks
 vi.mock('../../../hooks/useAuth')
 vi.mock('react-hot-toast')
 vi.mock('../../../api/emailApi')
+vi.mock('../../../api/authApi', () => ({
+  deleteAccount: vi.fn()
+}))
+vi.mock('../../../store/authStore', () => ({
+  default: vi.fn((selector) => {
+    const state = { clearAuth: vi.fn() }
+    return selector ? selector(state) : state
+  })
+}))
 vi.mock('../../../components/profile/DeleteAccountModal', () => ({
   default: ({ isOpen, onClose, onConfirm }) =>
     isOpen ? (
       <div data-testid="delete-account-modal">
-        <button onClick={() => onConfirm('password123')}>Confirm deletion</button>
+        <button onClick={() => onConfirm('password123', {})}>Confirm deletion</button>
         <button onClick={onClose}>Cancel</button>
       </div>
     ) : null
@@ -23,7 +34,6 @@ vi.mock('../../../components/profile/DeleteAccountModal', () => ({
 describe('Profile Component', () => {
   const mockUpdateProfile = vi.fn()
   const mockChangePassword = vi.fn()
-  const mockDeleteAccount = vi.fn()
   const user = userEvent.setup()
 
   const mockUser = {
@@ -51,7 +61,6 @@ describe('Profile Component', () => {
       user: mockUser,
       updateProfile: mockUpdateProfile,
       changePassword: mockChangePassword,
-      deleteAccount: mockDeleteAccount,
       isLoading: false
     })
     vi.mocked(toast.success).mockImplementation(() => {})
@@ -61,7 +70,7 @@ describe('Profile Component', () => {
   // 1. RENDU INITIAL ET NAVIGATION
   describe('Initial Rendering and Navigation', () => {
     it('should render profile header and personal info tab by default', () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Check le header
       expect(screen.getByText('My Profile')).toBeInTheDocument()
@@ -73,7 +82,7 @@ describe('Profile Component', () => {
     })
 
     it('should display user information in read-only mode initially', () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Check que les champs sont en lecture seule
       const nameInput = screen.getByDisplayValue('Jean Dupont')
@@ -89,7 +98,7 @@ describe('Profile Component', () => {
     })
 
     it('should switch between Personal and Security tabs when clicked', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Initialement sur l'onglet personnel
       expect(screen.getByText('Full name')).toBeInTheDocument()
@@ -114,7 +123,7 @@ describe('Profile Component', () => {
     })
 
     it('should show both tab buttons with correct labels and icons', () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       expect(screen.getByRole('button', { name: /Personal information/ })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Security/ })).toBeInTheDocument()
@@ -133,11 +142,10 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       expect(screen.getByText('Email Not Verified')).toBeInTheDocument()
       expect(screen.getByText(/Your email address has not been verified yet/)).toBeInTheDocument()
@@ -154,11 +162,10 @@ describe('Profile Component', () => {
         user: verifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Resend Verification Email' })).not.toBeInTheDocument()
@@ -169,11 +176,10 @@ describe('Profile Component', () => {
         user: null,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument()
     })
@@ -188,13 +194,12 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
       emailApi.resendVerification = vi.fn().mockResolvedValue({ success: true })
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
       await user.click(resendButton)
@@ -214,7 +219,6 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
@@ -223,7 +227,7 @@ describe('Profile Component', () => {
         message: 'Verification email sent'
       })
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
       await user.click(resendButton)
@@ -243,7 +247,6 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
@@ -252,7 +255,7 @@ describe('Profile Component', () => {
         error: 'Rate limit exceeded'
       })
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
       await user.click(resendButton)
@@ -272,13 +275,12 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
       emailApi.resendVerification = vi.fn().mockRejectedValue(new Error('Network error'))
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
       await user.click(resendButton)
@@ -298,7 +300,6 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
@@ -307,7 +308,7 @@ describe('Profile Component', () => {
         () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
       )
 
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       const resendButton = screen.getByRole('button', { name: 'Resend Verification Email' })
       await user.click(resendButton)
@@ -332,11 +333,10 @@ describe('Profile Component', () => {
         user: unverifiedUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: false
       })
 
-      const { container } = render(<Profile />)
+      const { container } = render(<MemoryRouter><Profile /></MemoryRouter>)
 
       // Check for amber/yellow styling (warning banner) using querySelector
       const banner = container.querySelector('.bg-amber-50')
@@ -349,7 +349,7 @@ describe('Profile Component', () => {
   // 3. ONGLET INFORMATIONS PERSONNELLES - MODE AFFICHAGE
   describe('Personal Information Tab - Display Mode', () => {
     it('should display all user profile fields', () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       // Check tous les champs du profil
       expect(screen.getByDisplayValue('Jean Dupont')).toBeInTheDocument()
@@ -362,7 +362,7 @@ describe('Profile Component', () => {
     })
 
     it('should show notification preferences as checkboxes', () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       // Check les checkboxes de notification (only newsletter and promotions)
       const newsletter = document.querySelector('input[name="newsletter"]')
@@ -377,7 +377,7 @@ describe('Profile Component', () => {
     })
 
     it('should show Edit button when not editing', () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       const editButton = screen.getByRole('button', { name: 'Edit' })
       expect(editButton).toBeInTheDocument()
@@ -388,7 +388,7 @@ describe('Profile Component', () => {
   // 3. ONGLET INFORMATIONS PERSONNELLES - MODE ÉDITION
   describe('Personal Information Tab - Edit Mode', () => {
     it('should enable editing when Edit button is clicked', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       const editButton = screen.getByRole('button', { name: 'Edit' })
       await user.click(editButton)
@@ -409,7 +409,7 @@ describe('Profile Component', () => {
     })
 
     it('should allow typing in all profile input fields when editing', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Activer le mode édition
       await user.click(screen.getByRole('button', { name: 'Edit' }))
@@ -428,7 +428,7 @@ describe('Profile Component', () => {
     })
 
     it('should allow toggling notification checkboxes when editing', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Activer le mode édition
       await user.click(screen.getByRole('button', { name: 'Edit' }))
@@ -450,7 +450,7 @@ describe('Profile Component', () => {
     })
 
     it('should show Save and Cancel buttons when editing and handle cancel correctly', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       await user.click(screen.getByRole('button', { name: 'Edit' }))
       
@@ -470,7 +470,7 @@ describe('Profile Component', () => {
   describe('Profile Save Functionality', () => {
     it('should call updateProfile and exit edit mode on successful save', async () => {
       mockUpdateProfile.mockResolvedValue(true)
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Activer le mode édition et modifier des données
       await user.click(screen.getByRole('button', { name: 'Edit' }))
@@ -514,7 +514,7 @@ describe('Profile Component', () => {
 
     it('should handle save errors gracefully', async () => {
       mockUpdateProfile.mockResolvedValue(false)
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       await user.click(screen.getByRole('button', { name: 'Edit' }))
       await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -532,7 +532,7 @@ describe('Profile Component', () => {
   // 5. ONGLET SÉCURITÉ - CHANGEMENT MOT DE PASSE
   describe('Security Tab - Password Change', () => {
     it('should render password change form with 3 fields', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Aller à l'onglet sécurité
       await user.click(screen.getByRole('button', { name: /Security/ }))
@@ -544,7 +544,7 @@ describe('Profile Component', () => {
     })
 
     it('should validate password requirements and show appropriate error messages', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
 
       await user.click(screen.getByRole('button', { name: /Security/ }))
 
@@ -589,7 +589,7 @@ describe('Profile Component', () => {
 
     it('should call changePassword function on valid form submission', async () => {
       mockChangePassword.mockResolvedValue({ success: true })
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       await user.click(screen.getByRole('button', { name: /Security/ }))
       
@@ -611,7 +611,7 @@ describe('Profile Component', () => {
   // 6. ONGLET SÉCURITÉ - SUPPRESSION COMPTE
   describe('Security Tab - Account Deletion', () => {
     it('should show danger zone with delete account button', async () => {
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       await user.click(screen.getByRole('button', { name: /Security/ }))
       
@@ -621,21 +621,26 @@ describe('Profile Component', () => {
     })
 
     it('should open DeleteAccountModal when delete button is clicked', async () => {
-      render(<Profile />)
-      
+      // Mock the authApi.deleteAccount to return success
+      vi.mocked(authApi.deleteAccount).mockResolvedValue({ success: true })
+
+      render(<MemoryRouter><Profile /></MemoryRouter>)
+
       await user.click(screen.getByRole('button', { name: /Security/ }))
-      
+
       const deleteButton = screen.getByRole('button', { name: 'Delete my account' })
       await user.click(deleteButton)
-      
+
       // Check que le modal est ouvert
       expect(screen.getByTestId('delete-account-modal')).toBeInTheDocument()
-      
+
       // Tester la confirmation de suppression
       const confirmButton = screen.getByText('Confirm deletion')
       await user.click(confirmButton)
-      
-      expect(mockDeleteAccount).toHaveBeenCalledWith('password123')
+
+      await waitFor(() => {
+        expect(authApi.deleteAccount).toHaveBeenCalledWith('password123', {})
+      })
     })
   })
 
@@ -646,7 +651,7 @@ describe('Profile Component', () => {
         success: false, 
         error: 'Current password is incorrect' 
       })
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       await user.click(screen.getByRole('button', { name: /Security/ }))
       
@@ -667,11 +672,10 @@ describe('Profile Component', () => {
         user: mockUser,
         updateProfile: mockUpdateProfile,
         changePassword: mockChangePassword,
-        deleteAccount: mockDeleteAccount,
         isLoading: true
       })
       
-      render(<Profile />)
+      render(<MemoryRouter><Profile /></MemoryRouter>)
       
       // Enable edit mode to see save button
       const editButton = screen.getByRole('button', { name: 'Edit' })

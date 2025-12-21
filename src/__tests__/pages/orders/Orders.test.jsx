@@ -239,20 +239,20 @@ describe('Orders Component', () => {
   test('should update active filter button styling correctly', async () => {
     const user = userEvent.setup()
     render(<OrdersWrapper />)
-    
+
     const allOrdersButton = screen.getByRole('button', { name: 'All orders' })
     const deliveredButton = screen.getByRole('button', { name: 'Delivered' })
-    
+
     // Initially "All orders" should be active
-    expect(allOrdersButton).toHaveClass('bg-primary-100', 'text-primary-700')
-    expect(deliveredButton).toHaveClass('bg-gray-100', 'text-gray-700')
-    
+    expect(allOrdersButton).toHaveClass('bg-primary-600', 'text-white')
+    expect(deliveredButton).toHaveClass('bg-primary-400', 'text-white')
+
     // Click delivered filter
     await user.click(deliveredButton)
-    
+
     // Styling should switch
-    expect(deliveredButton).toHaveClass('bg-primary-100', 'text-primary-700')
-    expect(allOrdersButton).toHaveClass('bg-gray-100', 'text-gray-700')
+    expect(deliveredButton).toHaveClass('bg-primary-600', 'text-white')
+    expect(allOrdersButton).toHaveClass('bg-primary-400', 'text-white')
   })
 
   // 4. ORDER DETAILS EXPANSION (2 tests)

@@ -339,13 +339,13 @@ describe('useAuth Hook', () => {
         deleteResult = await result.current.deleteAccount('password123')
       })
 
-      expect(authApi.deleteAccount).toHaveBeenCalledWith('password123')
+      expect(authApi.deleteAccount).toHaveBeenCalledWith('password123', {})
       expect(deleteResult.success).toBe(true)
       expect(toast.success).toHaveBeenCalledWith('Account deleted successfully')
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
 
-    it('should handle failed account deletion with error toast', async () => {
+    it('should handle failed account deletion without toast (handled by modal)', async () => {
       act(() => {
         useAuthStore.setState({
           user: { id: '1', name: 'John', role: 'user' },
@@ -355,7 +355,8 @@ describe('useAuth Hook', () => {
 
       authApi.deleteAccount.mockResolvedValue({
         success: false,
-        error: 'Incorrect password'
+        error: 'Incorrect password',
+        code: 'INVALID_PASSWORD'
       })
 
       const { result } = renderHook(() => useAuth())
@@ -366,7 +367,9 @@ describe('useAuth Hook', () => {
       })
 
       expect(deleteResult.success).toBe(false)
-      expect(toast.error).toHaveBeenCalledWith('Incorrect password')
+      expect(deleteResult.error).toBe('Incorrect password')
+      // No toast - modal handles the display
+      expect(toast.error).not.toHaveBeenCalled()
       expect(mockNavigate).not.toHaveBeenCalled()
     })
   })

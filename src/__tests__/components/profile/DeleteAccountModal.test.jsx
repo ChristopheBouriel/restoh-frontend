@@ -233,7 +233,7 @@ describe('DeleteAccountModal Component', () => {
       await user.click(submitButton)
 
       expect(mockOnConfirm).toHaveBeenCalledTimes(1)
-      expect(mockOnConfirm).toHaveBeenCalledWith('mypassword123')
+      expect(mockOnConfirm).toHaveBeenCalledWith('mypassword123', {})
     })
 
     it('should prevent submission when validation fails', async () => {

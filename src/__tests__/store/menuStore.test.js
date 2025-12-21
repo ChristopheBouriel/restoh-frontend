@@ -445,19 +445,29 @@ describe('menuStore', () => {
   describe('togglePopularOverride', () => {
     it('should toggle popular override and refresh data', async () => {
       const itemId = 'item-123'
-      const mockResponse = { id: itemId, isPopularOverride: true }
+      const toggledItem = { id: itemId, isPopularOverride: true }
+      const popularItems = [{ id: 'item-456', name: 'Popular Item' }]
 
-      menuApi.togglePopularOverride.mockResolvedValueOnce({ success: true, data: mockResponse })
-      menuApi.getMenuItems.mockResolvedValueOnce({ success: true, data: [] })
-      menuApi.getPopularItems.mockResolvedValueOnce({ success: true, data: [] })
+      // Setup initial state with the item
+      useMenuStore.setState({
+        items: [{ id: itemId, name: 'Test Item', isPopular: false, isPopularOverride: false }]
+      })
+
+      menuApi.togglePopularOverride.mockResolvedValueOnce({
+        success: true,
+        data: { toggledItem, popularItems }
+      })
 
       const { togglePopularOverride } = useMenuStore.getState()
       const result = await togglePopularOverride(itemId)
 
       expect(menuApi.togglePopularOverride).toHaveBeenCalledWith(itemId)
-      expect(menuApi.getMenuItems).toHaveBeenCalled()
-      expect(menuApi.getPopularItems).toHaveBeenCalled()
-      expect(result).toEqual({ success: true, data: mockResponse })
+      // No longer calls getMenuItems/getPopularItems - uses response data directly
+      expect(result).toEqual({ success: true, item: toggledItem })
+
+      // Check that state was updated
+      const state = useMenuStore.getState()
+      expect(state.popularItems).toEqual(popularItems)
     })
 
     it('should handle API error', async () => {
@@ -482,19 +492,28 @@ describe('menuStore', () => {
 
   describe('resetAllPopularOverrides', () => {
     it('should reset all overrides and refresh data', async () => {
-      const mockResponse = { modifiedCount: 5 }
+      const popularItems = [{ id: 'item-456', name: 'Popular Item' }]
+      const mockResponse = { modifiedCount: 5, popularItems }
+
+      // Setup initial state with items
+      useMenuStore.setState({
+        items: [
+          { id: 'item-123', name: 'Test Item', isPopular: true, isPopularOverride: true }
+        ]
+      })
 
       menuApi.resetAllPopularOverrides.mockResolvedValueOnce({ success: true, data: mockResponse })
-      menuApi.getMenuItems.mockResolvedValueOnce({ success: true, data: [] })
-      menuApi.getPopularItems.mockResolvedValueOnce({ success: true, data: [] })
 
       const { resetAllPopularOverrides } = useMenuStore.getState()
       const result = await resetAllPopularOverrides()
 
       expect(menuApi.resetAllPopularOverrides).toHaveBeenCalledTimes(1)
-      expect(menuApi.getMenuItems).toHaveBeenCalled()
-      expect(menuApi.getPopularItems).toHaveBeenCalled()
+      // No longer calls getMenuItems/getPopularItems - uses response data directly
       expect(result).toEqual({ success: true, data: mockResponse })
+
+      // Check that state was updated
+      const state = useMenuStore.getState()
+      expect(state.popularItems).toEqual(popularItems)
     })
 
     it('should handle API error', async () => {

@@ -168,12 +168,12 @@ describe('Reservations Component', () => {
   test('should allow user to select time slots', async () => {
     const user = userEvent.setup()
     render(<ReservationsWrapper />)
-    
+
     const timeButton = screen.getByRole('button', { name: '19:30' })
     await user.click(timeButton)
-    
+
     // Time button should be selected (primary color)
-    expect(timeButton).toHaveClass('bg-primary-600', 'text-white')
+    expect(timeButton).toHaveClass('bg-primary-400', 'text-white')
   })
 
   test('should increment/decrement party size with buttons', async () => {
