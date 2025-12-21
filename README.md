@@ -58,7 +58,7 @@ npm run dev          # Start development server
 npm run build        # Production build
 npm run preview      # Preview production build
 npm run lint         # Lint code with ESLint
-npm test             # Run tests (1500+ tests)
+npm test             # Run tests (1530+ tests)
 npm run test:ui      # Vitest UI interface
 npm run test:watch   # Watch mode
 npm run test:coverage # Code coverage
@@ -110,7 +110,9 @@ restoh-frontend/
 - ✅ Real-time order tracking
 - ✅ Table reservations
 - ✅ User profile management
-- ✅ Account deletion (GDPR)
+- ✅ Account deletion with multi-step validation (GDPR)
+  - Blocks deletion if unpaid delivery order exists
+  - Confirms cancellation of active reservations before deletion
 
 ### For Administrators
 - ✅ Dashboard with real-time API statistics (quickStats)
@@ -144,11 +146,12 @@ Edit `src/constants/index.js` to modify routes, statuses, etc.
 
 ## Tests
 
-The project has over **1500 tests** covering:
+The project has over **1530 tests** covering:
 - **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore, statsStore
 - **Hooks**: useAuth, useCart, useMenu, useOrders, useReservations
 - **Services**: MenuService, ReservationService, OrderService, AuthService, ContactService
 - **Components**: Pages (Dashboard 56 tests), forms, navigation, common components
+- **Modals**: DeleteAccountModal (multi-step flow with blocked/confirm states)
 - **API**: statsApi, authApi, ordersApi, reservationsApi, menuApi, etc.
 
 ```bash
@@ -240,12 +243,13 @@ For any questions or issues:
 
 ## Roadmap
 
-- [x] Complete unit tests (1500+ tests)
+- [x] Complete unit tests (1530+ tests)
 - [x] Code coverage report
 - [x] Dashboard API statistics integration
 - [x] Dynamic Today filter for stats
 - [x] Access Token + Refresh Token authentication
 - [x] Auto-refresh interceptor with request queue
+- [x] Multi-step account deletion modal (GDPR compliance)
 - [ ] Remember me functionality
 - [ ] E2E tests with Playwright/Cypress
 - [ ] PWA (Progressive Web App)
