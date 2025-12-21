@@ -499,14 +499,15 @@ const MenuManagement = () => {
 
                 <button
                   onClick={() => handleTogglePopularOverride(item.id, item.name)}
+                  disabled={!item.isPopular && !item.isPopularOverride}
                   className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-md transition-colors ${
                     item.isPopularOverride
                       ? 'bg-brown-600 text-white hover:bg-brown-700'
                       : item.isPopular
                         ? 'bg-apricot-700 text-white hover:bg-apricot-800'
-                        : 'bg-apricot-100 text-apricot-700 hover:bg-apricot-200'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   }`}
-                  title={item.isPopularOverride ? 'Include in popular' : 'Exclude from popular'}
+                  title={item.isPopularOverride ? 'Include in popular' : item.isPopular ? 'Exclude from popular' : 'Not a popular item'}
                 >
                   {item.isPopularOverride ? <StarOff size={16} /> : <Star size={16} />}
                   <span className="text-xs">{item.isPopularOverride ? 'Excluded' : 'Popular'}</span>

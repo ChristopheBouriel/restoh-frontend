@@ -253,10 +253,25 @@ const useMenuStore = create((set, get) => ({
           const result = await menuApi.togglePopularOverride(id)
 
           if (result.success) {
-            // Refresh both menu items and popular items
-            await get().fetchMenuItems()
-            await get().fetchPopularItems()
-            return { success: true, data: result.data }
+            const toggledItem = result.data?.toggledItem
+            const newPopularItems = result.data?.popularItems || []
+
+            // Build set of popular IDs for quick lookup
+            const popularIds = new Set(newPopularItems.map(item => item.id || item._id))
+
+            // Update all items: isPopularOverride for toggled item, isPopular for all
+            set(state => ({
+              items: state.items.map(item => ({
+                ...item,
+                isPopularOverride: item.id === toggledItem?.id
+                  ? toggledItem.isPopularOverride
+                  : item.isPopularOverride,
+                isPopular: popularIds.has(item.id) || popularIds.has(item._id)
+              })),
+              popularItems: newPopularItems
+            }))
+
+            return { success: true, item: toggledItem }
           } else {
             return { success: false, error: result.error }
           }
@@ -271,9 +286,21 @@ const useMenuStore = create((set, get) => ({
           const result = await menuApi.resetAllPopularOverrides()
 
           if (result.success) {
-            // Refresh both menu items and popular items
-            await get().fetchMenuItems()
-            await get().fetchPopularItems()
+            const newPopularItems = result.data?.popularItems || []
+
+            // Build set of popular IDs for quick lookup
+            const popularIds = new Set(newPopularItems.map(item => item.id || item._id))
+
+            // Reset isPopularOverride for all items and recalculate isPopular
+            set(state => ({
+              items: state.items.map(item => ({
+                ...item,
+                isPopularOverride: false,
+                isPopular: popularIds.has(item.id) || popularIds.has(item._id)
+              })),
+              popularItems: newPopularItems
+            }))
+
             return { success: true, data: result.data }
           } else {
             return { success: false, error: result.error }
