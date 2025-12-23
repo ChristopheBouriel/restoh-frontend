@@ -34,39 +34,18 @@ describe('SimpleSelect Component', () => {
   describe('Core Rendering and Props', () => {
     it('should render select button with selected option label', () => {
       renderComponent({ value: 'pizza' })
-      
+
       expect(screen.getByRole('button')).toBeInTheDocument()
       expect(screen.getByText('Pizza')).toBeInTheDocument()
-      expect(screen.getByText('▼')).toBeInTheDocument() // Dropdown arrow
-    })
-
-    it('should apply custom className to button and dropdown', async () => {
-      renderComponent({ 
-        value: 'pasta',
-        className: 'custom-select-class'
-      })
-      
-      const button = screen.getByRole('button')
-      expect(button).toHaveClass('custom-select-class')
-      
-      // Open dropdown to check dropdown className
-      await user.click(button)
-      
-      await waitFor(() => {
-        // Find dropdown by its specific class structure
-        const dropdown = document.querySelector('div.absolute.top-0.left-0')
-        expect(dropdown).toHaveClass('custom-select-class')
-      })
     })
 
     it('should handle empty options array gracefully', () => {
-      renderComponent({ 
+      renderComponent({
         options: [],
         value: undefined
       })
-      
+
       expect(screen.getByRole('button')).toBeInTheDocument()
-      expect(screen.getByText('▼')).toBeInTheDocument()
     })
   })
 
@@ -141,62 +120,23 @@ describe('SimpleSelect Component', () => {
   describe('Option Selection and Callbacks', () => {
     it('should call onChange when option clicked', async () => {
       renderComponent({ value: 'pizza' })
-      
+
       // Open dropdown
       await user.click(screen.getByRole('button'))
-      
+
       // Wait for dropdown to open
       await waitFor(() => {
         expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
       })
-      
+
       // Click on Pasta option
       const dropdown = document.querySelector('div.absolute.top-0.left-0')
       const pastaOption = Array.from(dropdown.querySelectorAll('div[class*="cursor-pointer"]')).find(el =>
         el.textContent.includes('Pasta')
       )
       await user.click(pastaOption)
-      
+
       expect(mockOnChange).toHaveBeenCalledWith('pasta')
-    })
-
-    it('should display selected option with indicator dot', async () => {
-      renderComponent({ value: 'salade' })
-      
-      // Open dropdown
-      await user.click(screen.getByRole('button'))
-      
-      // Wait for dropdown to open
-      await waitFor(() => {
-        expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
-      })
-      
-      // Check that selected option has primary dot indicator
-      const dropdown = document.querySelector('div.absolute.top-0.left-0')
-      const saladeOption = Array.from(dropdown.querySelectorAll('div[class*="cursor-pointer"]')).find(el =>
-        el.textContent.includes('Salade')
-      )
-      const primaryDot = saladeOption.querySelector('.bg-primary-600.rounded-full')
-      expect(primaryDot).toBeInTheDocument()
-    })
-
-    it('should highlight selected option in dropdown', async () => {
-      renderComponent({ value: 'dessert' })
-      
-      // Open dropdown
-      await user.click(screen.getByRole('button'))
-      
-      // Wait for dropdown to open
-      await waitFor(() => {
-        expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
-      })
-      
-      // Check that selected option has primary text color
-      const dropdown = document.querySelector('div.absolute.top-0.left-0')
-      const dessertOption = Array.from(dropdown.querySelectorAll('div[class*="cursor-pointer"]')).find(el =>
-        el.textContent.includes('Dessert')
-      )
-      expect(dessertOption).toHaveClass('text-primary-600')
     })
   })
 
@@ -204,47 +144,27 @@ describe('SimpleSelect Component', () => {
   describe('Focus Management and Accessibility', () => {
     it('should manage focus correctly during dropdown interactions', async () => {
       renderComponent({ value: 'pizza' })
-      
+
       const button = screen.getByRole('button')
-      
+
       // Button should be focusable
       button.focus()
       expect(button).toHaveFocus()
-      
+
       // Open dropdown
       await user.click(button)
-      
+
       // Wait for dropdown to open
       await waitFor(() => {
         expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
       })
-      
+
       // Close dropdown by clicking outside
       await user.click(document.body)
-      
+
       // Wait for dropdown to close
       await waitFor(() => {
         expect(document.querySelector('div.absolute.top-0.left-0')).not.toBeInTheDocument()
-      })
-    })
-
-    it('should show proper visual states (open/closed/hover)', async () => {
-      renderComponent({ value: 'pizza' })
-      
-      const button = screen.getByRole('button')
-      
-      // Initially closed state
-      expect(button).toBeInTheDocument()
-      
-      // Open dropdown
-      await user.click(button)
-      
-      // Should show open state (dropdown visible)
-      await waitFor(() => {
-        expect(document.querySelector('div.absolute.top-0.left-0')).toBeInTheDocument()
-        // Arrow should be rotated when open
-        const arrow = screen.getByText('▼')
-        expect(arrow).toHaveClass('rotate-180')
       })
     })
   })

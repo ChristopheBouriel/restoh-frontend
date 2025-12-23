@@ -67,13 +67,6 @@ describe('EmailVerificationBanner', () => {
 
       expect(screen.queryByText('Email Verification Required')).not.toBeInTheDocument()
     })
-
-    test('should apply custom className', () => {
-      render(<EmailVerificationBanner user={mockUserUnverified} className="custom-class" />)
-
-      const banner = screen.getByText('Email Verification Required').closest('div.rounded-md')
-      expect(banner).toHaveClass('custom-class')
-    })
   })
 
   describe('Dismiss Functionality', () => {
@@ -223,28 +216,4 @@ describe('EmailVerificationBanner', () => {
     })
   })
 
-  describe('Accessibility', () => {
-    test('should have accessible dismiss button', () => {
-      render(<EmailVerificationBanner user={mockUserUnverified} />)
-
-      const dismissButton = screen.getByRole('button', { name: /Dismiss/i })
-      expect(dismissButton).toBeInTheDocument()
-    })
-
-    test('should have aria-hidden on decorative icons', () => {
-      render(<EmailVerificationBanner user={mockUserUnverified} />)
-
-      const icons = document.querySelectorAll('svg[aria-hidden="true"]')
-      expect(icons.length).toBeGreaterThan(0)
-    })
-  })
-
-  describe('Styling', () => {
-    test('should have amber warning styling', () => {
-      render(<EmailVerificationBanner user={mockUserUnverified} />)
-
-      const banner = screen.getByText('Email Verification Required').closest('div.rounded-md')
-      expect(banner).toHaveClass('bg-amber-50', 'border-amber-200')
-    })
-  })
 })

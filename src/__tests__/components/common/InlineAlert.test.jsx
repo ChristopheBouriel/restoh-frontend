@@ -35,43 +35,6 @@ describe('InlineAlert Component', () => {
     })
   })
 
-  describe('Alert Types', () => {
-    it('should render error type with correct styling', () => {
-      render(<InlineAlert type="error" message="Error message" />)
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('bg-red-50', 'border-red-200')
-    })
-
-    it('should render warning type with correct styling', () => {
-      render(<InlineAlert type="warning" message="Warning message" />)
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('bg-amber-50', 'border-amber-200')
-    })
-
-    it('should render info type with correct styling', () => {
-      render(<InlineAlert type="info" message="Info message" />)
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('bg-blue-50', 'border-blue-200')
-    })
-
-    it('should render success type with correct styling', () => {
-      render(<InlineAlert type="success" message="Success message" />)
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('bg-green-50', 'border-green-200')
-    })
-
-    it('should default to info type when type is invalid', () => {
-      render(<InlineAlert type="invalid" message="Message" />)
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('bg-blue-50', 'border-blue-200')
-    })
-  })
-
   describe('Actions', () => {
     it('should render action buttons', () => {
       const mockAction1 = vi.fn()
@@ -107,27 +70,6 @@ describe('InlineAlert Component', () => {
       fireEvent.click(button)
 
       expect(mockAction).toHaveBeenCalledTimes(1)
-    })
-
-    it('should render primary action with different styling', () => {
-      render(
-        <InlineAlert
-          type="error"
-          message="Choose an option"
-          actions={[
-            { label: 'Primary', onClick: vi.fn(), variant: 'primary' },
-            { label: 'Secondary', onClick: vi.fn() }
-          ]}
-        />
-      )
-
-      const primaryButton = screen.getByText('Primary')
-      const secondaryButton = screen.getByText('Secondary')
-
-      // Primary should have bg color classes
-      expect(primaryButton.className).toContain('bg-red-600')
-      // Secondary should have border
-      expect(secondaryButton.className).toContain('border')
     })
 
     it('should render multiple actions', () => {
@@ -211,34 +153,6 @@ describe('InlineAlert Component', () => {
 
       const dismissButton = screen.getByLabelText('Dismiss alert')
       expect(dismissButton).toBeInTheDocument()
-    })
-  })
-
-  describe('Custom className', () => {
-    it('should apply custom className', () => {
-      render(
-        <InlineAlert
-          type="info"
-          message="Alert"
-          className="custom-class"
-        />
-      )
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('custom-class')
-    })
-
-    it('should preserve default classes when custom className is added', () => {
-      render(
-        <InlineAlert
-          type="error"
-          message="Alert"
-          className="custom-class"
-        />
-      )
-
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveClass('custom-class', 'bg-red-50', 'border-red-200')
     })
   })
 

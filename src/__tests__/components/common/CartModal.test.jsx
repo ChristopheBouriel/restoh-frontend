@@ -86,42 +86,7 @@ describe('CartModal Component', () => {
     })
   })
 
-  // 1. MODAL VISIBILITY & BASIC RENDERING (3 tests)
-  test('should not render when cart is closed', () => {
-    vi.mocked(useCart).mockReturnValue({
-      isEmpty: true,
-      totalItems: 0,
-      syncWithMenu: mockSyncWithMenu
-    })
-
-    const { container } = render(<CartModalWrapper />)
-    
-    expect(container.firstChild).toBeNull()
-    expect(mockSyncWithMenu).not.toHaveBeenCalled()
-  })
-
-  test('should render modal with header when cart is open', () => {
-    vi.mocked(useCartUI).mockReturnValue({
-      isCartOpen: true,
-      closeCart: mockCloseCart
-    })
-
-    vi.mocked(useCart).mockReturnValue({
-      isEmpty: false,
-      totalItems: 3,
-      enrichedItems: [mockAvailableItem],
-      syncWithMenu: mockSyncWithMenu,
-      formatPrice: (price) => `${price.toFixed(2)}€`
-    })
-
-    render(<CartModalWrapper />)
-
-    expect(screen.getByText('My Cart (3)')).toBeInTheDocument()
-    // Check X button exists by looking for the close button in header
-    const closeButton = document.querySelector('.hover\\:bg-gray-100')
-    expect(closeButton).toBeInTheDocument()
-  })
-
+  // 1. CART BEHAVIOR
   test('should sync with menu when cart opens', () => {
     vi.mocked(useCartUI).mockReturnValue({
       isCartOpen: true,

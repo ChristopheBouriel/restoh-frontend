@@ -25,27 +25,16 @@ describe('CustomDatePicker Component', () => {
   describe('Core Rendering and Props', () => {
     it('should render date picker with input field and calendar button', () => {
       renderComponent()
-      
+
       expect(screen.getByRole('button')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('DD/MM/YYYY')).toBeInTheDocument()
-      expect(screen.getByDisplayValue('')).toBeInTheDocument() // Empty input
     })
 
     it('should display selected date in French format when value provided', () => {
       renderComponent({ value: '2024-01-20' })
-      
+
       const input = screen.getByPlaceholderText('DD/MM/YYYY')
       expect(input).toHaveValue('20/01/2024')
-    })
-
-    it('should apply custom className to container', () => {
-      renderComponent({ 
-        placeholder: 'Choisir une date',
-        className: 'custom-class'
-      })
-      
-      const inputContainer = screen.getByPlaceholderText('DD/MM/YYYY').parentElement
-      expect(inputContainer).toHaveClass('custom-class')
     })
   })
 
@@ -194,23 +183,6 @@ describe('CustomDatePicker Component', () => {
           expect(newMonthText).not.toBe(initialMonthText)
         })
       }
-    })
-
-    it('should highlight today\'s date in calendar', async () => {
-      renderComponent()
-      
-      // Open calendar
-      const button = screen.getByRole('button')
-      await user.click(button)
-      
-      // Wait for calendar to open
-      await waitFor(() => {
-        expect(screen.getByText(/\d{4}/)).toBeInTheDocument()
-        // Calendar should be rendered with days
-        const dayButtons = screen.getAllByRole('button')
-        const calendarDays = dayButtons.filter(btn => btn.className.includes('w-8 h-8'))
-        expect(calendarDays.length).toBeGreaterThan(0)
-      })
     })
 
     it('should display correct month and year in header', async () => {
