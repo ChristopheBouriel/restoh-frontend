@@ -58,7 +58,7 @@ npm run dev          # Start development server
 npm run build        # Production build
 npm run preview      # Preview production build
 npm run lint         # Lint code with ESLint
-npm test             # Run tests (1530+ tests)
+npm test             # Run tests (1532+ tests)
 npm run test:ui      # Vitest UI interface
 npm run test:watch   # Watch mode
 npm run test:coverage # Code coverage
@@ -128,7 +128,7 @@ restoh-frontend/
 The application uses a secure **Access Token + Refresh Token** architecture:
 
 - **Access Token**: Short-lived (15 min), stored in memory only (not localStorage)
-- **Refresh Token**: Long-lived (7 days), stored in HTTP-only secure cookie
+- **Refresh Token**: Long-lived (24h default, 7 days with "Remember Me"), stored in HTTP-only secure cookie
 - **Auto-refresh**: Expired tokens are automatically refreshed via interceptor
 - **Request queue**: Failed requests are queued and retried after token refresh
 - **Session restore**: `initializeAuth()` restores session on app startup using refresh token
@@ -146,7 +146,7 @@ Edit `src/constants/index.js` to modify routes, statuses, etc.
 
 ## Tests
 
-The project has over **1530 tests** covering:
+The project has over **1532 tests** covering:
 - **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore, statsStore
 - **Hooks**: useAuth, useCart, useMenu, useOrders, useReservations
 - **Services**: MenuService, ReservationService, OrderService, AuthService, ContactService
@@ -250,7 +250,7 @@ For any questions or issues:
 - [x] Access Token + Refresh Token authentication
 - [x] Auto-refresh interceptor with request queue
 - [x] Multi-step account deletion modal (GDPR compliance)
-- [ ] Remember me functionality
+- [x] Remember me functionality (24h default / 7 days with checkbox)
 - [ ] E2E tests with Playwright/Cypress
 - [ ] PWA (Progressive Web App)
 - [ ] Internationalization (i18n)

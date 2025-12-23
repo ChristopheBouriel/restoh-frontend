@@ -104,7 +104,7 @@ Le client API est configuré dans `src/api/apiClient.js` avec :
 Le système utilise une architecture sécurisée avec deux tokens :
 
 - **Access Token** : Court (15 min), stocké en mémoire uniquement (pas localStorage)
-- **Refresh Token** : Long (7 jours), stocké dans un cookie HTTP-only sécurisé
+- **Refresh Token** : Long (24h par défaut, 7 jours avec "Remember Me"), stocké dans un cookie HTTP-only sécurisé
 - **État local** : `user` et `isAuthenticated` persistés dans localStorage (`auth-storage`)
 
 #### Flux d'authentification
@@ -122,6 +122,25 @@ Le système utilise une architecture sécurisée avec deux tokens :
 #### Déconnexion automatique
 - Sur 401 avec `AUTH_NO_REFRESH_TOKEN` ou `AUTH_INVALID_REFRESH_TOKEN`
 - Redirection vers `/login` (sauf pages publiques)
+
+#### Remember Me
+La checkbox "Remember Me" sur la page de login contrôle la durée de session :
+- **Non cochée (défaut)** : Session de 24h
+- **Cochée** : Session de 7 jours
+
+```javascript
+// Login.jsx - Intégration React Hook Form
+const { register } = useForm({
+  defaultValues: { rememberMe: false }
+})
+
+// La checkbox est connectée au formulaire
+<input type="checkbox" {...register('rememberMe')} />
+
+// onSubmit envoie { email, password, rememberMe: true/false }
+```
+
+Le backend ajuste la durée du refresh token en fonction de `rememberMe`.
 
 ### Suppression de Compte (RGPD)
 
@@ -191,7 +210,7 @@ npm run lint         # ESLint
 
 ### Tests
 ```bash
-npm test             # Lancer tous les tests (1530+ tests)
+npm test             # Lancer tous les tests (1532+ tests)
 npm run test:ui      # Interface Vitest UI
 npm run test:coverage # Couverture de code
 npm run test:watch   # Mode watch
@@ -511,7 +530,7 @@ expect(mockChangePassword).toHaveBeenCalledWith('old', 'new')
 
 ## État des Tests
 
-**Tests implémentés (1530+)** :
+**Tests implémentés (1532+)** :
 - ✅ Stores : authStore, ordersStore, reservationsStore, menuStore, contactsStore, cartStore, usersStore, statsStore
 - ✅ Hooks : useAuth, useCart, useMenu, useOrders, useReservations
 - ✅ Services : MenuService, ReservationService, OrderService, AuthService, ContactService
@@ -606,4 +625,4 @@ test: Add tests for orders API
 
 **Ce fichier doit être mis à jour à chaque évolution majeure du projet.**
 
-Dernière mise à jour : Décembre 2024 - Modal de suppression de compte multi-étapes (blocked, confirm-reservations), appel API direct pour éviter les re-renders du store.
+Dernière mise à jour : Décembre 2024 - Remember Me (24h/7j), Modal de suppression de compte multi-étapes.
