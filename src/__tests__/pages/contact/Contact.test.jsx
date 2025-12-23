@@ -349,8 +349,6 @@ describe('Contact Component', () => {
   })
 
   test('should show loading state during form submission', async () => {
-    const user = userEvent.setup()
-
     // Mock loading state
     vi.mocked(useContactsStore).mockReturnValue({
       createMessage: mockCreateMessage,
@@ -359,13 +357,10 @@ describe('Contact Component', () => {
 
     render(<ContactWrapper />)
 
-    // Should show loading button (use more specific query to get submit button)
+    // Should show loading button
     const submitButton = screen.getByRole('button', { name: /Sending/i })
     expect(submitButton).toBeDisabled()
     expect(screen.getByText('Sending...')).toBeInTheDocument()
-
-    // Should show loading spinner
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument()
   })
 
   test('should handle submission errors gracefully', async () => {

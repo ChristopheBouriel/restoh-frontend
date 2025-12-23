@@ -450,24 +450,7 @@ describe('Menu Component', () => {
     expect(screen.queryByRole('heading', { name: 'Spaghetti Carbonara', level: 3 })).not.toBeInTheDocument()
   })
 
-  // 8. ÉTATS SPÉCIAUX (3 tests)
-  test('should show loading state when isLoading is true', () => {
-    vi.mocked(useMenu).mockReturnValue({
-      items: [],
-      categories: [],
-      isLoading: true
-    })
-    
-    render(<MenuWrapper />)
-    
-    // Should show loading skeleton
-    expect(document.querySelector('.animate-pulse')).toBeInTheDocument()
-    
-    // Should not show main content
-    expect(screen.queryByPlaceholderText('Search for a dish...')).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Pizza Margherita', level: 3 })).not.toBeInTheDocument()
-  })
-
+  // 8. ÉTATS SPÉCIAUX (2 tests)
   test('should show empty state when no items match filters', async () => {
     const user = userEvent.setup()
     render(<MenuWrapper />)

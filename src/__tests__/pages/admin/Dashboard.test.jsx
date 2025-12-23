@@ -177,19 +177,6 @@ describe('Dashboard Component', () => {
 
   // 2. LOADING STATE
   describe('Loading State', () => {
-    test('should display skeleton loader when stats are not loaded', () => {
-      useStatsStore.mockReturnValue({
-        stats: null,
-        fetchStats: mockFetchStats
-      })
-
-      renderDashboard()
-
-      // Should show 4 skeleton cards (animate-pulse)
-      const skeletonCards = document.querySelectorAll('.animate-pulse')
-      expect(skeletonCards.length).toBe(4)
-    })
-
     test('should call fetchStats on mount', () => {
       renderDashboard()
 

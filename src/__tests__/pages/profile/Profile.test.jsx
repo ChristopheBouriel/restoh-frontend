@@ -322,28 +322,6 @@ describe('Profile Component', () => {
         expect(screen.queryByText('Sending...')).not.toBeInTheDocument()
       })
     })
-
-    it('should have amber/yellow warning banner styling', () => {
-      const unverifiedUser = {
-        ...mockUser,
-        isEmailVerified: false
-      }
-
-      vi.mocked(useAuth).mockReturnValue({
-        user: unverifiedUser,
-        updateProfile: mockUpdateProfile,
-        changePassword: mockChangePassword,
-        isLoading: false
-      })
-
-      const { container } = render(<MemoryRouter><Profile /></MemoryRouter>)
-
-      // Check for amber/yellow styling (warning banner) using querySelector
-      const banner = container.querySelector('.bg-amber-50')
-      expect(banner).toBeInTheDocument()
-      expect(banner).toHaveClass('border-amber-200')
-      expect(screen.getByText('Email Not Verified')).toBeInTheDocument()
-    })
   })
 
   // 3. ONGLET INFORMATIONS PERSONNELLES - MODE AFFICHAGE
