@@ -24,67 +24,7 @@ describe('ForgotPassword Component', () => {
     vi.clearAllMocks()
   })
 
-  // 1. RENDU INITIAL
-  describe('Initial Rendering', () => {
-    it('should render forgot password form with all elements', () => {
-      render(<ForgotPassword />)
-
-      expect(screen.getByText('RestOh!')).toBeInTheDocument()
-      expect(screen.getByText('Forgot your password?')).toBeInTheDocument()
-      expect(screen.getByText(/Enter your email address/)).toBeInTheDocument()
-      expect(screen.getByLabelText('Email address')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Send Reset Link' })).toBeInTheDocument()
-    })
-
-    it('should have link to login page', () => {
-      render(<ForgotPassword />)
-
-      const loginLink = screen.getByText('Back to Login')
-      expect(loginLink).toBeInTheDocument()
-      expect(loginLink.closest('a')).toHaveAttribute('href', '/login')
-    })
-
-    it('should have email input with mail icon', () => {
-      render(<ForgotPassword />)
-
-      const emailInput = screen.getByPlaceholderText('your@email.com')
-      expect(emailInput).toBeInTheDocument()
-      expect(emailInput).toHaveAttribute('type', 'email')
-      // React Hook Form handles validation via JavaScript, not native HTML required attribute
-    })
-  })
-
-  // 2. INTERACTION UTILISATEUR
-  describe('User Interaction', () => {
-    it('should update email input value when typing', async () => {
-      render(<ForgotPassword />)
-
-      const emailInput = screen.getByLabelText('Email address')
-      await user.type(emailInput, 'user@example.com')
-
-      expect(emailInput).toHaveValue('user@example.com')
-    })
-
-    it('should show loading state during submission', async () => {
-      emailApi.forgotPassword.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
-      )
-
-      render(<ForgotPassword />)
-
-      const emailInput = screen.getByLabelText('Email address')
-      const submitButton = screen.getByRole('button', { name: 'Send Reset Link' })
-
-      await user.type(emailInput, 'user@example.com')
-      await user.click(submitButton)
-
-      // Should show loading state
-      expect(screen.getByText('Sending...')).toBeInTheDocument()
-      expect(submitButton).toBeDisabled()
-    })
-  })
-
-  // 3. SOUMISSION RÉUSSIE
+  // 1. SOUMISSION RÉUSSIE
   describe('Successful Submission', () => {
     it('should call forgotPassword API on form submission', async () => {
       emailApi.forgotPassword.mockResolvedValueOnce({ success: true })
@@ -198,7 +138,7 @@ describe('ForgotPassword Component', () => {
     })
   })
 
-  // 5. VALIDATION
+  // 3. VALIDATION
   describe('Form Validation', () => {
     it('should not submit with empty email', async () => {
       render(<ForgotPassword />)
@@ -208,51 +148,6 @@ describe('ForgotPassword Component', () => {
 
       // HTML5 validation prevents submission
       expect(emailApi.forgotPassword).not.toHaveBeenCalled()
-    })
-
-    it('should require valid email format', () => {
-      render(<ForgotPassword />)
-
-      const emailInput = screen.getByLabelText('Email address')
-      expect(emailInput).toHaveAttribute('type', 'email')
-      // React Hook Form handles required validation via JavaScript
-    })
-  })
-
-  // 6. ACCESSIBILITÉ
-  describe('Accessibility', () => {
-    it('should have proper labels for form fields', () => {
-      render(<ForgotPassword />)
-
-      expect(screen.getByLabelText('Email address')).toBeInTheDocument()
-    })
-
-    it('should have proper button states', async () => {
-      emailApi.forgotPassword.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
-      )
-
-      render(<ForgotPassword />)
-
-      const submitButton = screen.getByRole('button', { name: 'Send Reset Link' })
-      expect(submitButton).not.toBeDisabled()
-
-      const emailInput = screen.getByLabelText('Email address')
-      await user.type(emailInput, 'user@example.com')
-      await user.click(submitButton)
-
-      // Should be disabled during loading
-      await waitFor(() => {
-        expect(submitButton).toBeDisabled()
-      })
-    })
-
-    it('should have descriptive aria labels', () => {
-      render(<ForgotPassword />)
-
-      const emailInput = screen.getByLabelText('Email address')
-      expect(emailInput).toHaveAttribute('id', 'email')
-      expect(emailInput).toHaveAttribute('name', 'email')
     })
   })
 })

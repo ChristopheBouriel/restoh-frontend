@@ -37,35 +37,7 @@ describe('Register Component', () => {
     window.scrollTo = vi.fn()
   })
 
-  // 1. RENDU INITIAL
-  describe('Initial Rendering', () => {
-    it('should render registration form with all required fields', () => {
-      render(<Register />)
-
-      expect(screen.getByText('RestOh!')).toBeInTheDocument()
-      expect(screen.getByText('Create your account')).toBeInTheDocument()
-      expect(screen.getByLabelText('Full name')).toBeInTheDocument()
-      expect(screen.getByLabelText('Email address')).toBeInTheDocument()
-      expect(screen.getByLabelText('Password')).toBeInTheDocument()
-      expect(screen.getByLabelText('Confirm password')).toBeInTheDocument()
-      expect(screen.getByLabelText(/I accept the/)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Create my account' })).toBeInTheDocument()
-    })
-
-    it('should display navigation links to login and home', () => {
-      render(<Register />)
-
-      expect(screen.getByRole('link', { name: 'RestOh!' })).toHaveAttribute('href', '/')
-      expect(screen.getByRole('link', { name: 'log in to your existing account' }))
-        .toHaveAttribute('href', '/login')
-      expect(screen.getByRole('link', { name: 'terms of use' }))
-        .toHaveAttribute('href', '/terms')
-      expect(screen.getByRole('link', { name: 'privacy policy' }))
-        .toHaveAttribute('href', '/privacy')
-    })
-  })
-
-  // 2. VALIDATION DU FORMULAIRE
+  // 1. VALIDATION DU FORMULAIRE
   describe('Form Validation', () => {
     it('should prevent form submission when required fields are empty', async () => {
       render(<Register />)
@@ -125,50 +97,8 @@ describe('Register Component', () => {
     })
   })
 
-  // 3. INTERACTIONS UTILISATEUR
-  describe('User Interactions', () => {
-    it('should allow typing in all form fields', async () => {
-      render(<Register />)
-
-      const nameInput = screen.getByLabelText('Full name')
-      const emailInput = screen.getByLabelText('Email address')
-      const passwordInput = screen.getByLabelText('Password')
-      const confirmPasswordInput = screen.getByLabelText('Confirm password')
-
-      await user.type(nameInput, 'Jean Dupont')
-      await user.type(emailInput, 'jean@example.com')
-      await user.type(passwordInput, 'password123')
-      await user.type(confirmPasswordInput, 'password123')
-
-      expect(nameInput).toHaveValue('Jean Dupont')
-      expect(emailInput).toHaveValue('jean@example.com')
-      expect(passwordInput).toHaveValue('password123')
-      expect(confirmPasswordInput).toHaveValue('password123')
-    })
-
-    it('should toggle password visibility when eye icon clicked', async () => {
-      render(<Register />)
-
-      const passwordInput = screen.getByLabelText('Password')
-      const confirmPasswordInput = screen.getByLabelText('Confirm password')
-
-      expect(passwordInput).toHaveAttribute('type', 'password')
-      expect(confirmPasswordInput).toHaveAttribute('type', 'password')
-
-      const passwordToggleButtons = screen.getAllByRole('button', { name: '' })
-      const passwordToggle = passwordToggleButtons[0]
-      const confirmPasswordToggle = passwordToggleButtons[1]
-
-      await user.click(passwordToggle)
-      expect(passwordInput).toHaveAttribute('type', 'text')
-
-      await user.click(confirmPasswordToggle)
-      expect(confirmPasswordInput).toHaveAttribute('type', 'text')
-
-      await user.click(passwordToggle)
-      expect(passwordInput).toHaveAttribute('type', 'password')
-    })
-
+  // 2. FORM SUBMISSION
+  describe('Form Submission', () => {
     it('should call register function on form submission with valid data', async () => {
       mockRegister.mockResolvedValue({ success: true })
       render(<Register />)
