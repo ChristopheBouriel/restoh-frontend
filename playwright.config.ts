@@ -57,12 +57,8 @@ export default defineConfig({
     // === SETUP ===
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      teardown: 'cleanup',
-    },
-    {
-      name: 'cleanup',
-      testMatch: /global\.teardown\.ts/,
+      testDir: './e2e/setup',
+      testMatch: /auth\.setup\.ts/,
     },
 
     // === DESKTOP (tests authentifiés) ===
