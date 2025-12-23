@@ -35,3 +35,12 @@ CLAUDE.md
 
 docs/
 coverage/
+.mcp.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e/.auth/
+/e2e/test-results/
