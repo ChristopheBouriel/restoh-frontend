@@ -121,15 +121,33 @@ describe('Login Component', () => {
     test('should handle form data correctly when typing in multiple fields', async () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
-      
+
       const emailInput = screen.getByLabelText('Email address')
       const passwordInput = screen.getByLabelText('Password')
-      
+
       await user.type(emailInput, 'user@test.com')
       await user.type(passwordInput, 'mypassword')
-      
+
       expect(emailInput).toHaveValue('user@test.com')
       expect(passwordInput).toHaveValue('mypassword')
+    })
+
+    test('should toggle remember me checkbox', async () => {
+      const user = userEvent.setup()
+      render(<LoginWrapper />)
+
+      const rememberMeCheckbox = screen.getByLabelText('Remember me')
+
+      // Initially unchecked
+      expect(rememberMeCheckbox).not.toBeChecked()
+
+      // Click to check
+      await user.click(rememberMeCheckbox)
+      expect(rememberMeCheckbox).toBeChecked()
+
+      // Click to uncheck
+      await user.click(rememberMeCheckbox)
+      expect(rememberMeCheckbox).not.toBeChecked()
     })
   })
 
@@ -174,22 +192,48 @@ describe('Login Component', () => {
     test('should call login function with correct data when form is submitted', async () => {
       const user = userEvent.setup()
       render(<LoginWrapper />)
-      
+
       const emailInput = screen.getByLabelText('Email address')
       const passwordInput = screen.getByLabelText('Password')
       const submitButton = screen.getByRole('button', { name: 'Login' })
-      
+
       // Fill form
       await user.type(emailInput, 'test@example.com')
       await user.type(passwordInput, 'password123')
-      
+
       // Submit form
       await user.click(submitButton)
-      
+
       expect(mockLogin).toHaveBeenCalledTimes(1)
       expect(mockLogin).toHaveBeenCalledWith({
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
+        rememberMe: false
+      })
+    })
+
+    test('should call login function with rememberMe: true when checkbox is checked', async () => {
+      const user = userEvent.setup()
+      render(<LoginWrapper />)
+
+      const emailInput = screen.getByLabelText('Email address')
+      const passwordInput = screen.getByLabelText('Password')
+      const rememberMeCheckbox = screen.getByLabelText('Remember me')
+      const submitButton = screen.getByRole('button', { name: 'Login' })
+
+      // Fill form and check remember me
+      await user.type(emailInput, 'test@example.com')
+      await user.type(passwordInput, 'password123')
+      await user.click(rememberMeCheckbox)
+
+      // Submit form
+      await user.click(submitButton)
+
+      expect(mockLogin).toHaveBeenCalledTimes(1)
+      expect(mockLogin).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        rememberMe: true
       })
     })
 

@@ -19,7 +19,10 @@ const Login = () => {
     formState: { errors }
   } = useForm({
     mode: 'onBlur',
-    reValidateMode: 'onChange'
+    reValidateMode: 'onChange',
+    defaultValues: {
+      rememberMe: false
+    }
   })
 
   const onSubmit = async (data) => {
@@ -218,8 +221,8 @@ const Login = () => {
               <div className="flex items-center">
                 <input
                   id="remember-me"
-                  name="remember-me"
                   type="checkbox"
+                  {...register('rememberMe')}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
