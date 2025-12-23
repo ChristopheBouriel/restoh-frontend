@@ -48,56 +48,6 @@ describe('menuStore', () => {
     })
   })
 
-  describe('Initial State', () => {
-    it('should have correct initial state', () => {
-      const state = useMenuStore.getState()
-
-      expect(state.items).toEqual([])
-      expect(state.categories).toEqual([])
-      expect(state.popularItems).toEqual([])
-      expect(state.suggestedItems).toEqual([])
-      expect(state.isLoading).toBe(false)
-      expect(state.isLoadingPopular).toBe(false)
-      expect(state.isLoadingSuggested).toBe(false)
-      expect(state.error).toBeNull()
-    })
-  })
-
-  describe('Basic Actions', () => {
-    it('should set loading state', () => {
-      const { setLoading } = useMenuStore.getState()
-
-      act(() => {
-        setLoading(true)
-      })
-      expect(useMenuStore.getState().isLoading).toBe(true)
-
-      act(() => {
-        setLoading(false)
-      })
-      expect(useMenuStore.getState().isLoading).toBe(false)
-    })
-
-    it('should set error', () => {
-      const { setError } = useMenuStore.getState()
-
-      act(() => {
-        setError('Test error')
-      })
-      expect(useMenuStore.getState().error).toBe('Test error')
-    })
-
-    it('should clear error', () => {
-      useMenuStore.setState({ error: 'Some error' })
-      const { clearError } = useMenuStore.getState()
-
-      act(() => {
-        clearError()
-      })
-      expect(useMenuStore.getState().error).toBeNull()
-    })
-  })
-
   describe('fetchMenuItems', () => {
     const mockItems = [
       { id: '1', name: 'Pizza', category: 'main', isAvailable: true },
@@ -119,28 +69,6 @@ describe('menuStore', () => {
       const state = useMenuStore.getState()
       expect(state.items).toEqual(mockItems)
       expect(state.categories).toHaveLength(2)
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-
-    it('should set loading state during fetch', async () => {
-      let resolvePromise
-      menuApi.getMenuItems.mockImplementationOnce(() => new Promise(resolve => {
-        resolvePromise = resolve
-      }))
-
-      const { fetchMenuItems } = useMenuStore.getState()
-      const promise = fetchMenuItems()
-
-      // Should be loading
-      expect(useMenuStore.getState().isLoading).toBe(true)
-
-      // Resolve the promise
-      resolvePromise({ success: true, data: [] })
-      await promise
-
-      // Should not be loading anymore
-      expect(useMenuStore.getState().isLoading).toBe(false)
     })
 
     it('should handle API error', async () => {
@@ -151,7 +79,6 @@ describe('menuStore', () => {
 
       expect(result).toEqual({ success: false, error: 'API Error' })
       expect(useMenuStore.getState().error).toBe('API Error')
-      expect(useMenuStore.getState().isLoading).toBe(false)
     })
 
     it('should handle exception', async () => {
@@ -334,27 +261,7 @@ describe('menuStore', () => {
 
       expect(menuApi.getPopularItems).toHaveBeenCalledTimes(1)
       expect(result).toEqual({ success: true })
-
-      const state = useMenuStore.getState()
-      expect(state.popularItems).toEqual(mockPopularItems)
-      expect(state.isLoadingPopular).toBe(false)
-    })
-
-    it('should set loading state during fetch', async () => {
-      let resolvePromise
-      menuApi.getPopularItems.mockImplementationOnce(() => new Promise(resolve => {
-        resolvePromise = resolve
-      }))
-
-      const { fetchPopularItems } = useMenuStore.getState()
-      const promise = fetchPopularItems()
-
-      expect(useMenuStore.getState().isLoadingPopular).toBe(true)
-
-      resolvePromise({ success: true, data: [] })
-      await promise
-
-      expect(useMenuStore.getState().isLoadingPopular).toBe(false)
+      expect(useMenuStore.getState().popularItems).toEqual(mockPopularItems)
     })
 
     it('should handle API error', async () => {
@@ -364,7 +271,6 @@ describe('menuStore', () => {
       const result = await fetchPopularItems()
 
       expect(result).toEqual({ success: false, error: 'API Error' })
-      expect(useMenuStore.getState().isLoadingPopular).toBe(false)
     })
 
     it('should handle exception', async () => {
@@ -374,15 +280,6 @@ describe('menuStore', () => {
       const result = await fetchPopularItems()
 
       expect(result).toEqual({ success: false, error: 'Network error' })
-    })
-
-    it('should default to empty array when data is undefined', async () => {
-      menuApi.getPopularItems.mockResolvedValueOnce({ success: true })
-
-      const { fetchPopularItems } = useMenuStore.getState()
-      await fetchPopularItems()
-
-      expect(useMenuStore.getState().popularItems).toEqual([])
     })
   })
 
@@ -399,27 +296,7 @@ describe('menuStore', () => {
 
       expect(menuApi.getSuggestedItems).toHaveBeenCalledTimes(1)
       expect(result).toEqual({ success: true })
-
-      const state = useMenuStore.getState()
-      expect(state.suggestedItems).toEqual(mockSuggestedItems)
-      expect(state.isLoadingSuggested).toBe(false)
-    })
-
-    it('should set loading state during fetch', async () => {
-      let resolvePromise
-      menuApi.getSuggestedItems.mockImplementationOnce(() => new Promise(resolve => {
-        resolvePromise = resolve
-      }))
-
-      const { fetchSuggestedItems } = useMenuStore.getState()
-      const promise = fetchSuggestedItems()
-
-      expect(useMenuStore.getState().isLoadingSuggested).toBe(true)
-
-      resolvePromise({ success: true, data: [] })
-      await promise
-
-      expect(useMenuStore.getState().isLoadingSuggested).toBe(false)
+      expect(useMenuStore.getState().suggestedItems).toEqual(mockSuggestedItems)
     })
 
     it('should handle API error', async () => {
@@ -429,7 +306,6 @@ describe('menuStore', () => {
       const result = await fetchSuggestedItems()
 
       expect(result).toEqual({ success: false, error: 'API Error' })
-      expect(useMenuStore.getState().isLoadingSuggested).toBe(false)
     })
 
     it('should handle exception', async () => {

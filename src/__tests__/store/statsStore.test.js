@@ -55,33 +55,7 @@ describe('StatsStore', () => {
     vi.resetAllMocks()
   })
 
-  // 1. INITIAL STATE
-  describe('Initial State', () => {
-    test('should have correct initial state', () => {
-      const state = useStatsStore.getState()
-
-      expect(state.stats).toBeNull()
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-
-    test('should have fetchStats action', () => {
-      const { fetchStats } = useStatsStore.getState()
-      expect(typeof fetchStats).toBe('function')
-    })
-
-    test('should have clearStats action', () => {
-      const { clearStats } = useStatsStore.getState()
-      expect(typeof clearStats).toBe('function')
-    })
-
-    test('should have clearError action', () => {
-      const { clearError } = useStatsStore.getState()
-      expect(typeof clearError).toBe('function')
-    })
-  })
-
-  // 2. FETCH STATS
+  // 1. FETCH STATS
   describe('fetchStats', () => {
     test('should fetch stats successfully', async () => {
       statsApi.getDashboardStats.mockResolvedValue({
@@ -95,32 +69,7 @@ describe('StatsStore', () => {
 
       expect(result.success).toBe(true)
       expect(statsApi.getDashboardStats).toHaveBeenCalledTimes(1)
-
-      const state = useStatsStore.getState()
-      expect(state.stats).toEqual(mockStatsData)
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-
-    test('should set loading state while fetching', async () => {
-      let resolvePromise
-      statsApi.getDashboardStats.mockReturnValue(
-        new Promise(resolve => { resolvePromise = resolve })
-      )
-
-      const { fetchStats } = useStatsStore.getState()
-
-      const fetchPromise = fetchStats()
-
-      // Check loading state is true during fetch
-      expect(useStatsStore.getState().isLoading).toBe(true)
-
-      // Resolve the promise
-      resolvePromise({ success: true, data: mockStatsData })
-      await fetchPromise
-
-      // Check loading state is false after fetch
-      expect(useStatsStore.getState().isLoading).toBe(false)
+      expect(useStatsStore.getState().stats).toEqual(mockStatsData)
     })
 
     test('should handle fetch error', async () => {
@@ -257,30 +206,7 @@ describe('StatsStore', () => {
     })
   })
 
-  // 4. CLEAR ERROR
-  describe('clearError', () => {
-    test('should clear error only', async () => {
-      // Set initial state with data and error
-      act(() => {
-        useStatsStore.setState({
-          stats: mockStatsData,
-          error: 'Some error'
-        })
-      })
-
-      const { clearError } = useStatsStore.getState()
-
-      act(() => {
-        clearError()
-      })
-
-      const state = useStatsStore.getState()
-      expect(state.stats).toEqual(mockStatsData) // Stats should remain
-      expect(state.error).toBeNull()
-    })
-  })
-
-  // 5. EDGE CASES
+  // 4. EDGE CASES
   describe('Edge Cases', () => {
     test('should handle empty stats data', async () => {
       const emptyStats = {

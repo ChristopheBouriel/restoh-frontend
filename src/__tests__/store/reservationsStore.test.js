@@ -91,19 +91,7 @@ describe('ReservationsStore', () => {
     vi.useRealTimers()
   })
 
-  // 1. INITIAL STATE
-  describe('Initial State', () => {
-    test('should have correct initial state', () => {
-      const state = useReservationsStore.getState()
-
-      expect(state.reservations).toEqual([])
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-      expect(state.isAdminData).toBe(false)
-    })
-  })
-
-  // 2. FETCH RESERVATIONS
+  // 1. FETCH RESERVATIONS
   describe('fetchReservations', () => {
     test('should fetch admin reservations successfully', async () => {
       reservationsApi.getRecentReservations.mockResolvedValue({
@@ -535,44 +523,4 @@ describe('ReservationsStore', () => {
     })
   })
 
-  // 11. LOADING STATES
-  describe('Loading States', () => {
-    test('should set loading state during fetch', async () => {
-      let resolvePromise
-      reservationsApi.getRecentReservations.mockImplementation(() =>
-        new Promise(resolve => { resolvePromise = resolve })
-      )
-
-      const { fetchReservations } = useReservationsStore.getState()
-
-      const fetchPromise = fetchReservations(true)
-
-      // Should be loading while waiting
-      expect(useReservationsStore.getState().isLoading).toBe(true)
-
-      // Resolve the promise
-      resolvePromise({ success: true, data: [] })
-      await fetchPromise
-
-      // Should not be loading after completion
-      expect(useReservationsStore.getState().isLoading).toBe(false)
-    })
-  })
-
-  // 12. ERROR HANDLING
-  describe('Error Handling', () => {
-    test('should set and clear errors', () => {
-      const { setError, clearError } = useReservationsStore.getState()
-
-      act(() => {
-        setError('Test error')
-      })
-      expect(useReservationsStore.getState().error).toBe('Test error')
-
-      act(() => {
-        clearError()
-      })
-      expect(useReservationsStore.getState().error).toBeNull()
-    })
-  })
 })

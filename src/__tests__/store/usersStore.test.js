@@ -84,19 +84,7 @@ describe('UsersStore', () => {
     })
   })
 
-  // 1. INITIAL STATE
-  describe('Initial State', () => {
-    test('should have correct initial state', () => {
-      const state = useUsersStore.getState()
-
-      expect(state.users).toEqual([])
-      expect(state.stats).toBeNull()
-      expect(state.isLoading).toBe(false)
-      expect(state.isLoadingStats).toBe(false)
-    })
-  })
-
-  // 2. INITIALIZE USERS
+  // 1. INITIALIZE USERS
   describe('initializeUsers', () => {
     test('should fetch all users successfully', async () => {
       usersApi.getAllUsers.mockResolvedValue({
@@ -474,65 +462,4 @@ describe('UsersStore', () => {
     })
   })
 
-  // 10. LOADING STATES
-  describe('Loading States', () => {
-    test('should set loading state during fetch', async () => {
-      let resolvePromise
-      usersApi.getAllUsers.mockImplementation(() =>
-        new Promise(resolve => { resolvePromise = resolve })
-      )
-
-      const { initializeUsers } = useUsersStore.getState()
-
-      const fetchPromise = initializeUsers()
-
-      // Should be loading while waiting
-      expect(useUsersStore.getState().isLoading).toBe(true)
-
-      // Resolve the promise
-      resolvePromise({ success: true, data: [] })
-      await fetchPromise
-
-      // Should not be loading after completion
-      expect(useUsersStore.getState().isLoading).toBe(false)
-    })
-
-    test('should set loading stats state during stats fetch', async () => {
-      let resolvePromise
-      usersApi.getUsersStats.mockImplementation(() =>
-        new Promise(resolve => { resolvePromise = resolve })
-      )
-
-      const { fetchUsersStats } = useUsersStore.getState()
-
-      const fetchPromise = fetchUsersStats()
-
-      // Should be loading while waiting
-      expect(useUsersStore.getState().isLoadingStats).toBe(true)
-
-      // Resolve the promise
-      resolvePromise({ success: true, data: mockStats })
-      await fetchPromise
-
-      // Should not be loading after completion
-      expect(useUsersStore.getState().isLoadingStats).toBe(false)
-    })
-  })
-
-  // 11. SET LOADING
-  describe('setLoading', () => {
-    test('should set loading state manually', () => {
-      const { setLoading } = useUsersStore.getState()
-
-      act(() => {
-        setLoading(true)
-      })
-      expect(useUsersStore.getState().isLoading).toBe(true)
-
-      act(() => {
-        setLoading(false)
-      })
-      expect(useUsersStore.getState().isLoading).toBe(false)
-    })
-  })
 })

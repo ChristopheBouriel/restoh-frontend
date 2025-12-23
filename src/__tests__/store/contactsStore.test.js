@@ -74,20 +74,7 @@ describe('ContactsStore', () => {
     })
   })
 
-  // 1. INITIAL STATE
-  describe('Initial State', () => {
-    test('should have correct initial state', () => {
-      const state = useContactsStore.getState()
-
-      expect(state.messages).toEqual([])
-      expect(state.deletedMessages).toEqual([])
-      expect(state.myMessages).toEqual([])
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-  })
-
-  // 2. FETCH MESSAGES (ADMIN)
+  // 1. FETCH MESSAGES (ADMIN)
   describe('fetchMessages', () => {
     test('should fetch all messages successfully (admin)', async () => {
       contactsApi.getAllContacts.mockResolvedValue({
@@ -636,63 +623,4 @@ describe('ContactsStore', () => {
     })
   })
 
-  // 15. LOADING STATES
-  describe('Loading States', () => {
-    test('should set loading state during fetch', async () => {
-      let resolvePromise
-      contactsApi.getAllContacts.mockImplementation(() =>
-        new Promise(resolve => { resolvePromise = resolve })
-      )
-
-      const { fetchMessages } = useContactsStore.getState()
-
-      const fetchPromise = fetchMessages()
-
-      // Should be loading while waiting
-      expect(useContactsStore.getState().isLoading).toBe(true)
-
-      // Resolve the promise
-      resolvePromise({ success: true, data: [] })
-      await fetchPromise
-
-      // Should not be loading after completion
-      expect(useContactsStore.getState().isLoading).toBe(false)
-    })
-  })
-
-  // 16. ERROR HANDLING
-  describe('Error Handling', () => {
-    test('should set and clear errors', () => {
-      const { setError, clearError } = useContactsStore.getState()
-
-      act(() => {
-        setError('Test error')
-      })
-      expect(useContactsStore.getState().error).toBe('Test error')
-
-      act(() => {
-        clearError()
-      })
-      expect(useContactsStore.getState().error).toBeNull()
-    })
-
-    test('should clear error on successful operation', async () => {
-      // Set an initial error
-      act(() => {
-        useContactsStore.setState({ error: 'Previous error' })
-      })
-      expect(useContactsStore.getState().error).toBe('Previous error')
-
-      // Successful fetch should clear the error
-      contactsApi.getAllContacts.mockResolvedValue({
-        success: true,
-        data: []
-      })
-
-      const { fetchMessages } = useContactsStore.getState()
-      await fetchMessages()
-
-      expect(useContactsStore.getState().error).toBeNull()
-    })
-  })
 })

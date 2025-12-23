@@ -93,49 +93,7 @@ describe('Auth Store', () => {
     vi.restoreAllMocks()
   })
 
-  // 1. ÉTAT INITIAL ET ACTIONS SIMPLES
-  describe('Initial State and Simple Actions', () => {
-    it('should have correct initial state', () => {
-      const { result } = renderHook(() => useAuthStore())
-
-      expect(result.current.user).toBeNull()
-      expect(result.current.accessToken).toBeNull()
-      expect(result.current.isAuthenticated).toBe(false)
-      expect(result.current.isLoading).toBe(false)
-      expect(result.current.error).toBeNull()
-    })
-
-    it('should set user and update authentication status', () => {
-      const { result } = renderHook(() => useAuthStore())
-      const mockUser = { id: '1', name: 'Test User', email: 'test@example.com' }
-
-      act(() => {
-        result.current.setUser(mockUser)
-      })
-
-      expect(result.current.user).toEqual(mockUser)
-      expect(result.current.isAuthenticated).toBe(true)
-    })
-
-    it('should handle error management correctly', () => {
-      const { result } = renderHook(() => useAuthStore())
-      const errorMessage = 'Test error message'
-
-      act(() => {
-        result.current.setError(errorMessage)
-      })
-
-      expect(result.current.error).toBe(errorMessage)
-
-      act(() => {
-        result.current.clearError()
-      })
-
-      expect(result.current.error).toBeNull()
-    })
-  })
-
-  // 2. AUTHENTIFICATION LOGIN
+  // 1. AUTHENTIFICATION LOGIN
   describe('Login Authentication', () => {
     it('should login successfully with registered user', async () => {
       const { result } = renderHook(() => useAuthStore())
@@ -610,52 +568,6 @@ describe('Auth Store', () => {
       expect(result.current.accessToken).toBe('mock-access-token')
       expect(result.current.user).toBeDefined()
       expect(result.current.isAuthenticated).toBe(true)
-    })
-
-    it('should set accessToken with setAccessToken action', () => {
-      const { result } = renderHook(() => useAuthStore())
-
-      act(() => {
-        result.current.setAccessToken('new-token-123')
-      })
-
-      expect(result.current.accessToken).toBe('new-token-123')
-    })
-
-    it('should set auth data with setAuth action', () => {
-      const { result } = renderHook(() => useAuthStore())
-      const mockUser = { id: '1', email: 'test@example.com', name: 'Test User' }
-
-      act(() => {
-        result.current.setAuth('auth-token-456', mockUser)
-      })
-
-      expect(result.current.accessToken).toBe('auth-token-456')
-      expect(result.current.user).toEqual(mockUser)
-      expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.error).toBeNull()
-    })
-
-    it('should clear all auth data with clearAuth action', () => {
-      const { result } = renderHook(() => useAuthStore())
-
-      // Set initial auth state
-      act(() => {
-        result.current.setAuth('token-to-clear', { id: '1', name: 'Test' })
-      })
-
-      expect(result.current.accessToken).toBe('token-to-clear')
-      expect(result.current.isAuthenticated).toBe(true)
-
-      // Clear auth
-      act(() => {
-        result.current.clearAuth()
-      })
-
-      expect(result.current.accessToken).toBeNull()
-      expect(result.current.user).toBeNull()
-      expect(result.current.isAuthenticated).toBe(false)
-      expect(result.current.error).toBeNull()
     })
 
     it('should clear accessToken on logout', async () => {

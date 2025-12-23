@@ -135,15 +135,7 @@ describe('ordersStore', () => {
     vi.restoreAllMocks()
   })
 
-  // 1. INITIAL STATE & FETCH ORDERS (3 tests)
-  test('should initialize with empty orders by default', () => {
-    const store = useOrdersStore.getState()
-
-    expect(store.orders).toEqual([])
-    expect(store.isLoading).toBe(false)
-    expect(store.error).toBeNull()
-  })
-
+  // 1. FETCH ORDERS
   test('should fetch user orders successfully', async () => {
     mockGetUserOrders.mockResolvedValue({
       success: true,

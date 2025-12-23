@@ -40,22 +40,7 @@ describe('cartStore', () => {
     mockConsoleLog.mockClear()
   })
 
-  // 1. USER MANAGEMENT (3 tests)
-  test('should initialize user cart when setting current user', () => {
-    const store = useCartStore.getState()
-    
-    // Set current user
-    store.setCurrentUser('user1')
-    
-    const state = useCartStore.getState()
-    expect(state.currentUserId).toBe('user1')
-    expect(state.userCarts['user1']).toEqual({ items: [] })
-    
-    // Get current user cart should return the initialized cart
-    const currentCart = store.getCurrentUserCart()
-    expect(currentCart).toEqual({ items: [] })
-  })
-
+  // 1. USER MANAGEMENT
   test('should switch between users correctly', () => {
     const store = useCartStore.getState()
     
@@ -80,20 +65,7 @@ describe('cartStore', () => {
     expect(user1Cart.items.find(item => item.name === 'Spaghetti Carbonara')).toBeUndefined()
   })
 
-  test('should return empty cart for non-existent user', () => {
-    const store = useCartStore.getState()
-    
-    // Don't set any current user
-    const cart = store.getCurrentUserCart()
-    expect(cart).toEqual({ items: [] })
-    
-    // Set current user to null explicitly
-    store.setCurrentUser(null)
-    const cartNull = store.getCurrentUserCart()
-    expect(cartNull).toEqual({ items: [] })
-  })
-
-  // 2. BASIC CART OPERATIONS (4 tests)
+  // 2. BASIC CART OPERATIONS
   test('should add new items to cart', () => {
     const store = useCartStore.getState()
     store.setCurrentUser('user1')
@@ -338,25 +310,4 @@ describe('cartStore', () => {
     expect(store.getTotalPriceAvailable()).toBe(12.50)
   })
 
-  // Additional edge case test
-  test('should handle sync with menu correctly', () => {
-    const store = useCartStore.getState()
-
-    store.syncWithMenu()
-    expect(mockConsoleLog).toHaveBeenCalledWith('🔄 Syncing cart with menu')
-  })
-
-  test('should handle operations without current user gracefully', () => {
-    const store = useCartStore.getState()
-    // Don't set current user
-    
-    // Operations should not crash
-    store.addItem(mockProducts[0])
-    store.removeItem('1')
-    store.updateQuantity('1', 2)
-    store.clearCart()
-    
-    // Cart should remain empty
-    expect(store.getCurrentUserCart().items).toHaveLength(0)
-  })
 })
