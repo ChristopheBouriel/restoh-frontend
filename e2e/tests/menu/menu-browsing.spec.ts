@@ -62,49 +62,55 @@ test.describe('Menu Browsing - Viewing and filtering menu items', () => {
   });
 
   test.describe('Filters', () => {
-    test.skip('should filter by cuisine type', async () => {
+    test('should filter by cuisine type', async () => {
       const initialCount = await menuPage.getMenuItemsCount();
 
-      await menuPage.selectCuisine('Italian');
+      await menuPage.selectCuisine('Lao');
       await menuPage['page'].waitForTimeout(300);
 
       const filteredCount = await menuPage.getMenuItemsCount();
       expect(filteredCount).toBeLessThanOrEqual(initialCount);
+      expect(filteredCount).toBeGreaterThan(0);
     });
 
-    test.skip('should filter by category', async () => {
+    test('should filter by category', async () => {
       const initialCount = await menuPage.getMenuItemsCount();
 
-      await menuPage.selectCategory('Main Course');
+      await menuPage.selectCategory('Main');
       await menuPage['page'].waitForTimeout(300);
 
       const filteredCount = await menuPage.getMenuItemsCount();
       expect(filteredCount).toBeLessThanOrEqual(initialCount);
+      expect(filteredCount).toBeGreaterThan(0);
     });
 
-    test.skip('should reset all filters', async () => {
+    test('should reset filters by selecting All options', async () => {
       // Apply a filter first
-      await menuPage.search('burger');
+      await menuPage.selectCuisine('Lao');
       await menuPage['page'].waitForTimeout(300);
 
-      await menuPage.resetFilters();
+      const filteredCount = await menuPage.getMenuItemsCount();
+
+      // Reset by selecting "All cuisines"
+      await menuPage.selectCuisine('All cuisines');
       await menuPage['page'].waitForTimeout(300);
 
-      await menuPage.expectMenuItemsVisible();
+      const resetCount = await menuPage.getMenuItemsCount();
+      expect(resetCount).toBeGreaterThanOrEqual(filteredCount);
     });
   });
 
   test.describe('Sorting', () => {
-    test.skip('should sort by price low to high', async () => {
-      await menuPage.sortBy('Price: Low to High');
+    test('should sort by price ascending', async () => {
+      await menuPage.sortBy('Price ascending');
       await menuPage['page'].waitForTimeout(300);
 
       // Items should still be visible after sorting
       await menuPage.expectMenuItemsVisible();
     });
 
-    test.skip('should sort by price high to low', async () => {
-      await menuPage.sortBy('Price: High to Low');
+    test('should sort by price descending', async () => {
+      await menuPage.sortBy('Price descending');
       await menuPage['page'].waitForTimeout(300);
 
       await menuPage.expectMenuItemsVisible();
@@ -112,36 +118,35 @@ test.describe('Menu Browsing - Viewing and filtering menu items', () => {
   });
 
   test.describe('Item Reviews', () => {
-    test.skip('should open reviews modal for an item', async ({ page }) => {
-      // Get first item with reviews button
-      const items = page.locator('main .grid > div').filter({
-        has: page.getByRole('button', { name: /reviews/i })
-      });
+    test('should open reviews modal for an item', async ({ page }) => {
+      // Click the first Reviews button
+      const reviewsButton = page.getByRole('button', { name: 'Reviews' }).first();
+      await reviewsButton.click();
 
-      if (await items.count() > 0) {
-        const itemName = await items.first().getByRole('heading', { level: 3 }).textContent();
-        if (itemName) {
-          await menuPage.clickReviewsForItem(itemName);
-          const isVisible = await menuPage.isReviewModalVisible();
-          expect(isVisible).toBe(true);
-        }
-      }
+      // Modal should be visible with reviews heading
+      await expect(
+        page.locator('.fixed.inset-0').filter({
+          has: page.getByRole('heading', { level: 2 })
+        })
+      ).toBeVisible();
     });
 
-    test.skip('should close reviews modal', async ({ page }) => {
-      const items = page.locator('main .grid > div').filter({
-        has: page.getByRole('button', { name: /reviews/i })
-      });
+    test('should close reviews modal', async ({ page }) => {
+      // Open reviews modal
+      const reviewsButton = page.getByRole('button', { name: 'Reviews' }).first();
+      await reviewsButton.click();
 
-      if (await items.count() > 0) {
-        const itemName = await items.first().getByRole('heading', { level: 3 }).textContent();
-        if (itemName) {
-          await menuPage.clickReviewsForItem(itemName);
-          await menuPage.closeReviewModal();
-          const isVisible = await menuPage.isReviewModalVisible();
-          expect(isVisible).toBe(false);
-        }
-      }
+      // Wait for modal to be visible
+      const modal = page.locator('.fixed.inset-0').filter({
+        has: page.getByRole('heading', { level: 2 })
+      });
+      await expect(modal).toBeVisible();
+
+      // Close the modal using the close button (first button with SVG)
+      await modal.getByRole('button').first().click();
+
+      // Modal should not be visible anymore
+      await expect(modal).not.toBeVisible();
     });
   });
 });

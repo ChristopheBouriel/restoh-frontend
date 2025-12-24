@@ -12,15 +12,18 @@ export class MenuPage extends BasePage {
   }
 
   private get cuisineDropdown() {
-    return this.page.getByRole('button', { name: /cuisines/i });
+    // Cuisine dropdown - button text changes based on selection (All cuisines, Asian, Lao, Continental)
+    return this.page.getByRole('button', { name: /cuisines|asian|lao|continental/i }).first();
   }
 
   private get categoryDropdown() {
-    return this.page.getByRole('button', { name: /dishes/i });
+    // Category dropdown - button text changes based on selection (All dishes, Main, Dessert, etc.)
+    return this.page.getByRole('button', { name: /dishes|main|dessert|beverage|appetizer/i }).first();
   }
 
   private get sortDropdown() {
-    return this.page.getByRole('button', { name: /sort by/i });
+    // Sort dropdown - button text changes (Sort by price, Price ascending, Price descending)
+    return this.page.getByRole('button', { name: /sort by|price/i }).first();
   }
 
   private get menuItemCards() {
@@ -68,17 +71,22 @@ export class MenuPage extends BasePage {
 
   async selectCuisine(cuisine: string) {
     await this.cuisineDropdown.click();
-    await this.page.getByRole('option', { name: cuisine }).click();
+    await this.page.waitForTimeout(200);
+    // Dropdown options are inside a container next to the button
+    // Use getByText with exact match to avoid matching menu item tags
+    await this.page.getByText(cuisine, { exact: true }).first().click();
   }
 
   async selectCategory(category: string) {
     await this.categoryDropdown.click();
-    await this.page.getByRole('option', { name: category }).click();
+    await this.page.waitForTimeout(200);
+    await this.page.getByText(category, { exact: true }).first().click();
   }
 
   async sortBy(option: string) {
     await this.sortDropdown.click();
-    await this.page.getByRole('option', { name: option }).click();
+    await this.page.waitForTimeout(200);
+    await this.page.getByText(option, { exact: true }).first().click();
   }
 
   async resetFilters() {

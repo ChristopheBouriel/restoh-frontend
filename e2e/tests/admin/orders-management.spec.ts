@@ -66,6 +66,9 @@ test.describe('Admin Orders Management', () => {
     });
   });
 
+  // Note: Status updates and actions tests are skipped because
+  // the current UI uses inline status dropdowns that need specific selectors.
+  // These tests need to be updated when the UI is finalized.
   test.describe('Order Status Updates', () => {
     test.skip('should update order status to confirmed', async () => {
       const count = await ordersPage.getOrdersCount();
@@ -113,7 +116,7 @@ test.describe('Admin Orders Management', () => {
   });
 
   test.describe('Order Actions', () => {
-    test.skip('should view order details', async ({ page }) => {
+    test('should view order details', async ({ page }) => {
       const count = await ordersPage.getOrdersCount();
       if (count === 0) {
         test.skip();

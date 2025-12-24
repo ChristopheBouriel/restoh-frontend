@@ -109,11 +109,15 @@ test.describe('Reservation Flow - Complete reservation process', () => {
   });
 
   test.describe('Edit Reservation', () => {
-    test.skip('should open edit modal for existing reservation', async () => {
-      // This test requires an existing reservation
-      // Skip if no reservations exist
+    test('should open edit modal for existing reservation', async ({ page }) => {
+      // First show all reservations to find existing ones
+      await reservationPage.showAllReservations();
+      await page.waitForTimeout(500);
+
+      // Check if there are any reservations
       const count = await reservationPage.getReservationCount();
       if (count === 0) {
+        // No reservations to test - this is acceptable
         test.skip();
         return;
       }
@@ -121,18 +125,23 @@ test.describe('Reservation Flow - Complete reservation process', () => {
       await reservationPage.editReservation(0);
       // Verify edit modal or form appears
       await expect(
-        reservationPage['page'].getByRole('dialog').or(
-          reservationPage['page'].getByRole('heading', { name: /edit/i })
+        page.getByRole('dialog').or(
+          page.getByRole('heading', { name: /edit/i })
         )
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 5000 });
     });
   });
 
   test.describe('Cancel Reservation', () => {
-    test.skip('should cancel existing reservation', async () => {
-      // This test requires an existing reservation
+    test('should cancel existing reservation', async ({ page }) => {
+      // First show all reservations to find existing ones
+      await reservationPage.showAllReservations();
+      await page.waitForTimeout(500);
+
+      // Check if there are any reservations
       const count = await reservationPage.getReservationCount();
       if (count === 0) {
+        // No reservations to test - this is acceptable
         test.skip();
         return;
       }
@@ -146,38 +155,49 @@ test.describe('Reservation Flow - Complete reservation process', () => {
   });
 
   test.describe('Form Validation', () => {
-    // Note: These tests are skipped because the demo user profile
-    // already has a phone number pre-filled, making validation tests unreliable
-    test.skip('should require phone number', async ({ page }) => {
+    test('should require phone number', async ({ page }) => {
       const tomorrowDate = getTomorrowDate();
 
       await reservationPage.selectDate(tomorrowDate);
       await reservationPage.setGuests(2);
+
+      // Clear any pre-filled phone number
+      const phoneInput = page.getByRole('textbox', { name: /06 12 34 56 78/i });
+      await phoneInput.clear();
+
       await reservationPage.selectTimeSlot('12:00');
       await page.waitForTimeout(500);
       await reservationPage.selectFirstAvailableTable();
 
-      // Try to submit without phone
-      await reservationPage.submitReservation();
-
-      // Should show error
-      await reservationPage.expectFormError('phone');
+      // Book button should be disabled without phone
+      const bookButton = page.getByRole('button', { name: /book/i });
+      await expect(bookButton).toBeDisabled();
     });
 
-    test.skip('should validate phone format', async ({ page }) => {
+    test('should validate phone format', async ({ page }) => {
       const tomorrowDate = getTomorrowDate();
 
       await reservationPage.selectDate(tomorrowDate);
       await reservationPage.setGuests(2);
-      await reservationPage.fillPhone('invalid');
+
+      // Clear and fill with invalid phone
+      const phoneInput = page.getByRole('textbox', { name: /06 12 34 56 78/i });
+      await phoneInput.clear();
+      await phoneInput.fill('invalid');
+      await phoneInput.blur();
+
       await reservationPage.selectTimeSlot('12:00');
       await page.waitForTimeout(500);
       await reservationPage.selectFirstAvailableTable();
 
-      await reservationPage.submitReservation();
+      // Try to submit and check for validation error
+      const bookButton = page.getByRole('button', { name: /book/i });
+      await bookButton.click();
 
-      // Should show phone format error
-      await reservationPage.expectFormError('phone');
+      // Should show phone format error toast
+      await expect(
+        page.getByText('Invalid phone format (e.g., 06 12 34 56 78)')
+      ).toBeVisible({ timeout: 5000 });
     });
   });
 });
