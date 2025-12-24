@@ -87,15 +87,15 @@ export class AdminReservationsPage extends BasePage {
 
   async filterByStatus(status: string) {
     await this.statusFilter.click();
-    // Wait for dropdown to open
-    await this.page.waitForTimeout(200);
-    // The dropdown shows generic divs with text - look for exact text match
-    const dropdown = this.page.locator('div').filter({
-      has: this.page.getByText(/all statuses/i)
-    }).filter({
-      has: this.page.getByText(/confirmed/i)
-    }).first();
-    await dropdown.getByText(new RegExp(`^${status}$`, 'i')).click();
+    // Wait for dropdown to open and be visible
+    await this.page.waitForTimeout(300);
+    // The dropdown shows options like "All statuses", "Confirmed", "Seated", etc.
+    // Look for the dropdown container that contains "All statuses" option
+    const dropdownOption = this.page.locator('div')
+      .filter({ hasText: /all statuses/i })
+      .getByText(new RegExp(`^${status}$`, 'i'))
+      .first();
+    await dropdownOption.click();
   }
 
   async filterByDate(date: string) {

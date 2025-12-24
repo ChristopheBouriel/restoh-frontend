@@ -29,24 +29,22 @@ test.describe('Admin Reservations Management', () => {
   });
 
   test.describe('Filters', () => {
-    // Note: Status filter tests are skipped - the dropdown uses a custom component
-    // that needs more specific selectors. Core functionality tests pass.
-    test.skip('should filter reservations by status - confirmed', async () => {
+    test('should filter reservations by status - confirmed', async () => {
       await reservationsPage.filterByStatus('confirmed');
       await reservationsPage.expectToBeOnReservationsPage();
     });
 
-    test.skip('should filter reservations by status - seated', async () => {
+    test('should filter reservations by status - seated', async () => {
       await reservationsPage.filterByStatus('seated');
       await reservationsPage.expectToBeOnReservationsPage();
     });
 
-    test.skip('should filter reservations by status - completed', async () => {
+    test('should filter reservations by status - completed', async () => {
       await reservationsPage.filterByStatus('completed');
       await reservationsPage.expectToBeOnReservationsPage();
     });
 
-    test.skip('should filter reservations by status - cancelled', async () => {
+    test('should filter reservations by status - cancelled', async () => {
       await reservationsPage.filterByStatus('cancelled');
       await reservationsPage.expectToBeOnReservationsPage();
     });
@@ -61,7 +59,7 @@ test.describe('Admin Reservations Management', () => {
       await reservationsPage.expectToBeOnReservationsPage();
     });
 
-    test.skip('should reset filters', async () => {
+    test('should reset filters', async () => {
       await reservationsPage.filterByStatus('confirmed');
       await reservationsPage.resetFilters();
       await reservationsPage.expectToBeOnReservationsPage();

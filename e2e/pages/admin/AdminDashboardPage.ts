@@ -44,15 +44,13 @@ export class AdminDashboardPage extends BasePage {
   }
 
   private get usersTab() {
-    return this.page.getByRole('link', { name: /users/i }).or(
-      this.page.getByRole('button', { name: /users/i })
-    );
+    // In the admin sidebar, it's just "Users"
+    return this.page.getByRole('navigation').getByRole('link', { name: 'Users' });
   }
 
   private get contactsTab() {
-    return this.page.getByRole('link', { name: /contacts|messages/i }).or(
-      this.page.getByRole('button', { name: /contacts|messages/i })
-    );
+    // In the admin sidebar, it's "Contact Messages" with a badge
+    return this.page.getByRole('navigation').getByRole('link', { name: /contact messages/i });
   }
 
   // Recent activity sections

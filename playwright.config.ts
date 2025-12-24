@@ -64,6 +64,7 @@ export default defineConfig({
     // === DESKTOP (tests authentifiés) ===
     {
       name: 'chromium',
+      testIgnore: /admin\/.*\.spec\.ts/, // Admin tests run in 'admin' project
       use: {
         ...devices['Desktop Chrome'],
         storageState: './e2e/.auth/user.json',

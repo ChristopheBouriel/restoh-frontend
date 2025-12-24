@@ -85,15 +85,16 @@ export class AdminOrdersPage extends BasePage {
 
   async filterByStatus(status: string) {
     await this.statusFilter.click();
-    // Wait for dropdown to open
-    await this.page.waitForTimeout(200);
-    // The dropdown shows generic divs with text - look for exact text match
-    const dropdown = this.page.locator('div').filter({
-      has: this.page.getByText(/all orders/i)
-    }).filter({
-      has: this.page.getByText(/pending/i)
-    }).first();
-    await dropdown.getByText(new RegExp(`^${status}$`, 'i')).click();
+    // Wait for dropdown to open and be visible
+    await this.page.waitForTimeout(300);
+    // The dropdown shows options like "All orders", "Pending", "Confirmed", etc.
+    // Look for visible dropdown options that are NOT in a button (table rows have buttons with status)
+    // and NOT in a table cell
+    const dropdownOption = this.page.locator('div')
+      .filter({ hasText: /all orders/i })  // The dropdown contains "All orders" option
+      .getByText(new RegExp(`^${status}$`, 'i'))
+      .first();
+    await dropdownOption.click();
   }
 
   async filterByDate(date: string) {

@@ -61,12 +61,12 @@ test.describe('Admin Dashboard', () => {
       await expect(page).toHaveURL(/\/admin\/menu/);
     });
 
-    test.skip('should navigate to users management', async ({ page }) => {
+    test('should navigate to users management', async ({ page }) => {
       await dashboardPage.goToUsers();
       await expect(page).toHaveURL(/\/admin\/users/);
     });
 
-    test.skip('should navigate to contacts/messages', async ({ page }) => {
+    test('should navigate to contacts/messages', async ({ page }) => {
       await dashboardPage.goToContacts();
       await expect(page).toHaveURL(/\/admin\/(contacts|messages)/);
     });

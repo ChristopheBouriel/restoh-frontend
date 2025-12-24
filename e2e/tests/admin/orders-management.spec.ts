@@ -29,24 +29,22 @@ test.describe('Admin Orders Management', () => {
   });
 
   test.describe('Filters', () => {
-    // Note: Status filter tests are skipped - the dropdown uses a custom component
-    // that needs more specific selectors. Core functionality tests pass.
-    test.skip('should filter orders by status - pending', async () => {
+    test('should filter orders by status - pending', async () => {
       await ordersPage.filterByStatus('pending');
       await ordersPage.expectToBeOnOrdersPage();
     });
 
-    test.skip('should filter orders by status - confirmed', async () => {
+    test('should filter orders by status - confirmed', async () => {
       await ordersPage.filterByStatus('confirmed');
       await ordersPage.expectToBeOnOrdersPage();
     });
 
-    test.skip('should filter orders by status - preparing', async () => {
+    test('should filter orders by status - preparing', async () => {
       await ordersPage.filterByStatus('preparing');
       await ordersPage.expectToBeOnOrdersPage();
     });
 
-    test.skip('should filter orders by status - delivered', async () => {
+    test('should filter orders by status - delivered', async () => {
       await ordersPage.filterByStatus('delivered');
       await ordersPage.expectToBeOnOrdersPage();
     });
@@ -61,7 +59,7 @@ test.describe('Admin Orders Management', () => {
       await ordersPage.expectToBeOnOrdersPage();
     });
 
-    test.skip('should reset filters', async () => {
+    test('should reset filters', async () => {
       await ordersPage.filterByStatus('pending');
       await ordersPage.resetFilters();
       await ordersPage.expectToBeOnOrdersPage();
