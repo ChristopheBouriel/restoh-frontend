@@ -38,7 +38,12 @@ export class MenuPage extends BasePage {
   }
 
   private get cartButton() {
-    return this.page.locator('header button').first();
+    // Cart button in navbar - has shopping cart icon and item count badge
+    return this.page.locator('header').getByRole('button').filter({
+      has: this.page.locator('img[src*="shopping"]')
+    }).first().or(
+      this.page.locator('header button').first()
+    );
   }
 
   // Actions

@@ -174,17 +174,6 @@ test.describe('Navigation - Site-wide navigation tests', () => {
     });
   });
 
-  // Logout test at the end - this modifies auth state
-  test.describe('Logout', () => {
-    test.describe.configure({ mode: 'serial' });
-
-    test('should logout user', async ({ page }) => {
-      await page.goto('/');
-
-      await navbar.logout();
-
-      // Should redirect to login or home
-      await expect(page).toHaveURL(/\/(login)?$/);
-    });
-  });
+  // Note: Logout tests are in a separate file (auth/logout.spec.ts)
+  // to avoid affecting other tests that depend on authentication state
 });

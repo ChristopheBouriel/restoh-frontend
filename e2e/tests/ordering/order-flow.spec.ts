@@ -23,8 +23,11 @@ test.describe('Order Flow - Complete ordering process', () => {
       const itemCount = await menuPage.getMenuItemsCount();
       expect(itemCount).toBeGreaterThan(0);
 
-      // Get first item name for verification
-      await menuPage.addItemToCartByName('');  // This will need adjustment based on actual menu
+      // Get first item and add it
+      const items = page.locator('main .grid > div').filter({
+        has: page.getByRole('button', { name: /add to cart/i })
+      });
+      await items.first().getByRole('button', { name: /add to cart/i }).click();
 
       // Open cart and verify
       await menuPage.openCart();
@@ -186,7 +189,8 @@ test.describe('Order Flow - Complete ordering process', () => {
       await checkoutPage.expectOrderConfirmation();
     });
 
-    test('should complete pickup order with cash payment', async ({ page }) => {
+    test('should complete pickup order with special requests', async ({ page }) => {
+      // Note: Cash payment is not available for pickup orders
       await menuPage.openCart();
       await cartModal.proceedToCheckout();
 
@@ -194,7 +198,7 @@ test.describe('Order Flow - Complete ordering process', () => {
 
       await checkoutPage.completePickupOrder({
         phone: '0698765432',
-        paymentMethod: 'cash',
+        paymentMethod: 'card',  // Cash not available for pickup
         specialRequests: 'Extra napkins please',
       });
 

@@ -20,11 +20,11 @@ export class CheckoutPage extends BasePage {
 
   // Order type
   private get deliveryRadio() {
-    return this.page.getByRole('radio', { name: /delivery/i });
+    return this.page.getByRole('radio', { name: /🚚 delivery/i });
   }
 
   private get pickupRadio() {
-    return this.page.getByRole('radio', { name: /pickup/i });
+    return this.page.getByRole('radio', { name: /🏪 pickup/i });
   }
 
   // Special requests
@@ -201,10 +201,15 @@ export class CheckoutPage extends BasePage {
   }
 
   async expectOrderConfirmation() {
-    // Après une commande réussie, on devrait voir un message de confirmation
-    await expect(
-      this.page.getByText(/order confirmed|commande confirmée|thank you/i)
-    ).toBeVisible({ timeout: 10000 });
+    // After a successful order, the app redirects to /menu with empty cart
+    // Wait for redirect and verify cart is empty (no badge or badge shows 0)
+    await expect(this.page).toHaveURL(/\/menu/, { timeout: 10000 });
+
+    // Cart button should not have items (no badge visible or button without count)
+    const cartBadge = this.page.locator('header button').first().locator('div').filter({
+      hasText: /^[1-9]/
+    });
+    await expect(cartBadge).not.toBeVisible({ timeout: 5000 });
   }
 
   async expectAddressFieldsVisible() {

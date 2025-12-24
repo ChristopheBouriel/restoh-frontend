@@ -57,20 +57,45 @@ export class AdminDashboardPage extends BasePage {
 
   // Recent activity sections
   private get recentOrdersSection() {
-    return this.page.locator('section').filter({
-      has: this.page.getByRole('heading', { name: /recent.*orders/i })
-    });
+    return this.page.getByRole('heading', { name: /recent.*orders/i, level: 2 });
   }
 
   private get recentReservationsSection() {
-    return this.page.locator('section').filter({
-      has: this.page.getByRole('heading', { name: /recent.*reservations/i })
-    });
+    return this.page.getByRole('heading', { name: /recent.*reservations/i, level: 2 });
   }
 
   // Actions
   async goto() {
-    await super.goto('/admin');
+    // First navigate to a public page to let auth initialize
+    await super.goto('/menu');
+
+    // Wait for the user button to appear in the navbar (indicates auth is ready)
+    const userButton = this.page.locator('header').getByRole('button').filter({
+      hasText: /user|demo|admin/i
+    });
+    await expect(userButton).toBeVisible({ timeout: 10000 });
+
+    // Wait for network to settle
+    await this.page.waitForLoadState('networkidle');
+
+    // Use client-side navigation via the Admin link if available
+    // Otherwise, navigate programmatically
+    const adminLink = this.page.locator('header').getByRole('link', { name: /admin|dashboard/i });
+    const hasAdminLink = await adminLink.isVisible().catch(() => false);
+
+    if (hasAdminLink) {
+      await adminLink.click();
+    } else {
+      // For admin, we may need to navigate via user menu or direct URL after auth
+      await this.page.evaluate(() => {
+        window.history.pushState({}, '', '/admin');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      });
+      // Give React Router time to handle the route
+      await this.page.waitForTimeout(500);
+    }
+
+    await this.page.waitForURL(/\/admin/);
     await this.waitForDashboardLoaded();
   }
 

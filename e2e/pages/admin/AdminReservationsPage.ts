@@ -7,18 +7,18 @@ export class AdminReservationsPage extends BasePage {
     return this.page.getByRole('heading', { name: /reservations.*management|manage.*reservations/i, level: 1 });
   }
 
-  // Stats cards
+  // Stats cards - the stats are in a generic container with paragraphs like "Total", "Total guests", etc.
   private get statsSection() {
-    return this.page.locator('section').filter({
-      has: this.page.getByText(/total|guests/i)
+    return this.page.locator('div').filter({
+      has: this.page.getByText(/^total$/i)
+    }).filter({
+      has: this.page.getByText(/total guests/i)
     }).first();
   }
 
   // Filters
   private get statusFilter() {
-    return this.page.getByRole('combobox', { name: /status/i }).or(
-      this.page.getByRole('button', { name: /status|all statuses/i })
-    );
+    return this.page.getByRole('button', { name: /all statuses/i });
   }
 
   private get dateFilter() {
@@ -26,7 +26,7 @@ export class AdminReservationsPage extends BasePage {
   }
 
   private get searchInput() {
-    return this.page.getByRole('textbox', { name: /search/i });
+    return this.page.getByRole('textbox', { name: /reservation|search/i });
   }
 
   private get todayButton() {
@@ -34,7 +34,7 @@ export class AdminReservationsPage extends BasePage {
   }
 
   private get resetButton() {
-    return this.page.getByRole('button', { name: /reset|clear/i });
+    return this.page.getByRole('button', { name: /reset|clear|refresh/i });
   }
 
   // Reservations table/list
@@ -56,7 +56,27 @@ export class AdminReservationsPage extends BasePage {
 
   // Actions
   async goto() {
-    await super.goto('/admin/reservations');
+    // First navigate to a public page to let auth initialize
+    await super.goto('/menu');
+
+    // Wait for the user button to appear in the navbar (indicates auth is ready)
+    const userButton = this.page.locator('header').getByRole('button').filter({
+      hasText: /user|demo|admin/i
+    });
+    await expect(userButton).toBeVisible({ timeout: 10000 });
+
+    // Wait for network to settle
+    await this.page.waitForLoadState('networkidle');
+
+    // Navigate programmatically to preserve access token in memory
+    await this.page.evaluate(() => {
+      window.history.pushState({}, '', '/admin/reservations');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    // Give React Router time to handle the route
+    await this.page.waitForTimeout(500);
+
+    await this.page.waitForURL(/\/admin\/reservations/);
     await this.waitForPageLoaded();
   }
 
@@ -67,7 +87,15 @@ export class AdminReservationsPage extends BasePage {
 
   async filterByStatus(status: string) {
     await this.statusFilter.click();
-    await this.page.getByRole('option', { name: new RegExp(status, 'i') }).click();
+    // Wait for dropdown to open
+    await this.page.waitForTimeout(200);
+    // The dropdown shows generic divs with text - look for exact text match
+    const dropdown = this.page.locator('div').filter({
+      has: this.page.getByText(/all statuses/i)
+    }).filter({
+      has: this.page.getByText(/confirmed/i)
+    }).first();
+    await dropdown.getByText(new RegExp(`^${status}$`, 'i')).click();
   }
 
   async filterByDate(date: string) {

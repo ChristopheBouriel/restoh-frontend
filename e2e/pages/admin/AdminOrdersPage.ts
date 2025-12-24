@@ -7,18 +7,16 @@ export class AdminOrdersPage extends BasePage {
     return this.page.getByRole('heading', { name: /orders.*management|manage.*orders/i, level: 1 });
   }
 
-  // Stats cards
+  // Stats cards - the stats are in a generic container with paragraphs like "Total orders", "Pending"
   private get statsSection() {
-    return this.page.locator('section').filter({
-      has: this.page.getByText(/total|revenue/i)
+    return this.page.locator('div').filter({
+      has: this.page.getByText(/total orders/i)
     }).first();
   }
 
   // Filters
   private get statusFilter() {
-    return this.page.getByRole('combobox', { name: /status/i }).or(
-      this.page.getByRole('button', { name: /status|all statuses/i })
-    );
+    return this.page.getByRole('button', { name: /all orders|all statuses/i });
   }
 
   private get dateFilter() {
@@ -26,7 +24,7 @@ export class AdminOrdersPage extends BasePage {
   }
 
   private get searchInput() {
-    return this.page.getByRole('textbox', { name: /search/i });
+    return this.page.getByRole('textbox', { name: /order number|search/i });
   }
 
   private get todayButton() {
@@ -34,7 +32,7 @@ export class AdminOrdersPage extends BasePage {
   }
 
   private get resetButton() {
-    return this.page.getByRole('button', { name: /reset|clear/i });
+    return this.page.getByRole('button', { name: /reset|clear|refresh/i });
   }
 
   // Orders table/list
@@ -56,7 +54,27 @@ export class AdminOrdersPage extends BasePage {
 
   // Actions
   async goto() {
-    await super.goto('/admin/orders');
+    // First navigate to a public page to let auth initialize
+    await super.goto('/menu');
+
+    // Wait for the user button to appear in the navbar (indicates auth is ready)
+    const userButton = this.page.locator('header').getByRole('button').filter({
+      hasText: /user|demo|admin/i
+    });
+    await expect(userButton).toBeVisible({ timeout: 10000 });
+
+    // Wait for network to settle
+    await this.page.waitForLoadState('networkidle');
+
+    // Navigate programmatically to preserve access token in memory
+    await this.page.evaluate(() => {
+      window.history.pushState({}, '', '/admin/orders');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    // Give React Router time to handle the route
+    await this.page.waitForTimeout(500);
+
+    await this.page.waitForURL(/\/admin\/orders/);
     await this.waitForPageLoaded();
   }
 
@@ -67,7 +85,15 @@ export class AdminOrdersPage extends BasePage {
 
   async filterByStatus(status: string) {
     await this.statusFilter.click();
-    await this.page.getByRole('option', { name: new RegExp(status, 'i') }).click();
+    // Wait for dropdown to open
+    await this.page.waitForTimeout(200);
+    // The dropdown shows generic divs with text - look for exact text match
+    const dropdown = this.page.locator('div').filter({
+      has: this.page.getByText(/all orders/i)
+    }).filter({
+      has: this.page.getByText(/pending/i)
+    }).first();
+    await dropdown.getByText(new RegExp(`^${status}$`, 'i')).click();
   }
 
   async filterByDate(date: string) {

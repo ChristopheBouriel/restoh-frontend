@@ -8,31 +8,39 @@ export class ReservationPage extends BasePage {
   }
 
   private get dateInput() {
-    return this.page.getByRole('textbox', { name: /date/i });
+    // Date input has placeholder "DD/MM/YYYY"
+    return this.page.getByRole('textbox', { name: /DD\/MM\/YYYY/i });
   }
 
-  private get guestCountDisplay() {
-    return this.page.locator('text=/\\d+ guests?/i');
+  private get guestCountContainer() {
+    // The container with -, count, and + buttons
+    return this.page.locator('div').filter({
+      has: this.page.getByRole('button', { name: '-', exact: true })
+    }).filter({
+      has: this.page.getByRole('button', { name: '+', exact: true })
+    }).first();
   }
 
   private get increaseGuestsButton() {
-    return this.page.getByRole('button', { name: /increase|plus|\+/i }).first();
+    return this.page.getByRole('button', { name: '+', exact: true });
   }
 
   private get decreaseGuestsButton() {
-    return this.page.getByRole('button', { name: /decrease|minus|-/i }).first();
+    return this.page.getByRole('button', { name: '-', exact: true });
   }
 
   private get phoneInput() {
-    return this.page.getByRole('textbox', { name: /phone/i });
+    // Phone input has placeholder like "06 12 34 56 78"
+    return this.page.getByRole('textbox', { name: /06 12 34 56 78/i });
   }
 
   private get specialRequestsInput() {
-    return this.page.getByRole('textbox', { name: /special requests/i });
+    // Special requests textarea with allergies placeholder
+    return this.page.getByRole('textbox', { name: /allergies|special/i });
   }
 
   private get submitButton() {
-    return this.page.getByRole('button', { name: /confirm|book|reserve/i });
+    return this.page.getByRole('button', { name: /book/i });
   }
 
   // Time slots
@@ -46,11 +54,17 @@ export class ReservationPage extends BasePage {
 
   // Tables
   private get tableSection() {
-    return this.page.locator('section').filter({ hasText: /select.*table/i });
+    // The section containing "Select Tables *"
+    return this.page.locator('div').filter({ hasText: /Select Tables/i }).first();
   }
 
   private get availableTables() {
+    // Table buttons appear after date/time selection
     return this.tableSection.getByRole('button');
+  }
+
+  private get tablesDisabledMessage() {
+    return this.page.getByText(/please select a date and time/i);
   }
 
   // My Reservations section
@@ -80,12 +94,43 @@ export class ReservationPage extends BasePage {
 
   // Actions
   async goto() {
-    await super.goto('/reservations');
+    // First navigate to a public page to let auth initialize
+    // This is critical because the app needs to refresh the access token
+    // before accessing protected routes
+    await super.goto('/menu');
+
+    // Wait for the user button to appear in the navbar
+    // This indicates auth has been initialized and user is logged in
+    const userButton = this.page.locator('header').getByRole('button').filter({
+      hasText: /user|demo|admin/i
+    });
+    await expect(userButton).toBeVisible({ timeout: 10000 });
+
+    // Wait for network to settle
+    await this.page.waitForLoadState('networkidle');
+
+    // Use client-side navigation via clicking the Reservations link
+    // This keeps the access token in memory (page.goto would reload and lose it)
+    const reservationsLink = this.page.locator('header').getByRole('link', { name: /reservations/i });
+    await reservationsLink.click();
+
+    // Wait for navigation to complete
+    await this.page.waitForURL(/\/reservations/);
     await this.waitForPageLoaded();
   }
 
   async waitForPageLoaded() {
-    await expect(this.heading).toBeVisible({ timeout: 10000 });
+    // Wait for either the reservations heading OR redirect to login
+    // This helps us detect auth failures faster
+    try {
+      await expect(this.heading).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      // Check if we were redirected to login
+      if (this.page.url().includes('/login')) {
+        throw new Error('Authentication failed: redirected to login page. Check storageState is valid and backend is running.');
+      }
+      throw error;
+    }
     await this.page.waitForLoadState('networkidle');
   }
 
@@ -98,17 +143,21 @@ export class ReservationPage extends BasePage {
   }
 
   async setGuests(count: number) {
-    // First, get current count and adjust
-    const currentText = await this.guestCountDisplay.textContent();
-    const currentCount = parseInt(currentText?.match(/\d+/)?.[0] || '1');
+    // Get current count from the container
+    const container = this.guestCountContainer;
+    const countText = await container.textContent();
+    const currentCount = parseInt(countText?.match(/\d+/)?.[0] || '2');
 
     if (count > currentCount) {
       for (let i = currentCount; i < count; i++) {
         await this.increaseGuestsButton.click();
+        // Small delay to let the UI update
+        await this.page.waitForTimeout(100);
       }
     } else if (count < currentCount) {
       for (let i = currentCount; i > count; i--) {
         await this.decreaseGuestsButton.click();
+        await this.page.waitForTimeout(100);
       }
     }
   }
@@ -123,7 +172,11 @@ export class ReservationPage extends BasePage {
 
   async selectTimeSlot(time: string) {
     // Click on the time slot button
-    await this.page.getByRole('button', { name: time, exact: true }).click();
+    const timeButton = this.page.getByRole('button', { name: time, exact: true });
+    await timeButton.click();
+
+    // Wait for the button to show as selected (has primary background)
+    await expect(timeButton).toHaveClass(/bg-primary/, { timeout: 5000 });
   }
 
   async selectLunchSlot(index: number = 0) {
@@ -139,7 +192,23 @@ export class ReservationPage extends BasePage {
   }
 
   async selectFirstAvailableTable() {
-    await this.availableTables.first().click();
+    // Wait for tables to appear (disabled message should be gone)
+    await expect(this.tablesDisabledMessage).not.toBeVisible({ timeout: 5000 });
+
+    // Wait for any loading overlay to disappear
+    const loadingOverlay = this.page.locator('.absolute.inset-0.bg-white\\/80');
+    await loadingOverlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+      // Overlay might not exist, that's fine
+    });
+
+    // Find an available (not disabled) table button and click it
+    // Use :not([disabled]) pseudo-selector to exclude disabled buttons
+    const availableTable = this.page.locator('button:not([disabled])').filter({
+      hasText: /\d+.*\(\d+p\)/  // Match "1 (2p)" pattern
+    }).first();
+
+    await expect(availableTable).toBeEnabled({ timeout: 5000 });
+    await availableTable.click();
   }
 
   async submitReservation() {
@@ -155,24 +224,30 @@ export class ReservationPage extends BasePage {
     specialRequests?: string;
     tableNumber?: number;
   }) {
+    // Fill in form fields
     await this.selectDate(options.date);
     await this.setGuests(options.guests);
     await this.fillPhone(options.phone);
+
+    // Select time slot (this should trigger tables to load)
     await this.selectTimeSlot(options.time);
 
-    // Wait for tables to load after time selection
-    await this.page.waitForTimeout(500);
-
+    // Select table
     if (options.tableNumber) {
       await this.selectTable(options.tableNumber);
     } else {
       await this.selectFirstAvailableTable();
     }
 
+    // Fill special requests if provided
     if (options.specialRequests) {
       await this.fillSpecialRequests(options.specialRequests);
     }
 
+    // Wait for book button to be enabled
+    await expect(this.submitButton).toBeEnabled({ timeout: 5000 });
+
+    // Submit
     await this.submitReservation();
   }
 
@@ -214,10 +289,8 @@ export class ReservationPage extends BasePage {
 
   async expectTimeSlotSelected(time: string) {
     const slot = this.page.getByRole('button', { name: time, exact: true });
-    // Selected state could be aria-pressed or a class change
-    await expect(slot).toHaveAttribute('aria-pressed', 'true').or(
-      expect(slot).toHaveClass(/selected|active|bg-primary/i)
-    );
+    // Selected time slots have primary background color
+    await expect(slot).toHaveClass(/bg-primary/);
   }
 
   async expectTableSelected() {
@@ -252,7 +325,7 @@ export class ReservationPage extends BasePage {
   }
 
   async expectTablesDisabled() {
-    // Tables should be disabled until date and time are selected
-    await expect(this.tableSection.getByText(/select.*date.*time|please.*select/i)).toBeVisible();
+    // Tables should show message to select date and time first
+    await expect(this.tablesDisabledMessage).toBeVisible();
   }
 }
