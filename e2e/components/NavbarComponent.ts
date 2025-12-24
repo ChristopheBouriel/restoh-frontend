@@ -9,7 +9,7 @@ export class NavbarComponent {
   }
 
   private get logo() {
-    return this.navbar.getByRole('link', { name: /restoh|logo|home/i }).first();
+    return this.navbar.getByRole('link', { name: 'RestOh!' }).first();
   }
 
   private get menuLink() {
@@ -45,15 +45,15 @@ export class NavbarComponent {
   }
 
   private get profileLink() {
-    return this.page.getByRole('menuitem', { name: /profile/i });
+    return this.page.getByRole('link', { name: /my profile|profile/i });
   }
 
   private get logoutButton() {
-    return this.page.getByRole('menuitem', { name: /logout|sign out/i });
+    return this.page.getByRole('button', { name: /logout|sign out/i });
   }
 
   private get adminDashboardLink() {
-    return this.page.getByRole('menuitem', { name: /dashboard|admin/i });
+    return this.page.getByRole('link', { name: /dashboard|admin/i });
   }
 
   // Mobile menu

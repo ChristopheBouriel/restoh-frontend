@@ -9,7 +9,7 @@ export class FooterComponent {
   }
 
   private get copyright() {
-    return this.footer.getByText(/copyright|©|\d{4}/i);
+    return this.footer.getByText(/© \d{4}/).first();
   }
 
   private get socialLinks() {

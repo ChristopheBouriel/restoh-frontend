@@ -82,7 +82,8 @@ export class HomePage extends BasePage {
 
   // Assertions
   async expectToBeOnHomePage() {
-    await expect(this.page).toHaveURL(/^\/$|\/home/);
+    const url = this.page.url();
+    expect(url.endsWith('/') || url.includes('/home')).toBe(true);
   }
 
   async expectHeroVisible() {
