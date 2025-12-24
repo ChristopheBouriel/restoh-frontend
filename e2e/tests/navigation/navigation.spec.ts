@@ -92,15 +92,6 @@ test.describe('Navigation - Site-wide navigation tests', () => {
 
       await expect(page).toHaveURL(/\/profile/);
     });
-
-    test('should logout user', async ({ page }) => {
-      await page.goto('/');
-
-      await navbar.logout();
-
-      // Should redirect to login or home
-      await expect(page).toHaveURL(/\/(login)?$/);
-    });
   });
 
   test.describe('Footer Navigation', () => {
@@ -119,9 +110,8 @@ test.describe('Navigation - Site-wide navigation tests', () => {
     test('should navigate to menu from footer', async ({ page }) => {
       await page.goto('/');
 
-      // Scroll to footer
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(300);
+      // Scroll footer into view
+      await page.locator('footer').scrollIntoViewIfNeeded();
 
       await footer.goToMenu();
 
@@ -131,8 +121,7 @@ test.describe('Navigation - Site-wide navigation tests', () => {
     test('should navigate to reservations from footer', async ({ page }) => {
       await page.goto('/');
 
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(300);
+      await page.locator('footer').scrollIntoViewIfNeeded();
 
       await footer.goToReservations();
 
@@ -142,8 +131,7 @@ test.describe('Navigation - Site-wide navigation tests', () => {
     test('should navigate to contact from footer', async ({ page }) => {
       await page.goto('/');
 
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(300);
+      await page.locator('footer').scrollIntoViewIfNeeded();
 
       await footer.goToContact();
 
@@ -183,6 +171,20 @@ test.describe('Navigation - Site-wide navigation tests', () => {
       await homePage.clickReserveTable();
 
       await expect(page).toHaveURL(/\/reservations/);
+    });
+  });
+
+  // Logout test at the end - this modifies auth state
+  test.describe('Logout', () => {
+    test.describe.configure({ mode: 'serial' });
+
+    test('should logout user', async ({ page }) => {
+      await page.goto('/');
+
+      await navbar.logout();
+
+      // Should redirect to login or home
+      await expect(page).toHaveURL(/\/(login)?$/);
     });
   });
 });
