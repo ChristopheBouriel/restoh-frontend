@@ -155,7 +155,7 @@ test.describe('Navigation - Site-wide navigation tests', () => {
       await homePage.expectCallToActionsVisible();
     });
 
-    test.skip('should navigate to menu from CTA', async ({ page }) => {
+    test('should navigate to menu from CTA', async ({ page }) => {
       const homePage = new HomePage(page);
       await homePage.goto();
 
@@ -164,7 +164,7 @@ test.describe('Navigation - Site-wide navigation tests', () => {
       await expect(page).toHaveURL(/\/menu/);
     });
 
-    test.skip('should navigate to reservations from CTA', async ({ page }) => {
+    test('should navigate to reservations from CTA', async ({ page }) => {
       const homePage = new HomePage(page);
       await homePage.goto();
 

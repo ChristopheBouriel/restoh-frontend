@@ -14,110 +14,146 @@ test.describe('Contact Page - Contact form and information', () => {
       await contactPage.expectToBeOnContactPage();
     });
 
-    test.skip('should display restaurant information', async () => {
+    test('should display restaurant information', async () => {
       await contactPage.expectRestaurantInfoVisible();
     });
   });
 
   test.describe('Contact Form', () => {
-    test('should submit contact form successfully', async () => {
-      await contactPage.sendMessage({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        subject: 'General Inquiry',
-        message: 'This is a test message for the restaurant. Looking forward to visiting!',
-      });
+    test('should submit contact form successfully', async ({ page }) => {
+      // For authenticated users, name/email/phone are pre-filled
+      // Use Tab to navigate through form fields naturally, triggering validation
+      const nameInput = page.getByRole('textbox', { name: /name/i });
+
+      // Start from name field and Tab through to trigger validation on pre-filled fields
+      await nameInput.click();
+      await page.keyboard.press('Tab'); // to email
+      await page.keyboard.press('Tab'); // to phone
+      await page.keyboard.press('Tab'); // to subject
+
+      // Fill subject
+      await page.keyboard.type('General Inquiry');
+      await page.keyboard.press('Tab'); // to message
+
+      // Fill message
+      await page.keyboard.type('This is a test message for the restaurant. Looking forward to visiting!');
+      await page.keyboard.press('Tab'); // blur message, focus moves to submit
+
+      // Wait for form to be valid and submit
+      await expect(page.getByRole('button', { name: /send/i })).toBeEnabled({ timeout: 5000 });
+      await page.getByRole('button', { name: /send/i }).click();
 
       await contactPage.expectMessageSent();
     });
 
-    test('should clear form after successful submission', async () => {
-      await contactPage.sendMessage({
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        subject: 'Reservation Question',
-        message: 'I have a question about group reservations for 20 people.',
-      });
+    test('should clear form after successful submission', async ({ page }) => {
+      // Use Tab to navigate through form fields naturally
+      const nameInput = page.getByRole('textbox', { name: /name/i });
+
+      await nameInput.click();
+      await page.keyboard.press('Tab'); // to email
+      await page.keyboard.press('Tab'); // to phone
+      await page.keyboard.press('Tab'); // to subject
+
+      await page.keyboard.type('Reservation Question');
+      await page.keyboard.press('Tab'); // to message
+
+      await page.keyboard.type('I have a question about group reservations for 20 people.');
+      await page.keyboard.press('Tab'); // blur message
+
+      await expect(page.getByRole('button', { name: /send/i })).toBeEnabled({ timeout: 5000 });
+      await page.getByRole('button', { name: /send/i }).click();
 
       await contactPage.expectMessageSent();
-      await contactPage.expectFormCleared();
+      // For authenticated users, form resets to pre-filled user data
+      // so name/email stay filled, but subject/message clear
+      await expect(page.getByRole('textbox', { name: /subject/i })).toHaveValue('');
+      await expect(page.getByRole('textbox', { name: /message/i })).toHaveValue('');
     });
 
-    test('should validate required name field', async ({ page }) => {
-      await contactPage.fillEmail('test@example.com');
-      await contactPage.fillSubject('Test Subject');
+    test('should show validation error for empty subject after blur', async ({ page }) => {
+      // Message is valid
       await contactPage.fillMessage('This is a valid message with enough characters.');
-      await contactPage.submit();
 
-      // Should show name error
+      // Focus and blur subject to trigger validation
+      const subjectInput = page.getByRole('textbox', { name: /subject/i });
+      await subjectInput.focus();
+      await subjectInput.blur();
+
+      // Should show subject error (specific error message)
       await expect(
-        page.getByRole('alert').filter({ hasText: /name/i }).or(
-          page.getByText(/name.*required|please.*enter.*name/i)
-        )
+        page.getByText('Subject is required')
       ).toBeVisible();
     });
 
-    test('should validate required email field', async ({ page }) => {
-      await contactPage.fillName('John Doe');
+    test('should show validation error for empty message after blur', async ({ page }) => {
+      // Subject is valid
       await contactPage.fillSubject('Test Subject');
-      await contactPage.fillMessage('This is a valid message with enough characters.');
-      await contactPage.submit();
 
+      // Focus and blur message to trigger validation
+      const messageInput = page.getByRole('textbox', { name: /message/i });
+      await messageInput.focus();
+      await messageInput.blur();
+
+      // Should show message error (specific error message)
       await expect(
-        page.getByRole('alert').filter({ hasText: /email/i }).or(
-          page.getByText(/email.*required|valid.*email/i)
-        )
+        page.getByText('Message is required')
       ).toBeVisible();
     });
 
-    test('should validate email format', async ({ page }) => {
-      await contactPage.fillName('John Doe');
-      await contactPage.fillEmail('invalid-email');
+    test('should show validation error for short message', async ({ page }) => {
       await contactPage.fillSubject('Test Subject');
-      await contactPage.fillMessage('This is a valid message with enough characters.');
-      await contactPage.submit();
+      await contactPage.fillMessage('Short');
 
+      // Blur to trigger validation
+      const messageInput = page.getByRole('textbox', { name: /message/i });
+      await messageInput.blur();
+
+      // Should show minimum length error (specific error message)
       await expect(
-        page.getByText(/valid.*email|email.*format/i)
+        page.getByText(/must be at least 10 characters/i)
       ).toBeVisible();
     });
 
-    test('should validate required subject field', async ({ page }) => {
-      await contactPage.fillName('John Doe');
-      await contactPage.fillEmail('john@example.com');
-      await contactPage.fillMessage('This is a valid message with enough characters.');
-      await contactPage.submit();
+    test('should show validation error for invalid email format', async ({ page }) => {
+      // Clear and fill with invalid email using keyboard (more reliable)
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      await emailInput.click();
+      await emailInput.selectText();
+      await page.keyboard.type('invalid-email');
+      await page.keyboard.press('Tab'); // blur to trigger validation
 
       await expect(
-        page.getByRole('alert').filter({ hasText: /subject/i }).or(
-          page.getByText(/subject.*required/i)
-        )
+        page.getByText('Invalid email address')
       ).toBeVisible();
     });
 
-    test('should validate required message field', async ({ page }) => {
-      await contactPage.fillName('John Doe');
-      await contactPage.fillEmail('john@example.com');
-      await contactPage.fillSubject('Test Subject');
-      await contactPage.submit();
+    test('should disable submit button when form is invalid', async ({ page }) => {
+      // Clear all required fields
+      await page.getByRole('textbox', { name: /subject/i }).clear();
+      await page.getByRole('textbox', { name: /message/i }).clear();
 
-      await expect(
-        page.getByRole('alert').filter({ hasText: /message/i }).or(
-          page.getByText(/message.*required/i)
-        )
-      ).toBeVisible();
+      // Submit button should be disabled
+      await expect(page.getByRole('button', { name: /send/i })).toBeDisabled();
     });
 
-    test('should validate minimum message length', async ({ page }) => {
-      await contactPage.fillName('John Doe');
-      await contactPage.fillEmail('john@example.com');
-      await contactPage.fillSubject('Test Subject');
-      await contactPage.fillMessage('Too short');
-      await contactPage.submit();
+    test('should enable submit button when form is valid', async ({ page }) => {
+      // Use Tab navigation to trigger validation on all fields
+      const nameInput = page.getByRole('textbox', { name: /name/i });
 
-      await expect(
-        page.getByText(/minimum|too short|at least/i)
-      ).toBeVisible();
+      await nameInput.click();
+      await page.keyboard.press('Tab'); // to email
+      await page.keyboard.press('Tab'); // to phone
+      await page.keyboard.press('Tab'); // to subject
+
+      await page.keyboard.type('Test Subject');
+      await page.keyboard.press('Tab'); // to message
+
+      await page.keyboard.type('This is a valid message with at least 10 characters.');
+      await page.keyboard.press('Tab'); // blur message
+
+      // Submit button should be enabled
+      await expect(page.getByRole('button', { name: /send/i })).toBeEnabled({ timeout: 5000 });
     });
   });
 });

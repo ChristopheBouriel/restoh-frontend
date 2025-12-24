@@ -16,11 +16,13 @@ export class HomePage extends BasePage {
   }
 
   private get reserveTableButton() {
-    return this.page.getByRole('link', { name: /reserve|réserver/i });
+    // "Book a Table" or "Reserve" link to /reservations
+    return this.page.getByRole('link', { name: /book.*table|reserve|réserver/i }).first();
   }
 
   private get viewMenuButton() {
-    return this.page.getByRole('link', { name: /view menu|voir le menu/i });
+    // "Order Now" or "View Full Menu" both link to /menu
+    return this.page.getByRole('link', { name: /order now|view.*menu|voir le menu/i }).first();
   }
 
   // Featured dishes section

@@ -27,17 +27,17 @@ export class ContactPage extends BasePage {
     return this.page.getByRole('button', { name: /send|submit/i });
   }
 
-  // Restaurant info section
+  // Restaurant info section - uses headings like "Address", "Phone", "Opening hours"
   private get addressSection() {
-    return this.page.locator('section').filter({ hasText: /address|location/i });
+    return this.page.getByRole('heading', { name: /^address$/i });
   }
 
   private get hoursSection() {
-    return this.page.locator('section').filter({ hasText: /hours|opening/i });
+    return this.page.getByRole('heading', { name: /opening hours/i });
   }
 
   private get phoneSection() {
-    return this.page.locator('section').filter({ hasText: /phone|call/i });
+    return this.page.getByRole('heading', { name: /^phone$/i });
   }
 
   // Actions
@@ -66,8 +66,8 @@ export class ContactPage extends BasePage {
     await this.messageInput.fill(message);
   }
 
-  async submit() {
-    await this.submitButton.click();
+  async submit(options?: { force?: boolean }) {
+    await this.submitButton.click(options);
   }
 
   async sendMessage(data: {
