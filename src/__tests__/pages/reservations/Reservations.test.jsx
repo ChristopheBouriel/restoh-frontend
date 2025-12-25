@@ -704,4 +704,22 @@ describe('Reservations Component', () => {
       expect(screen.getByText('New reservation')).toBeInTheDocument()
     })
   })
+
+  // 12. TABLEMAP INTEGRATION
+  describe('TableMap Integration', () => {
+    test('should show placeholder message when no date/time selected', () => {
+      render(<ReservationsWrapper />)
+
+      // TableMap is hidden until date and time are selected
+      expect(screen.getByText(/Please select a date and time slot to view available tables/)).toBeInTheDocument()
+    })
+
+    test('should require tables for submit button to be enabled', () => {
+      render(<ReservationsWrapper />)
+
+      // Submit button requires: date, time slot, phone, AND tables
+      const submitButton = screen.getByRole('button', { name: '🗓️ Book' })
+      expect(submitButton).toBeDisabled()
+    })
+  })
 })

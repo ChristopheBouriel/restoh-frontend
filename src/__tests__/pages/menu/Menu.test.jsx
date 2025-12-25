@@ -743,4 +743,111 @@ describe('Menu Component', () => {
       })
     })
   })
+
+  // 10. LOADING STATE
+  test('should display loading skeleton when loading', () => {
+    vi.mocked(useMenu).mockReturnValue({
+      items: [],
+      categories: [],
+      isLoading: true
+    })
+
+    render(<MenuWrapper />)
+
+    // Should show skeleton placeholders (animate-pulse class)
+    const skeletonContainer = document.querySelector('.animate-pulse')
+    expect(skeletonContainer).toBeInTheDocument()
+  })
+
+  // 11. UNAVAILABLE ITEMS
+  describe('Unavailable Items Display', () => {
+    test('should display unavailable item with reduced opacity and badge', () => {
+      const itemsWithUnavailable = [
+        { ...mockMenuItems[0], isAvailable: false },
+        mockMenuItems[1]
+      ]
+
+      vi.mocked(useMenu).mockReturnValue({
+        items: itemsWithUnavailable,
+        categories: mockCategories,
+        isLoading: false
+      })
+
+      render(<MenuWrapper />)
+
+      // Find Pizza Margherita card
+      const pizzaCard = screen.getByRole('heading', { name: 'Pizza Margherita', level: 3 }).closest('.bg-white')
+      expect(pizzaCard).toHaveClass('opacity-60')
+    })
+
+    test('should show Unavailable button for unavailable items', () => {
+      const itemsWithUnavailable = [
+        { ...mockMenuItems[0], isAvailable: false }
+      ]
+
+      vi.mocked(useMenu).mockReturnValue({
+        items: itemsWithUnavailable,
+        categories: mockCategories,
+        isLoading: false
+      })
+
+      render(<MenuWrapper />)
+
+      // Unavailable items show "Unavailable" button instead of "Add to cart"
+      const unavailableButton = screen.getByRole('button', { name: 'Unavailable' })
+      expect(unavailableButton).toBeDisabled()
+      expect(screen.queryByText('Add to cart')).not.toBeInTheDocument()
+    })
+  })
+
+  // 12. POPULAR AND CHEF'S PICK BADGES
+  describe('Special Badges Display', () => {
+    test('should display Chef\'s pick badge for suggested items', () => {
+      const itemsWithSuggested = [
+        { ...mockMenuItems[0], isSuggested: true }
+      ]
+
+      vi.mocked(useMenu).mockReturnValue({
+        items: itemsWithSuggested,
+        categories: mockCategories,
+        isLoading: false
+      })
+
+      render(<MenuWrapper />)
+
+      expect(screen.getByText("Chef's pick")).toBeInTheDocument()
+    })
+
+    test('should display Popular badge for popular items', () => {
+      const itemsWithPopular = [
+        { ...mockMenuItems[0], isPopular: true, isPopularOverride: false }
+      ]
+
+      vi.mocked(useMenu).mockReturnValue({
+        items: itemsWithPopular,
+        categories: mockCategories,
+        isLoading: false
+      })
+
+      render(<MenuWrapper />)
+
+      expect(screen.getByText('Popular')).toBeInTheDocument()
+    })
+
+    test('should NOT display Popular badge when isPopularOverride is true', () => {
+      const itemsWithOverride = [
+        { ...mockMenuItems[0], isPopular: true, isPopularOverride: true }
+      ]
+
+      vi.mocked(useMenu).mockReturnValue({
+        items: itemsWithOverride,
+        categories: mockCategories,
+        isLoading: false
+      })
+
+      render(<MenuWrapper />)
+
+      expect(screen.queryByText('Popular')).not.toBeInTheDocument()
+    })
+  })
 })
