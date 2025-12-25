@@ -128,16 +128,55 @@ export class AdminReservationsPage extends BasePage {
 
   async viewReservationDetails(idOrIndex: string | number) {
     const row = await this.getReservationRow(idOrIndex);
-    await row.getByRole('button', { name: /view|details/i }).click();
+    // The view button is an icon button with title="View details"
+    const viewButton = row.locator('button[title="View details"]');
+    await viewButton.click();
+    await this.page.waitForTimeout(300); // Wait for modal to open
+  }
+
+  async getModifiableReservationRow(): Promise<Locator | null> {
+    // Find a row that has a status dropdown (not completed or cancelled)
+    // These rows have a button with ▼ in the Actions column
+    const rows = this.reservationRows;
+    const count = await rows.count();
+
+    for (let i = 0; i < count; i++) {
+      const row = rows.nth(i);
+      const statusButton = row.locator('button').filter({ hasText: /▼/ });
+      if (await statusButton.count() > 0) {
+        return row;
+      }
+    }
+    return null;
   }
 
   async updateReservationStatus(idOrIndex: string | number, newStatus: string) {
-    const row = await this.getReservationRow(idOrIndex);
-    const statusControl = row.getByRole('combobox').or(
-      row.getByRole('button', { name: /status|pending|confirmed|seated|completed/i })
-    );
-    await statusControl.click();
-    await this.page.getByRole('option', { name: new RegExp(newStatus, 'i') }).click();
+    let row: Locator;
+
+    if (idOrIndex === 0) {
+      // Find first modifiable reservation instead of just first reservation
+      const modifiableRow = await this.getModifiableReservationRow();
+      if (!modifiableRow) {
+        throw new Error('No modifiable reservations found (all are completed or cancelled)');
+      }
+      row = modifiableRow;
+    } else {
+      row = await this.getReservationRow(idOrIndex);
+    }
+
+    // SimpleSelect: Find the status dropdown button in the Actions column
+    // The button text includes status + ▼ (e.g., "Pending ▼", "Confirmed ▼")
+    const statusButton = row.locator('button').filter({ hasText: /▼/ }).last();
+    await statusButton.click();
+    await this.page.waitForTimeout(300); // Wait for dropdown to open
+
+    // The dropdown opens as a div with all options as children
+    const dropdown = this.page.locator('div.absolute.bg-white.border-2').first();
+    const option = dropdown.locator('div').filter({ hasText: new RegExp(`^${newStatus}$`, 'i') }).first();
+    await option.click();
+
+    // Wait for the API call and potential page refresh
+    await this.page.waitForTimeout(500);
   }
 
   async confirmReservation(idOrIndex: string | number) {

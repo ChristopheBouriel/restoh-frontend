@@ -130,14 +130,51 @@ export class AdminOrdersPage extends BasePage {
     await row.getByRole('button', { name: /view|details/i }).click();
   }
 
+  async getModifiableOrderRow(): Promise<Locator | null> {
+    // Find a row that has a status dropdown (not delivered or cancelled)
+    // These rows have a button with ▼ in the Actions column
+    const rows = this.orderRows;
+    const count = await rows.count();
+
+    for (let i = 0; i < count; i++) {
+      const row = rows.nth(i);
+      const statusButton = row.locator('button').filter({ hasText: /▼/ });
+      if (await statusButton.count() > 0) {
+        return row;
+      }
+    }
+    return null;
+  }
+
   async updateOrderStatus(orderIdOrIndex: string | number, newStatus: string) {
-    const row = await this.getOrderRow(orderIdOrIndex);
-    // Find status dropdown or button in the row
-    const statusControl = row.getByRole('combobox').or(
-      row.getByRole('button', { name: /status|pending|confirmed|preparing|ready|delivered/i })
-    );
-    await statusControl.click();
-    await this.page.getByRole('option', { name: new RegExp(newStatus, 'i') }).click();
+    let row: Locator;
+
+    if (orderIdOrIndex === 0) {
+      // Find first modifiable order instead of just first order
+      const modifiableRow = await this.getModifiableOrderRow();
+      if (!modifiableRow) {
+        throw new Error('No modifiable orders found (all orders are delivered or cancelled)');
+      }
+      row = modifiableRow;
+    } else {
+      row = await this.getOrderRow(orderIdOrIndex);
+    }
+
+    // SimpleSelect: Find the status dropdown button in the Actions column
+    // The button text includes status + ▼ (e.g., "Pending ▼", "Confirmed ▼")
+    const statusButton = row.locator('button').filter({ hasText: /▼/ }).last();
+    await statusButton.click();
+    await this.page.waitForTimeout(300); // Wait for dropdown to open
+
+    // The dropdown opens as a div with all options as children
+    // Each option is a div with the status text
+    // We need to click the visible dropdown option (appears above the button)
+    const dropdown = this.page.locator('div.absolute.bg-white.border-2').first();
+    const option = dropdown.locator('div').filter({ hasText: new RegExp(`^${newStatus}$`, 'i') }).first();
+    await option.click();
+
+    // Wait for the API call and potential page refresh
+    await this.page.waitForTimeout(500);
   }
 
   async markOrderAsPaid(orderIdOrIndex: string | number) {

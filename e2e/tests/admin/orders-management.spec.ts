@@ -66,51 +66,48 @@ test.describe('Admin Orders Management', () => {
     });
   });
 
-  // Note: Status updates and actions tests are skipped because
-  // the current UI uses inline status dropdowns that need specific selectors.
-  // These tests need to be updated when the UI is finalized.
   test.describe('Order Status Updates', () => {
-    test.skip('should update order status to confirmed', async () => {
+    test('should update order status to confirmed', async () => {
       const count = await ordersPage.getOrdersCount();
       if (count === 0) {
         test.skip();
         return;
       }
 
-      await ordersPage.updateOrderStatus(0, 'confirmed');
+      await ordersPage.updateOrderStatus(0, 'Confirmed');
       await ordersPage.expectStatusUpdateSuccess();
     });
 
-    test.skip('should update order status to preparing', async () => {
+    test('should update order status to preparing', async () => {
       const count = await ordersPage.getOrdersCount();
       if (count === 0) {
         test.skip();
         return;
       }
 
-      await ordersPage.updateOrderStatus(0, 'preparing');
+      await ordersPage.updateOrderStatus(0, 'Preparing');
       await ordersPage.expectStatusUpdateSuccess();
     });
 
-    test.skip('should update order status to ready', async () => {
+    test('should update order status to ready', async () => {
       const count = await ordersPage.getOrdersCount();
       if (count === 0) {
         test.skip();
         return;
       }
 
-      await ordersPage.updateOrderStatus(0, 'ready');
+      await ordersPage.updateOrderStatus(0, 'Ready');
       await ordersPage.expectStatusUpdateSuccess();
     });
 
-    test.skip('should update order status to delivered', async () => {
+    test('should update order status to delivered', async () => {
       const count = await ordersPage.getOrdersCount();
       if (count === 0) {
         test.skip();
         return;
       }
 
-      await ordersPage.updateOrderStatus(0, 'delivered');
+      await ordersPage.updateOrderStatus(0, 'Delivered');
       await ordersPage.expectStatusUpdateSuccess();
     });
   });
@@ -133,26 +130,18 @@ test.describe('Admin Orders Management', () => {
       ).toBeVisible();
     });
 
-    test.skip('should mark order as paid', async () => {
+    // Note: "Mark as paid" button doesn't exist in current UI
+    // Payment status is managed automatically based on payment method
+
+    test('should cancel order via status dropdown', async () => {
       const count = await ordersPage.getOrdersCount();
       if (count === 0) {
         test.skip();
         return;
       }
 
-      await ordersPage.markOrderAsPaid(0);
-      await ordersPage.expectSuccessToast(/paid|payé/i);
-    });
-
-    test.skip('should cancel order', async () => {
-      const count = await ordersPage.getOrdersCount();
-      if (count === 0) {
-        test.skip();
-        return;
-      }
-
-      await ordersPage.cancelOrder(0);
-      await ordersPage.expectOrderCancelled();
+      await ordersPage.updateOrderStatus(0, 'Cancelled');
+      await ordersPage.expectStatusUpdateSuccess();
     });
   });
 });

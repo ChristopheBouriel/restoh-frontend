@@ -67,7 +67,7 @@ test.describe('Admin Reservations Management', () => {
   });
 
   test.describe('Reservation Status Updates', () => {
-    test.skip('should confirm reservation', async () => {
+    test('should confirm reservation', async () => {
       const count = await reservationsPage.getReservationsCount();
       if (count === 0) {
         test.skip();
@@ -78,7 +78,7 @@ test.describe('Admin Reservations Management', () => {
       await reservationsPage.expectStatusUpdateSuccess();
     });
 
-    test.skip('should seat guests', async () => {
+    test('should seat guests', async () => {
       const count = await reservationsPage.getReservationsCount();
       if (count === 0) {
         test.skip();
@@ -89,7 +89,7 @@ test.describe('Admin Reservations Management', () => {
       await reservationsPage.expectStatusUpdateSuccess();
     });
 
-    test.skip('should complete reservation', async () => {
+    test('should complete reservation', async () => {
       const count = await reservationsPage.getReservationsCount();
       if (count === 0) {
         test.skip();
@@ -102,7 +102,7 @@ test.describe('Admin Reservations Management', () => {
   });
 
   test.describe('Reservation Actions', () => {
-    test.skip('should view reservation details', async ({ page }) => {
+    test('should view reservation details', async ({ page }) => {
       const count = await reservationsPage.getReservationsCount();
       if (count === 0) {
         test.skip();
@@ -111,38 +111,24 @@ test.describe('Admin Reservations Management', () => {
 
       await reservationsPage.viewReservationDetails(0);
 
+      // Modal should appear with reservation details
       await expect(
-        page.getByRole('dialog').or(
-          page.getByRole('heading', { name: /reservation details|reservation #/i })
-        )
+        page.getByRole('heading', { name: /reservation details/i })
       ).toBeVisible();
     });
 
-    test.skip('should edit reservation', async ({ page }) => {
+    // Note: Edit reservation functionality doesn't exist in current UI
+    // Reservations can only be viewed, status changed, or cancelled
+
+    test('should cancel reservation via status dropdown', async () => {
       const count = await reservationsPage.getReservationsCount();
       if (count === 0) {
         test.skip();
         return;
       }
 
-      await reservationsPage.editReservation(0);
-
-      await expect(
-        page.getByRole('dialog').or(
-          page.getByRole('heading', { name: /edit reservation/i })
-        )
-      ).toBeVisible();
-    });
-
-    test.skip('should cancel reservation', async () => {
-      const count = await reservationsPage.getReservationsCount();
-      if (count === 0) {
-        test.skip();
-        return;
-      }
-
-      await reservationsPage.cancelReservation(0);
-      await reservationsPage.expectReservationCancelled();
+      await reservationsPage.updateReservationStatus(0, 'Cancelled');
+      await reservationsPage.expectStatusUpdateSuccess();
     });
   });
 });
