@@ -58,7 +58,7 @@ npm run dev          # Start development server
 npm run build        # Production build
 npm run preview      # Preview production build
 npm run lint         # Lint code with ESLint
-npm test             # Run tests (1532+ tests)
+npm test             # Run unit tests (1620+ tests)
 npm run test:ui      # Vitest UI interface
 npm run test:watch   # Watch mode
 npm run test:coverage # Code coverage
@@ -146,19 +146,34 @@ Edit `src/constants/index.js` to modify routes, statuses, etc.
 
 ## Tests
 
-The project has over **1532 tests** covering:
-- **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore, statsStore
+The project has comprehensive test coverage:
+
+### Unit & Integration Tests (1620+)
+- **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore, statsStore, reviewsStore, restaurantReviewsStore
 - **Hooks**: useAuth, useCart, useMenu, useOrders, useReservations
 - **Services**: MenuService, ReservationService, OrderService, AuthService, ContactService
-- **Components**: Pages (Dashboard 56 tests), forms, navigation, common components
+- **Components**: Pages (Dashboard 56 tests, Menu 33 tests, Reservations 30 tests), TableMap (50 tests), forms, navigation
 - **Modals**: DeleteAccountModal (multi-step flow with blocked/confirm states)
-- **API**: statsApi, authApi, ordersApi, reservationsApi, menuApi, etc.
+- **API**: All API modules tested (authApi, ordersApi, reservationsApi, menuApi, contactsApi, usersApi, tablesApi, reviewsApi, etc.)
+- **Reviews**: ReviewCard, AddReviewForm, RestaurantReviewCard, RestaurantReviewForm, RestaurantReviews page
+
+### E2E Tests (Playwright)
+- 17 test files covering authentication, ordering, reservations, admin, navigation, contact
+- Accessibility tests with @axe-core/playwright
 
 ```bash
-npm test              # All tests
+# Unit tests
+npm test              # All unit tests
 npm run test:ui       # Vitest interface
 npm run test:coverage # Code coverage (HTML report in coverage/)
 npm run test:watch    # Watch mode
+
+# E2E tests
+npm run e2e           # Run all E2E tests
+npm run e2e:ui        # Playwright UI mode
+npm run e2e:headed    # Run with browser visible
+npm run e2e:debug     # Debug mode
+npm run e2e:report    # Show test report
 ```
 
 ### Testing Best Practices
@@ -243,7 +258,7 @@ For any questions or issues:
 
 ## Roadmap
 
-- [x] Complete unit tests (1530+ tests)
+- [x] Complete unit tests (1620+ tests)
 - [x] Code coverage report
 - [x] Dashboard API statistics integration
 - [x] Dynamic Today filter for stats
@@ -251,7 +266,8 @@ For any questions or issues:
 - [x] Auto-refresh interceptor with request queue
 - [x] Multi-step account deletion modal (GDPR compliance)
 - [x] Remember me functionality (24h default / 7 days with checkbox)
-- [ ] E2E tests with Playwright/Cypress
+- [x] E2E tests with Playwright (17 test files)
+- [x] Accessibility tests (a11y with @axe-core/playwright)
 - [ ] PWA (Progressive Web App)
 - [ ] Internationalization (i18n)
 - [ ] Dark mode

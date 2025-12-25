@@ -6,7 +6,7 @@ Ce fichier fournit des instructions spécifiques à Claude Code pour travailler 
 
 RestOh Frontend est une application React 18 de gestion de restaurant, connectée à un backend REST API. Elle implémente un système complet avec authentification par cookies HTTP-only, gestion des commandes, réservations, avis, et panel d'administration.
 
-**État actuel** : Frontend intégré avec backend, tests complets (1500+ tests), architecture service layer implémentée, dashboard avec statistiques API.
+**État actuel** : Frontend intégré avec backend, tests complets (1620+ tests), architecture service layer implémentée, dashboard avec statistiques API.
 
 ## Architecture et Technologies
 
@@ -210,7 +210,7 @@ npm run lint         # ESLint
 
 ### Tests
 ```bash
-npm test             # Lancer tous les tests (1532+ tests)
+npm test             # Lancer tous les tests (1620+ tests)
 npm run test:ui      # Interface Vitest UI
 npm run test:coverage # Couverture de code
 npm run test:watch   # Mode watch
@@ -530,13 +530,14 @@ expect(mockChangePassword).toHaveBeenCalledWith('old', 'new')
 
 ## État des Tests
 
-**Tests implémentés (1532+)** :
-- ✅ Stores : authStore, ordersStore, reservationsStore, menuStore, contactsStore, cartStore, usersStore, statsStore
+**Tests implémentés (1620+)** :
+- ✅ Stores : authStore, ordersStore, reservationsStore, menuStore, contactsStore, cartStore, usersStore, statsStore, reviewsStore, restaurantReviewsStore
 - ✅ Hooks : useAuth, useCart, useMenu, useOrders, useReservations
 - ✅ Services : MenuService, ReservationService, OrderService, AuthService, ContactService
-- ✅ Composants : Pages principales (dont Dashboard 56 tests), formulaires, navigation, composants communs
+- ✅ Composants : Pages principales (dont Dashboard 56 tests, Menu 33 tests, Reservations 30 tests), formulaires, navigation, composants communs, TableMap (50 tests)
 - ✅ Modals : DeleteAccountModal (multi-step, blocked, confirm-reservations)
-- ✅ API : Mocking des appels avec vi.mock (statsApi, authApi, ordersApi, etc.)
+- ✅ API : Tests unitaires complets pour authApi, contactsApi, ordersApi, reservationsApi, usersApi, tablesApi, menuApi, emailApi, reviewsApi, restaurantReviewsApi, statsApi
+- ✅ Reviews : ReviewCard, AddReviewForm, RestaurantReviewCard, RestaurantReviewForm, RestaurantReviews page
 
 ### Pattern de test recommandé pour les hooks
 
@@ -570,9 +571,9 @@ open coverage/index.html  # Ouvrir le rapport HTML
 ```
 
 ### Tests à ajouter
-- [ ] Tests E2E avec Playwright ou Cypress
+- [x] Tests E2E avec Playwright (17 fichiers de tests)
 - [ ] Tests de performance (bundle size, render times)
-- [ ] Tests d'accessibilité (a11y)
+- [x] Tests d'accessibilité (a11y avec @axe-core/playwright)
 
 ## Déploiement
 
@@ -625,4 +626,4 @@ test: Add tests for orders API
 
 **Ce fichier doit être mis à jour à chaque évolution majeure du projet.**
 
-Dernière mise à jour : Décembre 2024 - Remember Me (24h/7j), Modal de suppression de compte multi-étapes.
+Dernière mise à jour : Décembre 2024 - Tests complets (1620+ unit, 17 E2E, a11y), couverture API et reviews.
