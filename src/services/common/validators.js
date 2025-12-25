@@ -40,7 +40,7 @@ export const validatePhoneFrench = (phone, required = true) => {
   }
 
   // Remove all spaces, dots, dashes for validation
-  const cleaned = phone.replace(/[\s.\-]/g, '')
+  const cleaned = phone.replace(/[\s.-]/g, '')
 
   // French format: 0X XX XX XX XX (10 digits starting with 0)
   // Or international: +33 X XX XX XX XX

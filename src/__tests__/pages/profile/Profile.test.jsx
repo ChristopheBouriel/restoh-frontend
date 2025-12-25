@@ -197,7 +197,7 @@ describe('Profile Component', () => {
         isLoading: false
       })
 
-      emailApi.resendVerification = vi.fn().mockResolvedValue({ success: true })
+      vi.mocked(emailApi.resendVerification).mockResolvedValue({ success: true })
 
       render(<MemoryRouter><Profile /></MemoryRouter>)
 
@@ -222,7 +222,7 @@ describe('Profile Component', () => {
         isLoading: false
       })
 
-      emailApi.resendVerification = vi.fn().mockResolvedValue({
+      vi.mocked(emailApi.resendVerification).mockResolvedValue({
         success: true,
         message: 'Verification email sent'
       })
@@ -250,7 +250,7 @@ describe('Profile Component', () => {
         isLoading: false
       })
 
-      emailApi.resendVerification = vi.fn().mockResolvedValue({
+      vi.mocked(emailApi.resendVerification).mockResolvedValue({
         success: false,
         error: 'Rate limit exceeded'
       })
@@ -278,7 +278,7 @@ describe('Profile Component', () => {
         isLoading: false
       })
 
-      emailApi.resendVerification = vi.fn().mockRejectedValue(new Error('Network error'))
+      vi.mocked(emailApi.resendVerification).mockRejectedValue(new Error('Network error'))
 
       render(<MemoryRouter><Profile /></MemoryRouter>)
 
@@ -304,7 +304,7 @@ describe('Profile Component', () => {
       })
 
       // Mock slow API response
-      emailApi.resendVerification = vi.fn().mockImplementation(
+      vi.mocked(emailApi.resendVerification).mockImplementation(
         () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
       )
 
