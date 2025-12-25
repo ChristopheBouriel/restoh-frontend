@@ -35,6 +35,7 @@ CLAUDE.md
 
 coverage/
 .mcp.json
+docs/GITHUB_ACTIONS_GUIDE.md
 
 # Playwright
 /test-results/
