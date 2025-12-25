@@ -1,280 +1,333 @@
-# RestOh Frontend
+# RestOh! Frontend
 
-Modern React restaurant management application with online ordering, reservations, and admin panel.
+A modern, full-featured restaurant management application built with React 18. Customers can browse the menu, place orders, make reservations, and leave reviews. Administrators have access to a comprehensive dashboard for managing all aspects of the restaurant.
 
-## Technologies
+> **Live Demo**: Coming soon
+> **Backend Repository**: [restoh-backend](https://github.com/ChristopheBouriel/restoh-backend)
 
-- **React 18** - UI Library
-- **Vite** - Ultra-fast build tool
-- **Zustand** - State management with persistence
-- **React Router** - Navigation
-- **Tailwind CSS** - Utility-first styling
-- **Axios** - HTTP client (HTTP-only cookies)
-- **React Hot Toast** - Notifications
-- **Lucide React** - Modern icons
-- **Vitest** - Unit and integration testing
-- **React Testing Library** - Component testing
+---
 
-## 📋 Prerequisites
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Authentication](#authentication)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Features
+
+### Customer Features
+
+| Feature | Description |
+|---------|-------------|
+| **Menu Browsing** | Browse dishes by category (appetizers, mains, desserts, beverages) with search and filtering. View dish details including ingredients, allergens, preparation time, and spice level. |
+| **Shopping Cart** | Add items with special instructions, adjust quantities, persistent cart per user (survives page refresh and logout). |
+| **Online Ordering** | Choose between pickup and delivery. Card payment (Stripe-ready) or cash on delivery. Real-time order status tracking. |
+| **Table Reservations** | Interactive table map showing real-time availability. Select date, time slot (lunch/dinner), and party size. Tables filtered by capacity. Special requests supported. |
+| **Reviews & Ratings** | Rate menu items (1-5 stars with comments). Rate the restaurant on multiple criteria (overall, food, service, ambiance, value). View aggregated ratings and recent reviews on homepage. |
+| **User Profile** | Update personal information and delivery address. Change password with current password verification. Notification preferences (newsletter, promotions). |
+| **Account Deletion** | GDPR-compliant multi-step deletion process. Blocks deletion if unpaid delivery orders exist. Confirms cancellation of active reservations. Anonymizes historical data. |
+| **Contact & Messaging** | Send messages to restaurant. View conversation history with reply notifications. |
+
+### Admin Features
+
+| Feature | Description |
+|---------|-------------|
+| **Dashboard** | Real-time statistics from API: today's revenue, orders, reservations, active users. Comparison with previous periods (yesterday, last week, last month). Quick access to pending items. |
+| **Menu Management** | Full CRUD for menu items with image upload (Cloudinary). Toggle availability, mark as vegetarian, set spice level. Manage "Popular" and "Chef's Suggestions" sections. |
+| **Order Management** | View all orders with filters (status, type, payment method, search). Update order status through workflow (pending → confirmed → preparing → ready → delivered). "Today" filter updates both list and statistics. |
+| **Reservation Management** | Calendar view with table assignments. Status workflow (confirmed → seated → completed). Handle no-shows and cancellations. "Today" filter for quick daily overview. |
+| **User Management** | View all users with statistics (total orders, reservations, spending). Promote users to admin or deactivate accounts. View individual user history. |
+| **Contact Management** | Inbox for customer messages with status tracking (new, read, replied). Threaded conversations. Archive and restore functionality. |
+
+### UI/UX Features
+
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Loading States**: Skeleton loaders for smooth perceived performance
+- **Toast Notifications**: Success/error feedback for all actions
+- **Form Validation**: Real-time validation with React Hook Form
+- **Image Optimization**: Lazy loading with fallback images
+- **Carousel Components**: Smooth navigation for popular items and suggestions
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Framework** | React 18 + Vite |
+| **State Management** | Zustand (with localStorage persistence) |
+| **Forms** | React Hook Form |
+| **HTTP Client** | Axios (with interceptors for auth) |
+| **Routing** | React Router v6 |
+| **Styling** | Tailwind CSS |
+| **Icons** | Lucide React |
+| **Notifications** | React Hot Toast |
+| **Date Handling** | date-fns |
+| **Testing** | Vitest + React Testing Library + Playwright |
+
+---
+
+## Getting Started
+
+### Prerequisites
 
 - **Node.js** 22.x or higher
 - **npm** 9.x or higher
-- RestOh backend running (see backend repository)
+- RestOh backend running ([setup instructions](https://github.com/ChristopheBouriel/restoh-backend))
 
-## 🛠️ Installation
+### Installation
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/ChristopheBouriel/restoh-frontend.git
-cd restoh-frontend
-```
+   ```bash
+   git clone https://github.com/ChristopheBouriel/restoh-frontend.git
+   cd restoh-frontend
+   ```
 
 2. **Install dependencies**
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. **Configure environment variables**
-```bash
-cp .env.example .env
-```
+3. **Configure environment**
+   ```bash
+   cp .env.example .env
+   ```
 
-Edit `.env` and configure your backend URL:
-```env
-VITE_API_URL=http://localhost:3000/api
-```
+   Edit `.env`:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   ```
 
 4. **Start development server**
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
 
-The application will be available at `http://localhost:5173`
+   The application will be available at `http://localhost:5173`
 
-## Available Scripts
+### Available Scripts
 
 ```bash
 npm run dev          # Start development server
 npm run build        # Production build
 npm run preview      # Preview production build
-npm run lint         # Lint code with ESLint
-npm test             # Run unit tests (1620+ tests)
+npm run lint         # ESLint check
+
+# Testing
+npm test             # Run all unit tests (1620+ tests)
 npm run test:ui      # Vitest UI interface
 npm run test:watch   # Watch mode
-npm run test:coverage # Code coverage
+npm run test:coverage # Coverage report
+
+# E2E Testing
+npm run e2e          # Run Playwright tests
+npm run e2e:ui       # Playwright UI mode
+npm run e2e:headed   # Run with browser visible
+npm run e2e:report   # Show test report
 ```
+
+---
 
 ## Project Structure
 
 ```
-restoh-frontend/
-├── src/
-│   ├── api/              # API layer (axios + endpoints)
-│   │   ├── apiClient.js
-│   │   ├── authApi.js
-│   │   ├── ordersApi.js
-│   │   ├── reservationsApi.js
-│   │   ├── menuApi.js
-│   │   ├── contactsApi.js
-│   │   ├── emailApi.js
-│   │   ├── reviewsApi.js
-│   │   ├── restaurantReviewsApi.js
-│   │   └── statsApi.js
-│   ├── services/         # Service layer (business logic)
-│   │   ├── menu/         # MenuService
-│   │   ├── reservations/ # ReservationService
-│   │   ├── orders/       # OrderService
-│   │   └── auth/         # AuthService
-│   ├── components/       # Reusable components
-│   ├── constants/        # Constants and enums
-│   ├── contexts/         # React Contexts
-│   ├── hooks/            # Custom hooks
-│   ├── pages/            # Pages/Routes
-│   ├── store/            # Zustand stores
-│   ├── utils/            # Utility functions
-│   ├── __tests__/        # Unit and integration tests
-│   ├── App.jsx
-│   └── main.jsx
-├── public/               # Static assets
-├── .env.example          # Configuration example
-├── API_ENDPOINTS.md      # Backend endpoints documentation
-└── CLAUDE.md            # Claude Code instructions
+src/
+├── api/                  # HTTP layer (Axios client + endpoint modules)
+├── store/                # Zustand stores (state + API orchestration)
+├── services/             # Business logic (filters, validators, calculations)
+├── hooks/                # Custom hooks (UX layer: navigation, toasts)
+├── components/           # Reusable UI components
+│   ├── common/           # Shared components (CartModal, DatePicker, etc.)
+│   ├── layout/           # Header, Footer, Layout
+│   ├── admin/            # Admin-specific components
+│   └── ...
+├── pages/                # Route components
+│   ├── public/           # Home
+│   ├── auth/             # Login, Register, Password reset
+│   ├── menu/             # Menu browsing
+│   ├── checkout/         # Order placement
+│   ├── reservations/     # Table booking
+│   ├── admin/            # Admin dashboard and management
+│   └── ...
+├── contexts/             # React contexts (UI state)
+├── constants/            # Routes, statuses, config
+├── utils/                # Utility functions
+└── __tests__/            # Test files
 ```
 
-## 🔑 Key Features
+See [PROJECT_ARCHITECTURE.md](./docs/PROJECT_ARCHITECTURE.md) for detailed architecture documentation.
 
-### For Customers
-- ✅ Browse menu by categories
-- ✅ Add to cart with persistence
-- ✅ Place orders (card/cash payment)
-- ✅ Real-time order tracking
-- ✅ Table reservations
-- ✅ User profile management
-- ✅ Account deletion with multi-step validation (GDPR)
-  - Blocks deletion if unpaid delivery order exists
-  - Confirms cancellation of active reservations before deletion
-
-### For Administrators
-- ✅ Dashboard with real-time API statistics (quickStats)
-- ✅ Complete menu management
-- ✅ Order management (status, payments, Today filter)
-- ✅ Reservation management (table assignment, Today filter)
-- ✅ Contact messaging
-- ✅ User management
-- ✅ Dynamic stats filtering (Today button updates all statistics)
+---
 
 ## Authentication
 
-The application uses a secure **Access Token + Refresh Token** architecture:
+The application uses a secure dual-token architecture:
 
-- **Access Token**: Short-lived (15 min), stored in memory only (not localStorage)
-- **Refresh Token**: Long-lived (24h default, 7 days with "Remember Me"), stored in HTTP-only secure cookie
+| Token | Lifetime | Storage | Purpose |
+|-------|----------|---------|---------|
+| **Access Token** | 15 min | Memory only | API request authentication |
+| **Refresh Token** | 24h / 7 days* | HTTP-only cookie | Token renewal |
+
+*7 days when "Remember Me" is checked
+
+### Key Features
+
 - **Auto-refresh**: Expired tokens are automatically refreshed via interceptor
-- **Request queue**: Failed requests are queued and retried after token refresh
-- **Session restore**: `initializeAuth()` restores session on app startup using refresh token
-- **Local state**: `user` and `isAuthenticated` persisted in localStorage
-- **Auto-logout**: Redirect to `/login` when refresh token is invalid
-- **Public pages**: Login, register, reset-password don't trigger redirects
+- **Request queuing**: Failed requests are queued and retried after token refresh
+- **Session restore**: Sessions persist across page refreshes using refresh token
+- **Secure storage**: Refresh tokens are HTTP-only (not accessible via JavaScript)
+- **Auto-logout**: Redirect to login when refresh token expires
 
-## 🎨 Customization
+### Protected Routes
 
-### Tailwind CSS
-Edit `tailwind.config.js` to customize colors, fonts, etc.
+Public pages (login, register, password reset) don't require authentication. All other pages use the `ProtectedRoute` component which:
+- Redirects unauthenticated users to login
+- Stores intended destination for post-login redirect
+- Checks admin role for admin routes
 
-### Constants
-Edit `src/constants/index.js` to modify routes, statuses, etc.
+See [API_CONTRACT.md](./API_CONTRACT.md) for complete authentication flow documentation.
 
-## Tests
+---
 
-The project has comprehensive test coverage:
+## Testing
 
-### Unit & Integration Tests (1620+)
-- **Stores**: authStore, ordersStore, reservationsStore, menuStore, cartStore, contactsStore, usersStore, statsStore, reviewsStore, restaurantReviewsStore
-- **Hooks**: useAuth, useCart, useMenu, useOrders, useReservations
-- **Services**: MenuService, ReservationService, OrderService, AuthService, ContactService
-- **Components**: Pages (Dashboard 56 tests, Menu 33 tests, Reservations 30 tests), TableMap (50 tests), forms, navigation
-- **Modals**: DeleteAccountModal (multi-step flow with blocked/confirm states)
-- **API**: All API modules tested (authApi, ordersApi, reservationsApi, menuApi, contactsApi, usersApi, tablesApi, reviewsApi, etc.)
-- **Reviews**: ReviewCard, AddReviewForm, RestaurantReviewCard, RestaurantReviewForm, RestaurantReviews page
+### Test Coverage: 1620+ Unit/Integration Tests
 
-### E2E Tests (Playwright)
-- 17 test files covering authentication, ordering, reservations, admin, navigation, contact
-- Accessibility tests with @axe-core/playwright
+| Layer | Coverage |
+|-------|----------|
+| **API Layer** | All endpoint modules (auth, orders, reservations, menu, contacts, reviews, etc.) |
+| **Stores** | All Zustand stores with mocked API |
+| **Services** | Business logic (filters, validators, statistics) |
+| **Hooks** | Custom hooks with real stores + mocked API |
+| **Components** | UI components with mocked dependencies |
+| **Pages** | Full page tests (Dashboard: 56 tests, Menu: 33 tests, etc.) |
 
-```bash
-# Unit tests
-npm test              # All unit tests
-npm run test:ui       # Vitest interface
-npm run test:coverage # Code coverage (HTML report in coverage/)
-npm run test:watch    # Watch mode
+### E2E Tests: 17 Test Files (Playwright)
 
-# E2E tests
-npm run e2e           # Run all E2E tests
-npm run e2e:ui        # Playwright UI mode
-npm run e2e:headed    # Run with browser visible
-npm run e2e:debug     # Debug mode
-npm run e2e:report    # Show test report
+- Authentication flows (login, register, password reset)
+- Complete ordering journey
+- Reservation booking
+- Admin management operations
+- Accessibility compliance (axe-core)
+- Mobile responsiveness
+
+### Testing Philosophy
+
+```
+Tests use REAL stores with MOCKED API responses.
+This ensures integration between layers while isolating external dependencies.
 ```
 
-### Testing Best Practices
-- Hook tests use the **real store** with **mocked API** (no mocking the entire store)
-- Tests verify against the **specification** (function signature), not the implementation
-- External dependencies (toast, navigate, context) are mocked as side effects
+See [UNIT_TESTS.md](./docs/UNIT_TESTS.md) and [E2E_TESTS.md](./docs/E2E_TESTS.md) for detailed testing documentation.
 
-## 📡 Backend Integration
+---
 
-This frontend is designed to work with the RestOh backend.
-
-**Full endpoints documentation**: see `API_ENDPOINTS.md`
-
-**Backend URL**: Configurable via `VITE_API_URL` in `.env`
-
-### Local backend connection example
-```env
-VITE_API_URL=http://localhost:3000/api
-```
-
-### Production backend connection example
-```env
-VITE_API_URL=https://api.restoh.com/api
-```
-
-## 🚢 Deployment
+## Deployment
 
 ### Production Build
+
 ```bash
 npm run build
 ```
 
-The `dist/` folder will contain the optimized files.
+Optimized files are generated in `dist/`.
 
-### Deployment on Vercel/Netlify
+### Vercel / Netlify Deployment
+
 1. Connect your GitHub repository
 2. Configure environment variables:
    - `VITE_API_URL` = Your production backend URL
-3. Build command: `npm run build`
-4. Output directory: `dist`
+3. Build settings:
+   - Build command: `npm run build`
+   - Output directory: `dist`
 
-## 🐛 Debugging
+### Environment Variables
 
-### Debug Mode
-Enable detailed logs in `.env`:
-```env
-VITE_DEBUG=true
-```
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API base URL | `https://api.restoh.com/api` |
+| `VITE_DEBUG` | Enable debug logging | `true` |
 
-### Browser Console
-API errors are logged to console with:
-- HTTP error code
-- Error message
-- Additional details
+---
 
-## 📝 Code Conventions
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [API_CONTRACT.md](./API_CONTRACT.md) | Complete backend API specification |
+| [docs/PROJECT_ARCHITECTURE.md](./docs/PROJECT_ARCHITECTURE.md) | Frontend architecture and patterns |
+| [docs/UNIT_TESTS.md](./docs/UNIT_TESTS.md) | Unit testing guide and patterns |
+| [docs/E2E_TESTS.md](./docs/E2E_TESTS.md) | E2E testing setup and scenarios |
+| [docs/EMAIL_SYSTEM_GUIDE.md](./docs/EMAIL_SYSTEM_GUIDE.md) | Email verification and notifications |
+| [docs/GITHUB_ACTIONS_GUIDE.md](./docs/GITHUB_ACTIONS_GUIDE.md) | CI/CD pipeline configuration |
+| [CLAUDE.md](./CLAUDE.md) | Development guidelines for AI assistance |
+
+---
+
+## Roadmap
+
+### Completed
+
+- [x] Complete menu browsing with categories and search
+- [x] Shopping cart with persistence
+- [x] Order placement (pickup/delivery)
+- [x] Table reservations with interactive map
+- [x] User authentication (access + refresh tokens)
+- [x] Admin dashboard with real-time statistics
+- [x] Menu management with image upload
+- [x] Order and reservation management
+- [x] User management
+- [x] Contact messaging system
+- [x] Reviews for menu items and restaurant
+- [x] GDPR-compliant account deletion
+- [x] Comprehensive test suite (1620+ tests)
+- [x] E2E tests with accessibility checks
+- [x] CI/CD with GitHub Actions
+
+### Planned
+
+- [ ] Progressive Web App (PWA)
+- [ ] Internationalization (i18n) - [Plan available](./INTERNATIONALIZATION_PLAN.md)
+- [ ] Dark mode
+- [ ] Push notifications
+- [ ] PDF invoice export
+- [ ] Advanced analytics dashboard
+- [ ] Real-time order updates (WebSocket)
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Conventions
 
 - **Components**: PascalCase (`UserProfile.jsx`)
 - **Hooks**: camelCase with `use` prefix (`useAuth.js`)
 - **Stores**: camelCase with `Store` suffix (`authStore.js`)
-- **API**: camelCase with `Api` suffix (`authApi.js`)
-- **Constants**: UPPER_SNAKE_CASE
-
-## 🤝 Contributing
-
-1. Fork the project
-2. Create a branch (`git checkout -b feature/AmazingFeature`)
-3. Commit (`git commit -m 'feat: Add amazing feature'`)
-4. Push (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under MIT.
-
-## 🆘 Support
-
-For any questions or issues:
-- Open an issue on GitHub
-- Check the `API_ENDPOINTS.md` documentation
-- See instructions in `CLAUDE.md` for development
-
-## Roadmap
-
-- [x] Complete unit tests (1620+ tests)
-- [x] Code coverage report
-- [x] Dashboard API statistics integration
-- [x] Dynamic Today filter for stats
-- [x] Access Token + Refresh Token authentication
-- [x] Auto-refresh interceptor with request queue
-- [x] Multi-step account deletion modal (GDPR compliance)
-- [x] Remember me functionality (24h default / 7 days with checkbox)
-- [x] E2E tests with Playwright (17 test files)
-- [x] Accessibility tests (a11y with @axe-core/playwright)
-- [ ] PWA (Progressive Web App)
-- [ ] Internationalization (i18n)
-- [ ] Dark mode
-- [ ] Push notifications
-- [ ] PDF invoice export
-- [ ] Advanced analytics
+- **API modules**: camelCase with `Api` suffix (`authApi.js`)
+- **Commits**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
 
 ---
 
-**Built with ❤️ for RestOh**
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+**Built with React + Vite**
