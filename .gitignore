@@ -33,7 +33,6 @@ dist-ssr
 # Claude Code documentation (local only)
 CLAUDE.md
 
-docs/
 coverage/
 .mcp.json
 

@@ -1,0 +1,140 @@
+RestOh Frontend - Architecture avec Service Layer
+================================================
+
+src/
+├── 📁 api/                    # API Layer (déjà existant ✓)
+│   ├── apiClient.js
+│   ├── authApi.js
+│   ├── ordersApi.js
+│   ├── reservationsApi.js
+│   ├── menuApi.js
+│   └── reviewsApi.js
+│
+├── 🆕 services/              # SERVICE LAYER (NOUVEAU!)
+│   └── 📁 reservations/
+│       ├── reservationValidator.js      # Validation logic
+│       ├── reservationFilters.js        # Filtering logic
+│       ├── reservationStats.js          # Statistics logic
+│       ├── reservationService.js        # Main orchestration
+│       ├── index.js                     # Public exports
+│       ├── README.md                    # Full documentation
+│       ├── EXAMPLE_simplified_store.js  # Usage in store
+│       ├── EXAMPLE_service.test.js      # Test examples
+│       └── EXAMPLE_component_usage.jsx  # Component examples
+│
+├── 📁 store/                  # State Management (Zustand)
+│   ├── authStore.js           # Will be refactored later
+│   ├── cartStore.js           # Client state (keep as-is)
+│   ├── menuStore.js           # Will use services/menu/
+│   ├── ordersStore.js         # Will use services/orders/
+│   ├── reservationsStore.js   # 👈 Can be simplified now!
+│   ├── reviewsStore.js
+│   └── usersStore.js
+│
+├── 📁 hooks/                  # Custom React Hooks
+│   ├── useAuth.js
+│   ├── useCart.js
+│   ├── useMenu.js
+│   ├── useOrders.js
+│   └── useReservations.js     # Can use services directly
+│
+├── 📁 components/             # React Components
+├── 📁 pages/                  # Page Components
+├── 📁 utils/                  # Pure Utilities
+│   ├── dateUtils.js
+│   ├── pluralize.js
+│   ├── reservationSlots.js    # Moved from services ✓
+│   └── tablesConfig.js
+│
+└── 📁 constants/              # App Constants
+    └── index.js
+
+
+ARCHITECTURE FLOW
+================
+
+┌─────────────────────────────────────────────────────────┐
+│                       COMPONENT                          │
+│  • Rendering                                            │
+│  • User interaction                                     │
+│  • Minimal logic                                        │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ├──────────────────┬────────────────────┐
+                 │                  │                    │
+                 v                  v                    v
+        ┌────────────────┐  ┌──────────────┐  ┌─────────────┐
+        │     HOOK       │  │    STORE     │  │   SERVICE   │
+        │                │  │  (Zustand)   │  │   (Pure)    │
+        │ • useReserv... │  │              │  │             │
+        │ • Custom logic │  │ • State      │  │ • Validator │
+        └────────┬───────┘  │ • Actions    │  │ • Filters   │
+                 │          └──────┬───────┘  │ • Stats     │
+                 │                 │          └──────┬──────┘
+                 │                 │                 │
+                 └────────┬────────┴────────┬────────┘
+                          │                 │
+                          v                 v
+                   ┌──────────────┐  ┌─────────────┐
+                   │   SERVICE    │  │     API     │
+                   │   LAYER      │  │   LAYER     │
+                   │              │  │             │
+                   │ Business     │  │ HTTP calls  │
+                   │ Logic        │  │ Network     │
+                   └──────────────┘  └─────────────┘
+
+
+COMPARISON: Before vs After
+===========================
+
+╔═══════════════════╦═════════════════════╦══════════════════════╗
+║     Aspect        ║   Before (Store)    ║  After (Services)    ║
+╠═══════════════════╬═════════════════════╬══════════════════════╣
+║ Lines of code     ║ 360 lines           ║ 150 store + services ║
+║ Testability       ║ ❌ Hard             ║ ✅ Easy             ║
+║ Reusability       ║ ❌ Zustand only     ║ ✅ Anywhere         ║
+║ Maintenance       ║ ❌ Mixed concerns   ║ ✅ Clear separation ║
+║ Documentation     ║ ❌ Minimal          ║ ✅ Complete JSDoc   ║
+║ React Query ready ║ ❌ No               ║ ✅ Yes              ║
+╚═══════════════════╩═════════════════════╩══════════════════════╝
+
+
+BENEFITS SUMMARY
+===============
+
+✅ TESTABILITY
+   • Pure functions = easy unit tests
+   • No mocking required
+   • 10x faster to write tests
+
+✅ REUSABILITY
+   • Use in components, hooks, scripts
+   • Framework-agnostic
+   • Future-proof
+
+✅ MAINTAINABILITY
+   • Clear file organization
+   • Single responsibility principle
+   • Easy to find and modify logic
+
+✅ PERFORMANCE
+   • Easy to memoize
+   • Optimizations isolated
+   • No unnecessary re-renders
+
+✅ DOCUMENTATION
+   • JSDoc on all functions
+   • README with examples
+   • Tests as documentation
+
+
+NEXT STEPS
+==========
+
+1. READ:  services/reservations/README.md
+2. REVIEW: EXAMPLE files
+3. TRY: Use one service in a component
+4. REFACTOR: Migrate one getter from store
+5. EXPAND: Create services/orders/
+6. CONSIDER: React Query migration (long term)
+
