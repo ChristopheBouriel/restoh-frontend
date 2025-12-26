@@ -52,9 +52,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
           <div className="text-center">
-            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              Savor Culinary Excellence
-            </h1>
+            <h1 className="text-8xl lg:text-14xl font-bold mb-6">Rest'Oh!</h1>
             <p className="text-xl lg:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto">
               Discover a unique gastronomic experience with our authentic dishes
               prepared by our passionate chefs
