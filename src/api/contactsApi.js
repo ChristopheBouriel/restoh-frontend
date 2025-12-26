@@ -25,9 +25,10 @@ export const getMyContactMessages = async () => {
 }
 
 // Get all messages (ADMIN)
-export const getAllContacts = async (status = null) => {
+export const getAllContacts = async (status = null, limit = 1000) => {
   try {
-    const params = status ? { status } : {}
+    const params = { limit }
+    if (status) params.status = status
     const response = await apiClient.get('/contact/admin/messages', { params })
     return { success: true, ...response }
   } catch (error) {
@@ -68,7 +69,8 @@ export const deleteContact = async (contactId) => {
 // Get archived/deleted messages (ADMIN)
 export const getDeletedContacts = async (params = {}) => {
   try {
-    const response = await apiClient.get('/contact/admin/messages/deleted', { params })
+    const defaultParams = { limit: 1000, ...params }
+    const response = await apiClient.get('/contact/admin/messages/deleted', { params: defaultParams })
     return { success: true, ...response }
   } catch (error) {
     return { success: false, error: error.error || 'Error fetching archived messages' }
