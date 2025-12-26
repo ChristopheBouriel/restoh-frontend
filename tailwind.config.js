@@ -94,7 +94,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Sansation', 'system-ui', 'sans-serif'],
       }
     },
   },
