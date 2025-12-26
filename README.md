@@ -264,7 +264,7 @@ Optimized files are generated in `dist/`.
 
 | Document | Description |
 |----------|-------------|
-| [API_CONTRACT.md](./API_CONTRACT.md) | Complete backend API specification |
+| [docs/API_CONTRACT.md](./API_CONTRACT.md) | Complete backend API specification |
 | [docs/PROJECT_ARCHITECTURE.md](./docs/PROJECT_ARCHITECTURE.md) | Frontend architecture and patterns |
 | [docs/UNIT_TESTS.md](./docs/UNIT_TESTS.md) | Unit testing guide and patterns |
 | [docs/E2E_TESTS.md](./docs/E2E_TESTS.md) | E2E testing setup and scenarios |
