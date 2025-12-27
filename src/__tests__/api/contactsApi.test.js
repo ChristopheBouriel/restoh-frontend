@@ -57,7 +57,7 @@ describe('Contacts API', () => {
 
       await getAllContacts()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/contact/admin/messages', { params: {} })
+      expect(apiClient.get).toHaveBeenCalledWith('/contact/admin/messages', { params: { limit: 1000 } })
     })
 
     it('should pass status filter when provided', async () => {
@@ -65,7 +65,7 @@ describe('Contacts API', () => {
 
       await getAllContacts('new')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/contact/admin/messages', { params: { status: 'new' } })
+      expect(apiClient.get).toHaveBeenCalledWith('/contact/admin/messages', { params: { limit: 1000, status: 'new' } })
     })
   })
 
@@ -108,7 +108,7 @@ describe('Contacts API', () => {
 
       await getDeletedContacts({ page: 2 })
 
-      expect(apiClient.get).toHaveBeenCalledWith('/contact/admin/messages/deleted', { params: { page: 2 } })
+      expect(apiClient.get).toHaveBeenCalledWith('/contact/admin/messages/deleted', { params: { limit: 1000, page: 2 } })
     })
   })
 

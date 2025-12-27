@@ -110,8 +110,13 @@ describe('Dashboard Component', () => {
   ]
 
   // Mock reservations data (future dates for upcoming calculation)
+  // Use a date that's definitely within the current month to avoid end-of-month edge cases
   const today = new Date()
-  const futureDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5)
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+  // Use tomorrow or a date between today and end of month
+  const daysUntilEndOfMonth = endOfMonth.getDate() - today.getDate()
+  const daysToAdd = Math.min(2, daysUntilEndOfMonth) // At most 2 days ahead, but stay in month
+  const futureDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.max(1, daysToAdd))
   const futureDateStr = futureDate.toISOString().split('T')[0]
 
   const mockReservations = [
