@@ -311,21 +311,24 @@ const Home = () => {
             </h2>
           </div>
 
-          {/* Reviews List */}
+          {/* Reviews List - Only show reviews with comments */}
           <div className="mt-12">
-            {reviews.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {reviews.slice(0, 3).map((review) => (
-                  <RestaurantReviewCard key={review.id} review={review} />
-                ))}
-              </div>
-            ) : (
+            {(() => {
+              const reviewsWithComments = reviews.filter(review => review.comment && review.comment.trim())
+              return reviewsWithComments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reviewsWithComments.slice(0, 3).map((review) => (
+                    <RestaurantReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              ) : (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
                 <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
                 <p className="text-gray-600">Be the first to share your experience!</p>
               </div>
-            )}
+              )
+            })()}
           </div>
         </div>
       </section>

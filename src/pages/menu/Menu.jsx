@@ -548,15 +548,16 @@ const Menu = () => {
                 </div>
               )}
 
-              {/* Reviews List */}
+              {/* Reviews List - Only show reviews with comments */}
               {(() => {
-                const reviews = getMenuItemReviews(selectedItem.id)
-                return reviews.length > 0 ? (
+                const allReviews = getMenuItemReviews(selectedItem.id)
+                const reviewsWithComments = allReviews.filter(review => review.comment && review.comment.trim())
+                return reviewsWithComments.length > 0 ? (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                       Customer Reviews
                     </h3>
-                    {reviews.map((review) => (
+                    {reviewsWithComments.map((review) => (
                       <ReviewCard
                         key={review.id}
                         review={review}

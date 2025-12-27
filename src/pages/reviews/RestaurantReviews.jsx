@@ -195,6 +195,7 @@ const RestaurantReviews = () => {
                 <div className="space-y-4">
                   {reviews
                     .filter((review) => review.id !== userReview?.id) // Don't show user's review twice
+                    .filter((review) => review.comment && review.comment.trim()) // Only show reviews with comments
                     .map((review) => (
                       <RestaurantReviewCard
                         key={review.id}
