@@ -584,6 +584,40 @@ npm run build
 
 Les fichiers optimisés seront dans `dist/`
 
+### Docker
+
+L'application est containerisée et disponible sur Docker Hub :
+
+```bash
+# Image Docker
+docker pull cbouriel/restoh-frontend:latest
+
+# Build local
+docker build -t restoh-frontend .
+```
+
+**Fichiers Docker :**
+- `Dockerfile` : Build multi-stage (Node.js → Nginx)
+- `nginx.conf` : Configuration Nginx (SPA routing, gzip, cache, security headers)
+
+### Stack complète avec Docker Compose
+
+Le projet dispose d'un repo dédié pour le déploiement complet :
+- **Repo** : `restoh-docker` (https://github.com/cbouriel/restoh-docker)
+
+```bash
+git clone https://github.com/cbouriel/restoh-docker.git
+cd restoh-docker
+cp .env.example .env
+docker-compose up -d
+docker exec restoh-backend node seeds/seed-all.js
+```
+
+**Accès :**
+- Frontend : http://localhost:5173
+- API : http://localhost:3001/api
+- Admin : `admin@restoh.com` / `admin123`
+
 ### Variables d'environnement en production
 Configurer sur Vercel/Netlify :
 - `VITE_API_URL` = URL du backend de production (ex: `https://api.restoh.com/api`)
@@ -626,4 +660,4 @@ test: Add tests for orders API
 
 **Ce fichier doit être mis à jour à chaque évolution majeure du projet.**
 
-Dernière mise à jour : Décembre 2024 - Tests complets (1620+ unit, 17 E2E, a11y), couverture API et reviews.
+Dernière mise à jour : Décembre 2024 - Tests complets (1620+ unit, 17 E2E, a11y), Docker containerisation, couverture API et reviews.
