@@ -9,6 +9,7 @@ A modern, full-featured restaurant management application built with React 18. C
 
 ## Table of Contents
 
+- [User Manual](#user-manual)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
@@ -20,6 +21,27 @@ A modern, full-featured restaurant management application built with React 18. C
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
+
+---
+
+## User Manual
+
+**New users? Start here!** We have a comprehensive user manual with screenshots to help you get the most out of RestOh!
+
+| Language | Format | Link |
+|----------|--------|------|
+| **English** | Markdown | [User Manual (EN)](./docs/user-manual/USER_MANUAL_EN.md) |
+| **English** | PDF | [User Manual (EN) - PDF](./docs/user-manual/USER_MANUAL_EN.pdf) |
+| **Fran&ccedil;ais** | Markdown | [Manuel Utilisateur (FR)](./docs/user-manual/USER_MANUAL.md) |
+| **Fran&ccedil;ais** | PDF | [Manuel Utilisateur (FR) - PDF](./docs/user-manual/USER_MANUAL.pdf) |
+
+The manual covers:
+- Getting started (account creation, login)
+- Browsing the menu and placing orders
+- Making table reservations
+- Managing your profile
+- Leaving reviews
+- Administrator dashboard (for staff)
 
 ---
 
@@ -264,6 +286,8 @@ Optimized files are generated in `dist/`.
 
 | Document | Description |
 |----------|-------------|
+| [User Manual (EN)](./docs/user-manual/USER_MANUAL_EN.md) | Complete user guide with screenshots |
+| [Manuel Utilisateur (FR)](./docs/user-manual/USER_MANUAL.md) | Guide utilisateur complet avec captures |
 | [docs/API_CONTRACT.md](./API_CONTRACT.md) | Complete backend API specification |
 | [docs/PROJECT_ARCHITECTURE.md](./docs/PROJECT_ARCHITECTURE.md) | Frontend architecture and patterns |
 | [docs/UNIT_TESTS.md](./docs/UNIT_TESTS.md) | Unit testing guide and patterns |
