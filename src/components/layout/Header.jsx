@@ -124,6 +124,8 @@ const Header = () => {
               )}
             </button>
             
+            {/* Force re-render with key based on auth state */}
+            <div key={`auth-${isAuthenticated}-${user?.id || 'none'}`}>
             {isAuthenticated ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -199,6 +201,7 @@ const Header = () => {
                 <span>Login</span>
               </button>
             )}
+            </div>
           </div>
 
           {/* Mobile menu button */}
