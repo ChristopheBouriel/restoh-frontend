@@ -69,8 +69,15 @@ const Header = () => {
     { label: 'Contact', path: ROUTES.CONTACT, hideForAdmin: true },
   ].filter(item => !(item.hideForAdmin && user?.role === 'admin'))
 
+  // DEBUG: Log every render
+  console.log('[Header] Rendering - isAuthenticated:', isAuthenticated, 'user:', user?.name)
+
   return (
     <header className="bg-white shadow-md sticky top-0 z-50" onClick={handleHeaderClick}>
+      {/* DEBUG BANNER - Remove after testing */}
+      <div className="bg-yellow-300 text-black text-xs p-1 text-center">
+        DEBUG: isAuth={String(isAuthenticated)} | user={user?.name || 'null'} | render={Date.now()}
+      </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
