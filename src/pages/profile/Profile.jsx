@@ -5,7 +5,7 @@ import { User, Mail, Phone, MapPin, Lock, Save, AlertCircle } from 'lucide-react
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'
 import { authApi, emailApi } from '../../api'
-import useAuthStore from '../../store/authStore'
+import { useAuthContext } from '../../contexts/AuthContext'
 import DeleteAccountModal from '../../components/profile/DeleteAccountModal'
 import { validationRules, validatePasswordMatch } from '../../utils/formValidators'
 import { ROUTES } from '../../constants'
@@ -13,7 +13,7 @@ import { ROUTES } from '../../constants'
 const Profile = () => {
   const navigate = useNavigate()
   const { user, updateProfile, changePassword, isLoading } = useAuth()
-  const clearAuth = useAuthStore((state) => state.clearAuth)
+  const { clearAuth } = useAuthContext()
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)

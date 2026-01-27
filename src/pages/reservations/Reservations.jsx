@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Calendar, Clock, Users, Plus, Edit, Trash2, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useReservations } from '../../hooks/useReservations'
-import useAuthStore from '../../store/authStore'
+import { useAuthContext } from '../../contexts/AuthContext'
 import useReservationsStore from '../../store/reservationsStore'
 import CustomDatePicker from '../../components/common/CustomDatePicker'
 import TableMap from '../../components/reservations/TableMap'
@@ -14,7 +14,7 @@ import { RESTAURANT_INFO } from '../../constants'
 import { ReservationService } from '../../services/reservations'
 
 const Reservations = () => {
-  const { user } = useAuthStore()
+  const { user } = useAuthContext()
   const { fetchReservations } = useReservationsStore()
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedSlotId, setSelectedSlotId] = useState(null)

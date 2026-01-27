@@ -4,7 +4,7 @@ import { useCart } from '../../hooks/useCart'
 import { useMenu } from '../../hooks/useMenu'
 import { MenuService } from '../../services/menu'
 import useReviewsStore from '../../store/reviewsStore'
-import useAuthStore from '../../store/authStore'
+import { useAuthContext } from '../../contexts/AuthContext'
 import ImageWithFallback from '../../components/common/ImageWithFallback'
 import SimpleSelect from '../../components/common/SimpleSelect'
 import StarRating from '../../components/common/StarRating'
@@ -24,7 +24,7 @@ const Menu = () => {
 
   const { addItem } = useCart()
   const { items: allMenuItems, categories: menuCategories, isLoading } = useMenu()
-  const { user } = useAuthStore()
+  const { user } = useAuthContext()
   const {
     fetchMenuItemRatingStats,
     getMenuItemStats,

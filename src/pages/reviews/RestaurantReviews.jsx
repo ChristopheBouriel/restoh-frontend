@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import useRestaurantReviewsStore from '../../store/restaurantReviewsStore'
-import useAuthStore from '../../store/authStore'
+import { useAuthContext } from '../../contexts/AuthContext'
 import RestaurantReviewCard from '../../components/restaurant-reviews/RestaurantReviewCard'
 import RestaurantReviewForm from '../../components/restaurant-reviews/RestaurantReviewForm'
 import RestaurantStats from '../../components/restaurant-reviews/RestaurantStats'
@@ -11,7 +11,7 @@ const RestaurantReviews = () => {
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [editingReview, setEditingReview] = useState(null)
 
-  const { user } = useAuthStore()
+  const { user } = useAuthContext()
   const {
     reviews,
     stats,

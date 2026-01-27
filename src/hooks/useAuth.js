@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import useAuthStore from '../store/authStore'
+import { useAuthContext } from '../contexts/AuthContext'
 import { ROUTES } from '../constants'
 
 export const useAuth = () => {
   const navigate = useNavigate()
   const {
     user,
-    token,
+    accessToken: token,
     isAuthenticated,
     isLoading,
     error,
@@ -19,7 +19,7 @@ export const useAuth = () => {
     changePassword,
     clearError,
     fetchCurrentUser
-  } = useAuthStore()
+  } = useAuthContext()
 
   const handleLogin = async (credentials) => {
     const result = await login(credentials)

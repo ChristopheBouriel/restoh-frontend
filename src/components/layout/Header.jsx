@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useReducer } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, ShoppingCart, User, LogOut, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -15,14 +15,6 @@ const Header = () => {
   const { user, isAuthenticated, logout } = useAuth()
   const { totalItems, totalItemsAvailable, hasUnavailableItems } = useCart()
   const { toggleCart, closeCart } = useCartUI()
-
-  // iOS WebKit workaround: force re-render when auth state changes
-  const [, forceUpdate] = useReducer(x => x + 1, 0)
-  useEffect(() => {
-    const handleAuthChange = () => forceUpdate()
-    window.addEventListener('auth-state-changed', handleAuthChange)
-    return () => window.removeEventListener('auth-state-changed', handleAuthChange)
-  }, [])
   
   // Close the cart when clicking on header elements
   const handleHeaderClick = (event) => {

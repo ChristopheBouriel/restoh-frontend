@@ -18,7 +18,7 @@ import MyMessages from './pages/contact/MyMessages'
 import Dashboard from './pages/admin/Dashboard'
 import MenuManagement from './pages/admin/MenuManagement'
 import ProtectedRoute from './components/common/ProtectedRoute'
-import useAuthStore from './store/authStore'
+import { useAuthContext } from './contexts/AuthContext'
 import useCartStore from './store/cartStore'
 import useMenuStore from './store/menuStore'
 import useOrdersStore from './store/ordersStore'
@@ -34,7 +34,7 @@ import NotificationsDemo from './pages/dev/NotificationsDemo'
 import { ROUTES } from './constants'
 
 function App() {
-  const { user, isAuthenticated, initializeAuth } = useAuthStore()
+  const { user, isAuthenticated, initializeAuth } = useAuthContext()
   const { setCurrentUser } = useCartStore()
   const { fetchMenuItems } = useMenuStore()
   const { fetchOrders } = useOrdersStore()

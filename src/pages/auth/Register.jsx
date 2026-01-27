@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import useAuthStore from '../../store/authStore'
+import { useAuthContext } from '../../contexts/AuthContext'
 import { emailApi } from '../../api'
 import { ROUTES } from '../../constants'
 import InlineAlert from '../../components/common/InlineAlert'
 import { validationRules, validatePasswordMatch } from '../../utils/formValidators'
 
 const Register = () => {
-  // Rename store's register to registerUser to avoid conflict with RHF's register
-  const { register: registerUser, isLoading, error } = useAuthStore()
+  // Rename context's register to registerUser to avoid conflict with RHF's register
+  const { register: registerUser, isLoading, error } = useAuthContext()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [inlineError, setInlineError] = useState(null)
