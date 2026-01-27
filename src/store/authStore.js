@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import * as authApi from '../api/authApi'
 import {
   storeRefreshToken,
+  getStoredRefreshToken,
   clearStoredRefreshToken,
   needsLocalStorageFallback
 } from '../utils/tokenStorage'
@@ -300,12 +301,20 @@ const useAuthStore = create(
       initializeAuth: async () => {
         set({ isLoading: true, error: null })
 
+        // DEBUG: Log what we're sending
+        const storedToken = needsLocalStorageFallback() ? getStoredRefreshToken() : null
+        console.log('[initializeAuth] needsLocalStorageFallback:', needsLocalStorageFallback())
+        console.log('[initializeAuth] storedToken exists:', !!storedToken)
+        console.log('[initializeAuth] storedToken (first 20 chars):', storedToken?.substring(0, 20))
+
         try {
           // Step 1: Try to refresh the access token using the refresh token cookie
           const refreshResult = await authApi.refreshToken()
+          console.log('[initializeAuth] refreshResult:', refreshResult)
 
           if (!refreshResult.success) {
             // No valid refresh token - user needs to login again
+            console.log('[initializeAuth] Refresh failed, clearing auth')
             get().clearAuth()
             set({ isLoading: false })
             return { success: false, error: 'No valid session' }
