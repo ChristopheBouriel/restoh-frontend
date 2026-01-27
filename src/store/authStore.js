@@ -307,10 +307,16 @@ const useAuthStore = create(
         console.log('[initializeAuth] storedToken exists:', !!storedToken)
         console.log('[initializeAuth] storedToken (first 20 chars):', storedToken?.substring(0, 20))
 
+        // DEBUG ALERT
+        alert(`DEBUG initializeAuth:\n- needsFallback: ${needsLocalStorageFallback()}\n- storedToken exists: ${!!storedToken}\n- token preview: ${storedToken?.substring(0, 15) || 'null'}...`)
+
         try {
           // Step 1: Try to refresh the access token using the refresh token cookie
           const refreshResult = await authApi.refreshToken()
           console.log('[initializeAuth] refreshResult:', refreshResult)
+
+          // DEBUG ALERT 2
+          alert(`DEBUG refreshResult:\n- success: ${refreshResult.success}\n- error: ${refreshResult.error || 'none'}`)
 
           if (!refreshResult.success) {
             // No valid refresh token - user needs to login again
