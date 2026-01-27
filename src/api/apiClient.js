@@ -1,6 +1,11 @@
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
+import {
+  getStoredRefreshToken,
+  clearStoredRefreshToken,
+  needsLocalStorageFallback
+} from '../utils/tokenStorage'
 
 // API base URL (from environment variables)
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -62,6 +67,9 @@ const processQueue = (error, token = null) => {
  * Handle logout and redirect to login page
  */
 const handleAuthFailure = () => {
+  // Clear Safari ITP fallback token
+  clearStoredRefreshToken()
+
   useAuthStore.getState().clearAuth()
 
   // Don't redirect on public auth pages
@@ -114,10 +122,14 @@ apiClient.interceptors.response.use(
           isRefreshing = true
 
           try {
-            // Call refresh endpoint (refresh token cookie is sent automatically)
+            // Call refresh endpoint
+            // For Safari ITP fallback: send refresh token in body if stored in localStorage
+            const storedToken = needsLocalStorageFallback() ? getStoredRefreshToken() : null
+            const refreshPayload = storedToken ? { refreshToken: storedToken } : {}
+
             const response = await axios.post(
               `${API_BASE_URL}/auth/refresh`,
-              {},
+              refreshPayload,
               { withCredentials: true }
             )
 

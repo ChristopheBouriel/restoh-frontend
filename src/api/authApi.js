@@ -1,4 +1,9 @@
 import apiClient from './apiClient'
+import {
+  getStoredRefreshToken,
+  clearStoredRefreshToken,
+  needsLocalStorageFallback
+} from '../utils/tokenStorage'
 
 /**
  * Authentication API
@@ -39,21 +44,33 @@ export const login = async (credentials) => {
 // Logout (optional if no refresh tokens server-side)
 export const logout = async () => {
   try {
-    await apiClient.post('/auth/logout')
+    // For Safari ITP fallback: send refresh token in body
+    const storedToken = needsLocalStorageFallback() ? getStoredRefreshToken() : null
+    const payload = storedToken ? { refreshToken: storedToken } : {}
+
+    await apiClient.post('/auth/logout', payload)
+
+    // Clear localStorage fallback token
+    clearStoredRefreshToken()
+
     return { success: true }
   } catch (error) {
-    // Even on error, consider logout successful on client-side
+    // Even on error, clear localStorage and consider logout successful on client-side
+    clearStoredRefreshToken()
     return { success: true }
   }
 }
 
-// Refresh access token using refresh token cookie
+// Refresh access token using refresh token cookie or localStorage fallback
 // Note: This is mainly used for session restoration on app init
 // The auto-refresh in apiClient interceptor handles most refresh cases
 export const refreshToken = async () => {
   try {
-    // Refresh token is sent automatically via HttpOnly cookie
-    const response = await apiClient.post('/auth/refresh')
+    // For Safari ITP fallback: send refresh token in body if stored in localStorage
+    const storedToken = needsLocalStorageFallback() ? getStoredRefreshToken() : null
+    const payload = storedToken ? { refreshToken: storedToken } : {}
+
+    const response = await apiClient.post('/auth/refresh', payload)
     return { success: true, ...response }
   } catch (error) {
     return {

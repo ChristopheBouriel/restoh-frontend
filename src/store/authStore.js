@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import * as authApi from '../api/authApi'
+import {
+  storeRefreshToken,
+  clearStoredRefreshToken,
+  needsLocalStorageFallback
+} from '../utils/tokenStorage'
 
 // Helper to clear other stores' localStorage on logout
 const clearAllStoresCache = () => {
@@ -8,6 +13,8 @@ const clearAllStoresCache = () => {
   localStorage.removeItem('orders-storage-v2')
   localStorage.removeItem('reservations-storage-v3')
   localStorage.removeItem('contacts-storage')
+  // Clear refresh token fallback storage
+  clearStoredRefreshToken()
 }
 
 const useAuthStore = create(
@@ -58,6 +65,11 @@ const useAuthStore = create(
           const result = await authApi.login(credentials)
 
           if (result.success) {
+            // Store refresh token in localStorage for Safari ITP fallback
+            if (needsLocalStorageFallback() && result.refreshToken) {
+              storeRefreshToken(result.refreshToken)
+            }
+
             // Store accessToken in memory (not persisted) and user data
             set({
               accessToken: result.accessToken,
