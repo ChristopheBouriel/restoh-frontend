@@ -87,6 +87,14 @@ const useAuthStore = create(
               error: null
             })
 
+            // DEBUG: Log state after login for iOS debugging
+            console.log('🔐 AUTH LOGIN SUCCESS:', {
+              user: result.user?.name,
+              isAuthenticated: true,
+              storeState: get()
+            })
+            alert('Login OK: ' + result.user?.name + ' - isAuth: true')
+
             // Notify iOS WebKit workaround
             notifyAuthChange()
 
