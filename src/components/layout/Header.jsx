@@ -69,15 +69,8 @@ const Header = () => {
     { label: 'Contact', path: ROUTES.CONTACT, hideForAdmin: true },
   ].filter(item => !(item.hideForAdmin && user?.role === 'admin'))
 
-  // DEBUG: Log every render
-  console.log('[Header] Rendering - isAuthenticated:', isAuthenticated, 'user:', user?.name)
-
   return (
     <header className="bg-white shadow-md sticky top-0 z-50" onClick={handleHeaderClick}>
-      {/* DEBUG BANNER - Remove after testing */}
-      <div className="bg-yellow-300 text-black text-xs p-1 text-center">
-        DEBUG: isAuth={String(isAuthenticated)} | user={user?.name || 'null'} | render={Date.now()}
-      </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -124,8 +117,6 @@ const Header = () => {
               )}
             </button>
             
-            {/* Force re-render with key based on auth state */}
-            <div key={`auth-${isAuthenticated}-${user?.id || 'none'}`}>
             {isAuthenticated ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -201,7 +192,6 @@ const Header = () => {
                 <span>Login</span>
               </button>
             )}
-            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -233,23 +223,74 @@ const Header = () => {
               ))}
               
               <div className="border-t pt-2 mt-2">
-                <Link
-                  to={ROUTES.CHECKOUT}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false)
+                    toggleCart()
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <ShoppingCart size={20} className="mr-2" />
-                  Cart (0)
-                </Link>
+                  Cart ({totalItemsAvailable})
+                </button>
 
-                <Link
-                  to={ROUTES.LOGIN}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
-                >
-                  <User size={20} className="mr-2" />
-                  Login
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to={ROUTES.PROFILE}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      <User size={20} className="mr-2" />
+                      {user?.name || 'My Profile'}
+                    </Link>
+                    <Link
+                      to={ROUTES.ORDERS}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      My Orders
+                    </Link>
+                    {user?.role !== 'admin' && (
+                      <Link
+                        to={ROUTES.MY_MESSAGES}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        <MessageSquare size={16} className="mr-2" />
+                        My Messages
+                      </Link>
+                    )}
+                    {user?.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center px-3 py-2 text-primary-600 font-medium hover:bg-primary-50 transition-colors"
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false)
+                        logout()
+                      }}
+                      className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      <LogOut size={20} className="mr-2" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to={ROUTES.LOGIN}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    <User size={20} className="mr-2" />
+                    Login
+                  </Link>
+                )}
               </div>
             </div>
           </div>
