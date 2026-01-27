@@ -17,6 +17,12 @@ const clearAllStoresCache = () => {
   clearStoredRefreshToken()
 }
 
+// Workaround for iOS WebKit: dispatch custom event to force re-render
+// Zustand's useSyncExternalStore doesn't always trigger re-renders on Safari/iOS
+const notifyAuthChange = () => {
+  window.dispatchEvent(new CustomEvent('auth-state-changed'))
+}
+
 const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -50,6 +56,8 @@ const useAuthStore = create(
           isAuthenticated: false,
           error: null
         })
+        // Notify iOS WebKit workaround
+        notifyAuthChange()
       },
 
       setLoading: (isLoading) => set({ isLoading }),
@@ -78,6 +86,10 @@ const useAuthStore = create(
               isLoading: false,
               error: null
             })
+
+            // Notify iOS WebKit workaround
+            notifyAuthChange()
+
             return { success: true }
           } else {
             set({
