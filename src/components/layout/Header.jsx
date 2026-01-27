@@ -223,23 +223,74 @@ const Header = () => {
               ))}
               
               <div className="border-t pt-2 mt-2">
-                <Link
-                  to={ROUTES.CHECKOUT}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false)
+                    toggleCart()
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <ShoppingCart size={20} className="mr-2" />
-                  Cart (0)
-                </Link>
+                  Cart ({totalItemsAvailable})
+                </button>
 
-                <Link
-                  to={ROUTES.LOGIN}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
-                >
-                  <User size={20} className="mr-2" />
-                  Login
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to={ROUTES.PROFILE}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      <User size={20} className="mr-2" />
+                      {user?.name || 'My Profile'}
+                    </Link>
+                    <Link
+                      to={ROUTES.ORDERS}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      My Orders
+                    </Link>
+                    {user?.role !== 'admin' && (
+                      <Link
+                        to={ROUTES.MY_MESSAGES}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        <MessageSquare size={16} className="mr-2" />
+                        My Messages
+                      </Link>
+                    )}
+                    {user?.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center px-3 py-2 text-primary-600 font-medium hover:bg-primary-50 transition-colors"
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false)
+                        logout()
+                      }}
+                      className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      <LogOut size={20} className="mr-2" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to={ROUTES.LOGIN}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    <User size={20} className="mr-2" />
+                    Login
+                  </Link>
+                )}
               </div>
             </div>
           </div>
