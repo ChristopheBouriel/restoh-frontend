@@ -332,6 +332,9 @@ const useAuthStore = create(
           // Step 3: Fetch user data with the new access token
           const userResult = await authApi.getCurrentUser()
 
+          // DEBUG ALERT 3
+          alert(`DEBUG userResult:\n- success: ${userResult.success}\n- user: ${userResult.user?.name || 'null'}\n- error: ${userResult.error || 'none'}`)
+
           if (userResult.success) {
             set({
               user: userResult.user,
@@ -339,6 +342,11 @@ const useAuthStore = create(
               isLoading: false,
               error: null
             })
+
+            // DEBUG ALERT 4 - verify state after set
+            const finalState = get()
+            alert(`DEBUG final state:\n- isAuthenticated: ${finalState.isAuthenticated}\n- user: ${finalState.user?.name || 'null'}`)
+
             return { success: true }
           } else {
             // Failed to get user data - clear auth
