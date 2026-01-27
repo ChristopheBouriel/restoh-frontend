@@ -226,7 +226,8 @@ const Header = () => {
                 <button
                   onClick={() => {
                     setIsMenuOpen(false)
-                    toggleCart()
+                    // Small delay to let menu close before opening cart
+                    setTimeout(() => toggleCart(), 100)
                   }}
                   className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
