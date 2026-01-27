@@ -42,15 +42,14 @@ function App() {
   const { initializeUsers } = useUsersStore()
   const { fetchMessages } = useContactsStore()
 
-  // Restore session on app startup using refresh token cookie
+  // Restore session on app startup using refresh token cookie or localStorage fallback
   // This gets a new accessToken and fetches user data
   useEffect(() => {
     const restoreSession = async () => {
-      // Only try to restore if we think user was authenticated (from localStorage)
-      // This avoids unnecessary API calls for users who never logged in
-      if (isAuthenticated) {
-        await initializeAuth()
-      }
+      // Always try to restore session on mount
+      // The server will return error if no valid refresh token exists
+      // This handles both cookie-based auth and Safari localStorage fallback
+      await initializeAuth()
     }
     restoreSession()
   }, []) // Run once on mount
