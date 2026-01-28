@@ -327,7 +327,13 @@ const useAuthStore = create(
           }
 
           // Step 2: Store the new access token
-          set({ accessToken: refreshResult.accessToken })
+          // Use callback form to ensure state is updated before continuing
+          const newAccessToken = refreshResult.accessToken
+          set({ accessToken: newAccessToken })
+
+          // DEBUG: Verify token is set before making the call
+          const stateAfterSet = get()
+          alert(`DEBUG after set accessToken:\n- token in state: ${!!stateAfterSet.accessToken}\n- token matches: ${stateAfterSet.accessToken === newAccessToken}`)
 
           // Step 3: Fetch user data with the new access token
           const userResult = await authApi.getCurrentUser()
