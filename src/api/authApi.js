@@ -84,9 +84,15 @@ export const refreshToken = async () => {
 // Get current user info
 export const getCurrentUser = async () => {
   try {
+    // DEBUG: Check what token the interceptor will use
+    const { default: useAuthStore } = await import('../store/authStore')
+    const tokenInStore = useAuthStore.getState().accessToken
+    alert(`DEBUG getCurrentUser:\n- token in store: ${!!tokenInStore}\n- token preview: ${tokenInStore?.substring(0, 20) || 'null'}...`)
+
     const response = await apiClient.get('/auth/me')
     return { success: true, ...response }
   } catch (error) {
+    alert(`DEBUG getCurrentUser ERROR:\n- error: ${error.error || error.message}\n- code: ${error.code || 'none'}`)
     return { success: false, error: error.error || 'Error fetching profile' }
   }
 }
