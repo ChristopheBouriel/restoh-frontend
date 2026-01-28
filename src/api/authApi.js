@@ -92,7 +92,7 @@ export const getCurrentUser = async () => {
     const response = await apiClient.get('/auth/me')
     return { success: true, ...response }
   } catch (error) {
-    alert(`DEBUG getCurrentUser ERROR:\n- error: ${error.error || error.message}\n- code: ${error.code || 'none'}`)
+    alert(`DEBUG getCurrentUser ERROR:\n- error: ${error.error || error.message}\n- code: ${error.code || 'none'}\n- status: ${error.status || 'none'}\n- full: ${JSON.stringify(error).substring(0, 200)}`)
     return { success: false, error: error.error || 'Error fetching profile' }
   }
 }

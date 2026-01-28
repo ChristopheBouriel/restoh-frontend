@@ -335,6 +335,9 @@ const useAuthStore = create(
           const stateAfterSet = get()
           alert(`DEBUG after set accessToken:\n- token in state: ${!!stateAfterSet.accessToken}\n- token matches: ${stateAfterSet.accessToken === newAccessToken}`)
 
+          // Small delay to ensure Safari doesn't block rapid successive requests
+          await new Promise(resolve => setTimeout(resolve, 100))
+
           // Step 3: Fetch user data with the new access token
           const userResult = await authApi.getCurrentUser()
 
