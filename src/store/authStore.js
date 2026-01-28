@@ -3,7 +3,6 @@ import { persist } from 'zustand/middleware'
 import * as authApi from '../api/authApi'
 import {
   storeRefreshToken,
-  getStoredRefreshToken,
   clearStoredRefreshToken,
   needsLocalStorageFallback
 } from '../utils/tokenStorage'
@@ -301,48 +300,22 @@ const useAuthStore = create(
       initializeAuth: async () => {
         set({ isLoading: true, error: null })
 
-        // DEBUG: Log what we're sending
-        const storedToken = needsLocalStorageFallback() ? getStoredRefreshToken() : null
-        console.log('[initializeAuth] needsLocalStorageFallback:', needsLocalStorageFallback())
-        console.log('[initializeAuth] storedToken exists:', !!storedToken)
-        console.log('[initializeAuth] storedToken (first 20 chars):', storedToken?.substring(0, 20))
-
-        // DEBUG ALERT
-        alert(`DEBUG initializeAuth:\n- needsFallback: ${needsLocalStorageFallback()}\n- storedToken exists: ${!!storedToken}\n- token preview: ${storedToken?.substring(0, 15) || 'null'}...`)
-
         try {
           // Step 1: Try to refresh the access token using the refresh token cookie
           const refreshResult = await authApi.refreshToken()
-          console.log('[initializeAuth] refreshResult:', refreshResult)
-
-          // DEBUG ALERT 2
-          alert(`DEBUG refreshResult:\n- success: ${refreshResult.success}\n- error: ${refreshResult.error || 'none'}`)
 
           if (!refreshResult.success) {
             // No valid refresh token - user needs to login again
-            console.log('[initializeAuth] Refresh failed, clearing auth')
             get().clearAuth()
             set({ isLoading: false })
             return { success: false, error: 'No valid session' }
           }
 
           // Step 2: Store the new access token
-          // Use callback form to ensure state is updated before continuing
-          const newAccessToken = refreshResult.accessToken
-          set({ accessToken: newAccessToken })
-
-          // DEBUG: Verify token is set before making the call
-          const stateAfterSet = get()
-          alert(`DEBUG after set accessToken:\n- token in state: ${!!stateAfterSet.accessToken}\n- token matches: ${stateAfterSet.accessToken === newAccessToken}`)
-
-          // Small delay to ensure Safari doesn't block rapid successive requests
-          await new Promise(resolve => setTimeout(resolve, 100))
+          set({ accessToken: refreshResult.accessToken })
 
           // Step 3: Fetch user data with the new access token
           const userResult = await authApi.getCurrentUser()
-
-          // DEBUG ALERT 3
-          alert(`DEBUG userResult:\n- success: ${userResult.success}\n- user: ${userResult.user?.name || 'null'}\n- error: ${userResult.error || 'none'}`)
 
           if (userResult.success) {
             set({
@@ -351,11 +324,6 @@ const useAuthStore = create(
               isLoading: false,
               error: null
             })
-
-            // DEBUG ALERT 4 - verify state after set
-            const finalState = get()
-            alert(`DEBUG final state:\n- isAuthenticated: ${finalState.isAuthenticated}\n- user: ${finalState.user?.name || 'null'}`)
-
             return { success: true }
           } else {
             // Failed to get user data - clear auth
