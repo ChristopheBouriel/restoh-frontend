@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
+import { vi, describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 import Dashboard from '../../../pages/admin/Dashboard'
 import useOrdersStore from '../../../store/ordersStore'
@@ -52,6 +52,19 @@ vi.mock('../../../utils/pluralize', () => ({
 }))
 
 describe('Dashboard Component', () => {
+  // Mock the current date to mid-month to avoid end-of-month edge cases
+  // This ensures tests always have future dates available within the month
+  const MOCK_DATE = new Date('2026-01-15T12:00:00.000Z')
+
+  beforeAll(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(MOCK_DATE)
+  })
+
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   // Mock API stats data
   const mockApiStats = {
     quickStats: {
@@ -83,7 +96,7 @@ describe('Dashboard Component', () => {
     }
   }
 
-  // Mock orders data
+  // Mock orders data (using fixed dates matching MOCK_DATE)
   const mockOrders = [
     {
       id: 'order-001',
@@ -94,7 +107,7 @@ describe('Dashboard Component', () => {
       ],
       totalPrice: 31.80,
       status: 'preparing',
-      createdAt: new Date().toISOString()
+      createdAt: '2026-01-15T12:00:00.000Z'
     },
     {
       id: 'order-002',
@@ -105,19 +118,13 @@ describe('Dashboard Component', () => {
       ],
       totalPrice: 18.00,
       status: 'confirmed',
-      createdAt: new Date(Date.now() - 60000).toISOString()
+      createdAt: '2026-01-15T11:59:00.000Z'
     }
   ]
 
   // Mock reservations data (future dates for upcoming calculation)
-  // Use a date that's definitely within the current month to avoid end-of-month edge cases
-  const today = new Date()
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-  // Use tomorrow or a date between today and end of month
-  const daysUntilEndOfMonth = endOfMonth.getDate() - today.getDate()
-  const daysToAdd = Math.min(2, daysUntilEndOfMonth) // At most 2 days ahead, but stay in month
-  const futureDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.max(1, daysToAdd))
-  const futureDateStr = futureDate.toISOString().split('T')[0]
+  // Use fixed dates that match MOCK_DATE (2026-01-15) to avoid end-of-month edge cases
+  const futureDateStr = '2026-01-17' // 2 days after mock date, within same month
 
   const mockReservations = [
     {
@@ -129,7 +136,7 @@ describe('Dashboard Component', () => {
       guests: 4,
       status: 'confirmed',
       tableNumber: [1, 2],
-      createdAt: new Date().toISOString()
+      createdAt: '2026-01-15T10:00:00.000Z'
     },
     {
       id: 'res-002',
@@ -140,7 +147,7 @@ describe('Dashboard Component', () => {
       guests: 2,
       status: 'confirmed',
       tableNumber: 3,
-      createdAt: new Date(Date.now() - 60000).toISOString()
+      createdAt: '2026-01-15T09:00:00.000Z'
     }
   ]
 
@@ -343,7 +350,7 @@ describe('Dashboard Component', () => {
           date: futureDateStr,
           guests: 10,
           status: 'cancelled',
-          createdAt: new Date().toISOString()
+          createdAt: '2026-01-15T08:00:00.000Z'
         }
       ]
 
@@ -363,7 +370,7 @@ describe('Dashboard Component', () => {
           date: futureDateStr,
           guests: 8,
           status: 'completed',
-          createdAt: new Date().toISOString()
+          createdAt: '2026-01-15T08:00:00.000Z'
         }
       ]
 
