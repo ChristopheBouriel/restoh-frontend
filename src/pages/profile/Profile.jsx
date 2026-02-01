@@ -13,7 +13,7 @@ import { ROUTES } from '../../constants'
 const Profile = () => {
   const navigate = useNavigate()
   const { user, updateProfile, changePassword, isLoading } = useAuth()
-  const { clearAuth } = useAuthContext()
+  const { logout } = useAuthContext()
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -139,11 +139,11 @@ const Profile = () => {
     const result = await authApi.deleteAccount(password, options)
 
     if (result.success) {
-      // Success - clear auth and redirect
+      // Success - logout (clears auth + revokes refresh token) and redirect
       setIsDeleting(false)
       setShowDeleteModal(false)
       setDeleteModalStep('initial')
-      clearAuth()
+      await logout()
       toast.success('Account deleted successfully')
       navigate(ROUTES.HOME)
     } else if (result.code === 'UNPAID_DELIVERY_ORDERS') {

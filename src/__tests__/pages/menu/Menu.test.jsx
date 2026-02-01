@@ -32,6 +32,15 @@ vi.mock('../../../store/authStore', () => ({
   }))
 }))
 
+// Mock AuthContext with dynamic user state
+let mockAuthUser = null
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuthContext: () => ({
+    user: mockAuthUser,
+    isAuthenticated: !!mockAuthUser
+  })
+}))
+
 // Get mocked API functions
 let mockGetMenuItems, mockGetMenuItemRatingStats, mockGetMenuItemReviews, mockCreateReview, mockUpdateReview, mockDeleteReview, mockUseAuthStore
 beforeAll(async () => {
@@ -169,6 +178,7 @@ const MenuWrapper = () => (
 describe('Menu Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockAuthUser = null
 
     // Mock API responses to prevent real backend calls
     mockGetMenuItems.mockResolvedValue({
@@ -648,8 +658,9 @@ describe('Menu Component', () => {
       const user = userEvent.setup()
 
       // Mock authenticated user
+      mockAuthUser = { id: 'user-123', email: 'test@example.com', name: 'Test User' }
       mockUseAuthStore.mockReturnValue({
-        user: { id: 'user-123', email: 'test@example.com', name: 'Test User' },
+        user: mockAuthUser,
         isAuthenticated: true
       })
 
@@ -677,6 +688,7 @@ describe('Menu Component', () => {
       const user = userEvent.setup()
 
       // Mock non-authenticated user (default)
+      mockAuthUser = null
       mockUseAuthStore.mockReturnValue({
         user: null,
         isAuthenticated: false

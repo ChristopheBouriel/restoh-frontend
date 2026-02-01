@@ -78,7 +78,7 @@ describe('Auth API', () => {
 
       const result = await logout()
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/logout')
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/logout', {})
       expect(result.success).toBe(true)
     })
 
@@ -97,7 +97,7 @@ describe('Auth API', () => {
 
       const result = await refreshToken()
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/refresh')
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/refresh', {})
       expect(result.success).toBe(true)
       expect(result.accessToken).toBe('new-token')
     })

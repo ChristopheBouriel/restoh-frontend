@@ -21,6 +21,13 @@ vi.mock('../../../store/authStore', () => ({
     return selector ? selector(state) : state
   })
 }))
+
+const mockLogout = vi.fn()
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuthContext: () => ({
+    logout: mockLogout
+  })
+}))
 vi.mock('../../../components/profile/DeleteAccountModal', () => ({
   default: ({ isOpen, onClose, onConfirm }) =>
     isOpen ? (

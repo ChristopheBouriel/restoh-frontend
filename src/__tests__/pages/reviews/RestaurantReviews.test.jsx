@@ -1,15 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import RestaurantReviews from '../../../pages/reviews/RestaurantReviews'
 import useRestaurantReviewsStore from '../../../store/restaurantReviewsStore'
-import useAuthStore from '../../../store/authStore'
 import toast from 'react-hot-toast'
 
 vi.mock('../../../store/restaurantReviewsStore')
-vi.mock('../../../store/authStore')
 vi.mock('react-hot-toast')
+
+// Mock AuthContext with dynamic user state
+let mockUser = null
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuthContext: () => ({
+    user: mockUser,
+    isAuthenticated: !!mockUser
+  })
+}))
 
 const mockScrollTo = vi.fn()
 Object.defineProperty(window, 'scrollTo', { value: mockScrollTo, writable: true })
@@ -69,8 +76,8 @@ describe('RestaurantReviews Page', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUser = null
     useRestaurantReviewsStore.mockReturnValue(defaultStore)
-    useAuthStore.mockReturnValue({ user: null })
   })
 
   const renderPage = () => render(<BrowserRouter><RestaurantReviews /></BrowserRouter>)
@@ -89,7 +96,7 @@ describe('RestaurantReviews Page', () => {
   })
 
   it('should show "Write a Review" button for logged-in user without existing review', () => {
-    useAuthStore.mockReturnValue({ user: { id: 'user-3', name: 'New User' } })
+    mockUser = { id: 'user-3', name: 'New User' }
 
     renderPage()
 
@@ -98,7 +105,7 @@ describe('RestaurantReviews Page', () => {
 
   describe('Creating Review', () => {
     beforeEach(() => {
-      useAuthStore.mockReturnValue({ user: { id: 'user-3' } })
+      mockUser = { id: 'user-3' }
     })
 
     it('should show form when clicking Write a Review', async () => {
@@ -139,7 +146,7 @@ describe('RestaurantReviews Page', () => {
     const userReview = { id: 'review-user', ratings: { overall: 5 }, comment: 'My review', user: { id: 'user-1' } }
 
     beforeEach(() => {
-      useAuthStore.mockReturnValue({ user: { id: 'user-1' } })
+      mockUser = { id: 'user-1' }
       mockGetUserReview.mockReturnValue(userReview)
       useRestaurantReviewsStore.mockReturnValue({
         ...defaultStore,

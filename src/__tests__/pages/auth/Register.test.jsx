@@ -2,11 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Register from '../../../pages/auth/Register'
-import useAuthStore from '../../../store/authStore'
 import * as emailApi from '../../../api/emailApi'
 
 // Mocks
-vi.mock('../../../store/authStore')
 vi.mock('../../../api/emailApi')
 
 vi.mock('react-router-dom', () => ({
@@ -21,17 +19,33 @@ vi.mock('react-hot-toast', () => ({
   }
 }))
 
+// Mock auth context with dynamic state
+const mockRegister = vi.fn()
+let mockAuthState = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null
+}
+
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuthContext: () => ({
+    ...mockAuthState,
+    register: mockRegister
+  })
+}))
+
 describe('Register Component', () => {
-  const mockRegister = vi.fn()
   const user = userEvent.setup()
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useAuthStore).mockReturnValue({
-      register: mockRegister,
+    mockAuthState = {
+      user: null,
+      isAuthenticated: false,
       isLoading: false,
       error: null
-    })
+    }
 
     // Mock window.scrollTo
     window.scrollTo = vi.fn()
@@ -260,11 +274,7 @@ describe('Register Component', () => {
   // 5. ÉTATS DE L'APPLICATION
   describe('Application States', () => {
     it('should display loading state during registration', () => {
-      vi.mocked(useAuthStore).mockReturnValue({
-        register: mockRegister,
-        isLoading: true,
-        error: null
-      })
+      mockAuthState.isLoading = true
 
       render(<Register />)
 
@@ -277,11 +287,7 @@ describe('Register Component', () => {
 
     it('should display global error message when registration fails', () => {
       const errorMessage = 'Une erreur est survenue lors de la création du compte'
-      vi.mocked(useAuthStore).mockReturnValue({
-        register: mockRegister,
-        isLoading: false,
-        error: errorMessage
-      })
+      mockAuthState.error = errorMessage
 
       render(<Register />)
 

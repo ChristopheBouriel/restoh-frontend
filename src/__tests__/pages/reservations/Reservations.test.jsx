@@ -48,6 +48,12 @@ vi.mock('../../../store/reservationsStore', () => ({
 vi.mock('../../../api/tablesApi', () => ({
   getAvailableTables: vi.fn()
 }))
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuthContext: () => ({
+    user: { id: '1', name: 'Test User', role: 'user' },
+    isAuthenticated: true
+  })
+}))
 vi.mock('react-hot-toast', () => ({
   toast: {
     error: vi.fn(),

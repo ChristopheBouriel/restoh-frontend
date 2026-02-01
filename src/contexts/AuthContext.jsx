@@ -160,6 +160,17 @@ export const AuthProvider = ({ children }) => {
     setAuthState(prev => ({ ...prev, error: null }))
   }, [store])
 
+  const clearAuth = useCallback(() => {
+    store.clearAuth()
+    setAuthState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+      accessToken: null,
+    })
+  }, [store])
+
   const value = {
     // State (from React state, not Zustand directly)
     ...authState,
@@ -174,6 +185,7 @@ export const AuthProvider = ({ children }) => {
     fetchCurrentUser,
     initializeAuth,
     clearError,
+    clearAuth,
   }
 
   return (
