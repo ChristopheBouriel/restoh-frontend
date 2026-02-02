@@ -58,7 +58,7 @@ describe('MyMessages', () => {
 
   const mockMyMessages = [
     {
-      _id: 'msg-001',
+      id: 'msg-001',
       subject: 'General inquiry - Question about menu',
       message: 'Do you have vegetarian options?',
       createdAt: '2024-01-20T10:00:00Z',
@@ -66,14 +66,14 @@ describe('MyMessages', () => {
       discussion: []
     },
     {
-      _id: 'msg-002',
+      id: 'msg-002',
       subject: 'Reservation - Birthday party',
       message: 'I would like to reserve a table for 8 people',
       createdAt: '2024-01-19T15:00:00Z',
       status: 'replied',
       discussion: [
         {
-          _id: 'reply-001',
+          id: 'reply-001',
           userId: 'user-123',
           name: 'John Doe',
           role: 'user',
@@ -84,14 +84,14 @@ describe('MyMessages', () => {
       ]
     },
     {
-      _id: 'msg-003',
+      id: 'msg-003',
       subject: 'Complaint - Cold food',
       message: 'My order arrived cold yesterday',
       createdAt: '2024-01-18T12:00:00Z',
       status: 'replied',
       discussion: [
         {
-          _id: 'reply-002',
+          id: 'reply-002',
           userId: 'admin-123',
           name: 'Admin User',
           role: 'admin',
@@ -461,7 +461,7 @@ describe('MyMessages', () => {
 
     it('should disable reply form for closed conversations', async () => {
       const closedMessage = {
-        _id: 'msg-closed',
+        id: 'msg-closed',
         subject: 'Closed conversation',
         message: 'This conversation is closed',
         createdAt: '2024-01-15T10:00:00Z',
