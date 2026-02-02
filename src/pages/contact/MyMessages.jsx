@@ -31,7 +31,7 @@ const MyMessages = () => {
   // Update selectedMessage when myMessages change (after refresh)
   useEffect(() => {
     if (selectedMessage && myMessages.length > 0) {
-      const updatedMessage = myMessages.find(m => m._id === selectedMessage._id)
+      const updatedMessage = myMessages.find(m => m.id === selectedMessage.id)
       if (updatedMessage) {
         setSelectedMessage(updatedMessage)
       }
@@ -106,8 +106,8 @@ const MyMessages = () => {
 
       // Mark each unread admin message as read
       for (const reply of unreadAdminMessages) {
-        if (reply._id) {
-          await markDiscussionMessageAsRead(message._id, reply._id)
+        if (reply.id) {
+          await markDiscussionMessageAsRead(message.id, reply.id)
         }
       }
 
@@ -134,7 +134,7 @@ const MyMessages = () => {
     setIsSubmitting(true)
 
     try {
-      const result = await addReply(selectedMessage._id, replyText)
+      const result = await addReply(selectedMessage.id, replyText)
 
       if (result.success) {
         toast.success('Reply sent successfully')
@@ -308,7 +308,7 @@ const MyMessages = () => {
                   const hasNewReply = displayStatus === 'newlyReplied'
 
                   return (
-                    <div key={message._id}>
+                    <div key={message.id}>
                       {index > 0 && (
                         <div className="mx-6 h-px bg-primary-400" />
                       )}
