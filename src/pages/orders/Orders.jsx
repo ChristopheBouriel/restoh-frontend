@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Clock, Package, CheckCircle, XCircle, Eye } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import useOrdersStore from '../../store/ordersStore'
 import { OrderService } from '../../services/orders'
 import InlineAlert from '../../components/common/InlineAlert'
+
+const POLLING_INTERVAL = 30000 // 30 seconds
 
 const Orders = () => {
   const [filter, setFilter] = useState('all')
@@ -13,10 +15,54 @@ const Orders = () => {
   const { fetchOrders } = useOrdersStore()
   const { orders, cancelOrder, canCancelOrder, formatPrice, formatDate } = useOrders()
 
-  useEffect(() => {
-    // Load orders for the logged-in user
+  const pollingRef = useRef(null)
+
+  // Memoized fetch function for polling
+  const refreshOrders = useCallback(() => {
     fetchOrders(false) // false = user (not admin)
   }, [fetchOrders])
+
+  useEffect(() => {
+    // Initial load
+    refreshOrders()
+
+    // Start polling when page is visible
+    const startPolling = () => {
+      if (pollingRef.current) return // Already polling
+      pollingRef.current = setInterval(refreshOrders, POLLING_INTERVAL)
+    }
+
+    // Stop polling when page is hidden
+    const stopPolling = () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current)
+        pollingRef.current = null
+      }
+    }
+
+    // Handle visibility change
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshOrders() // Immediate refresh when user comes back
+        startPolling()
+      } else {
+        stopPolling()
+      }
+    }
+
+    // Start polling if page is currently visible
+    if (document.visibilityState === 'visible') {
+      startPolling()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Cleanup
+    return () => {
+      stopPolling()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshOrders])
 
   // Use OrderService for filtering
   const filteredOrders = filter === 'all'
