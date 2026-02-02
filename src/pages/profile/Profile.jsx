@@ -151,7 +151,7 @@ const Profile = () => {
       setIsDeleting(false)
       setDeleteBlockMessage(result.error)
       setDeleteModalStep('blocked')
-    } else if (result.code === 'ACTIVE_RESERVATIONS') {
+    } else if (result.code === 'ACTIVE_RESERVATIONS_WARNING') {
       // Has active reservations - show confirmation step
       setIsDeleting(false)
       setActiveReservations(result.reservations || [])
