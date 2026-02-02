@@ -20,6 +20,7 @@ const Profile = () => {
   const [deleteModalStep, setDeleteModalStep] = useState('initial')
   const [deleteBlockMessage, setDeleteBlockMessage] = useState('')
   const [activeReservations, setActiveReservations] = useState([])
+  const [blockingOrders, setBlockingOrders] = useState([])
   const [isDeleting, setIsDeleting] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
 
@@ -146,10 +147,11 @@ const Profile = () => {
       clearAuth()
       toast.success('Account deleted successfully')
       navigate(ROUTES.HOME)
-    } else if (result.code === 'UNPAID_DELIVERY_ORDERS') {
-      // Blocked - cannot delete account
+    } else if (result.code === 'UNPAID_CASH_ORDERS') {
+      // Blocked - cannot delete account (cash orders in preparation)
       setIsDeleting(false)
       setDeleteBlockMessage(result.error)
+      setBlockingOrders(result.orders || [])
       setDeleteModalStep('blocked')
     } else if (result.code === 'ACTIVE_RESERVATIONS_WARNING') {
       // Has active reservations - show confirmation step
@@ -170,6 +172,7 @@ const Profile = () => {
     setDeleteModalStep('initial')
     setDeleteBlockMessage('')
     setActiveReservations([])
+    setBlockingOrders([])
   }
 
   const handleResendVerification = async () => {
@@ -553,6 +556,7 @@ const Profile = () => {
           step={deleteModalStep}
           blockMessage={deleteBlockMessage}
           activeReservations={activeReservations}
+          blockingOrders={blockingOrders}
         />
       </div>
     </div>

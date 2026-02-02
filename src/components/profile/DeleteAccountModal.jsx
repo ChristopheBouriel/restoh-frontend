@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, AlertTriangle, Calendar, Clock, Users } from 'lucide-react'
+import { X, AlertTriangle, Calendar, Clock, Users, ShoppingBag, DollarSign } from 'lucide-react'
 import { getLabelFromSlot } from '../../utils/reservationSlots'
 
 const DeleteAccountModal = ({
@@ -9,7 +9,8 @@ const DeleteAccountModal = ({
   isLoading,
   step = 'initial',
   blockMessage = '',
-  activeReservations = []
+  activeReservations = [],
+  blockingOrders = []
 }) => {
   const [password, setPassword] = useState('')
   const [confirmText, setConfirmText] = useState('')
@@ -79,15 +80,50 @@ const DeleteAccountModal = ({
           {/* Body */}
           <div className="mt-4">
             {step === 'blocked' && (
-              <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
-                <div className="text-sm text-amber-800">
-                  <p className="mb-2"><strong>You cannot delete your account at this time.</strong></p>
-                  <p>{blockMessage}</p>
-                  <p className="mt-3 text-amber-700">
-                    You will be able to delete your account once your delivery has been completed.
-                  </p>
+              <>
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-4">
+                  <div className="text-sm text-amber-800">
+                    <p className="mb-2"><strong>You cannot delete your account at this time.</strong></p>
+                    <p>{blockMessage}</p>
+                  </div>
                 </div>
-              </div>
+
+                {blockingOrders.length > 0 && (
+                  <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
+                    {blockingOrders.map((order) => (
+                      <div
+                        key={order.id || order.orderNumber}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <ShoppingBag className="w-5 h-5 text-primary-600" />
+                          <div>
+                            <p className="font-medium text-gray-900">Order #{order.orderNumber}</p>
+                            <div className="flex items-center text-sm text-gray-600 space-x-3">
+                              <span className="flex items-center">
+                                <DollarSign className="w-4 h-4 mr-1" />
+                                ${order.totalPrice?.toFixed(2)}
+                              </span>
+                              <span className="capitalize">{order.orderType}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          order.status === 'preparing'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : order.status === 'ready'
+                              ? 'bg-green-100 text-green-800'
+                              : order.status === 'out-for-delivery'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status === 'out-for-delivery' ? 'Out for delivery' : order.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             {step === 'confirm-reservations' && (
