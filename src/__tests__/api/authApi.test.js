@@ -202,25 +202,25 @@ describe('Auth API', () => {
       })
     })
 
-    it('should return reservations list on ACTIVE_RESERVATIONS error', async () => {
+    it('should return reservations list on ACTIVE_RESERVATIONS_WARNING error', async () => {
       const reservations = [{ id: 'res-1', date: '2024-12-20' }]
       apiClient.delete.mockRejectedValue({
         error: 'Active reservations',
-        code: 'ACTIVE_RESERVATIONS',
+        code: 'ACTIVE_RESERVATIONS_WARNING',
         reservations
       })
 
       const result = await deleteAccount('myPassword')
 
       expect(result.success).toBe(false)
-      expect(result.code).toBe('ACTIVE_RESERVATIONS')
+      expect(result.code).toBe('ACTIVE_RESERVATIONS_WARNING')
       expect(result.reservations).toEqual(reservations)
     })
 
     it('should handle reservations in data.reservations', async () => {
       const reservations = [{ id: 'res-1' }]
       apiClient.delete.mockRejectedValue({
-        code: 'ACTIVE_RESERVATIONS',
+        code: 'ACTIVE_RESERVATIONS_WARNING',
         data: { reservations }
       })
 
