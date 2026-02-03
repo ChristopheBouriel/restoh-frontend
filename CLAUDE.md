@@ -148,8 +148,8 @@ La suppression de compte utilise un modal multi-étapes avec validation backend 
 
 #### Flux de suppression
 1. **Initial** : Formulaire avec confirmation "DELETE" + mot de passe
-2. **Blocked** (`UNPAID_DELIVERY_ORDERS`) : Message d'erreur, suppression impossible
-3. **Confirm Reservations** (`ACTIVE_RESERVATIONS`) : Liste des réservations actives, demande de confirmation
+2. **Blocked** (`UNPAID_CASH_ORDERS`) : Message d'erreur avec liste des commandes bloquantes, suppression impossible
+3. **Confirm Reservations** (`ACTIVE_RESERVATIONS_WARNING`) : Liste des réservations actives, demande de confirmation
 
 #### API deleteAccount
 ```javascript
@@ -159,8 +159,8 @@ export const deleteAccount = async (password, options = {}) => {
 }
 
 // Codes d'erreur possibles
-// - UNPAID_DELIVERY_ORDERS : Commande en livraison non payée (blocage)
-// - ACTIVE_RESERVATIONS : Réservations actives (confirmation requise)
+// - UNPAID_CASH_ORDERS : Commandes cash en préparation/livraison (blocage)
+// - ACTIVE_RESERVATIONS_WARNING : Réservations actives (confirmation requise)
 // - INVALID_PASSWORD : Mot de passe incorrect
 ```
 
@@ -622,11 +622,27 @@ docker exec restoh-backend node seeds/seed-all.js
 Configurer sur Vercel/Netlify :
 - `VITE_API_URL` = URL du backend de production (ex: `https://api.restoh.com/api`)
 
+## Polling des Statuts
+
+### Orders Page - Intelligent Polling
+La page "My Orders" (`/orders`) implémente un polling intelligent pour mettre à jour les statuts des commandes :
+
+```javascript
+// Polling toutes les 30 secondes quand la page est visible
+const POLLING_INTERVAL = 30000
+
+// Refresh immédiat quand l'utilisateur revient sur l'onglet
+document.addEventListener('visibilitychange', handleVisibilityChange)
+
+// Arrêt du polling quand la page est en arrière-plan
+```
+
+**Note importante** : Le store `ordersStore` compare les commandes par `id`, `status` et `updatedAt`. Si vous modifiez manuellement en base de données, pensez à mettre à jour `updatedAt` sinon le changement ne sera pas détecté.
+
 ## Notes pour le Développement Futur
 
 ### Améliorations Possibles
-- **Refresh Tokens** : Implémenter la rotation automatique
-- **WebSockets** : Notifications temps réel pour les commandes
+- **WebSockets** : Notifications temps réel pour les commandes (remplacer le polling)
 - **PWA** : Support offline avec Service Workers
 - **i18n** : Internationalisation (français/anglais)
 - **Dark Mode** : Thème sombre avec Tailwind
@@ -656,8 +672,25 @@ refactor: Simplify auth store logic
 test: Add tests for orders API
 ```
 
+## Safari/iOS Compatibility
+
+### ITP (Intelligent Tracking Prevention) Workarounds
+
+Sur la branche `deploy/cloudflare`, des workarounds sont implémentés pour Safari/iOS qui bloque les cookies cross-origin :
+
+**Fichiers concernés :**
+- `src/utils/tokenStorage.js` : Détection Safari/iOS + stockage refresh token en localStorage
+- `src/contexts/AuthContext.jsx` : Context wrapper pour Zustand (fix re-render iOS WebKit)
+- `src/api/apiClient.js` : Envoie le refresh token depuis localStorage si Safari
+- `src/api/authApi.js` : Idem pour login/logout
+- `src/store/authStore.js` : Stocke le refresh token en localStorage après login
+
+**Workflow branches :**
+- Développement sur `main`
+- Merge `main` → `deploy/cloudflare` pour déployer avec les workarounds Safari
+
 ---
 
 **Ce fichier doit être mis à jour à chaque évolution majeure du projet.**
 
-Dernière mise à jour : Décembre 2024 - Tests complets (1620+ unit, 17 E2E, a11y), Docker containerisation, couverture API et reviews.
+Dernière mise à jour : Février 2026 - Polling orders, Safari ITP workarounds, account deletion blocking for unpaid cash orders.
