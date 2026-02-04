@@ -870,17 +870,13 @@ const ReservationsManagement = () => {
                       </div>
                     )}
 
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
-                        {formatDate(reservation.date)} - {getLabelFromSlot(reservation.slot)}
-                      </div>
-                      <div className="flex items-start text-sm text-gray-500 max-w-[45%]">
-                        <MapPin className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
-                        <span className="text-right break-words">
-                          {formatTableNumbers(reservation.tableNumber)}
-                        </span>
-                      </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatDate(reservation.date)} - {getLabelFromSlot(reservation.slot)}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatTableNumbers(reservation.tableNumber)}</span>
                     </div>
 
                     {reservation.specialRequests && (
