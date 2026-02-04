@@ -234,7 +234,7 @@ const UsersManagement = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6 overflow-x-hidden">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Users Management</h1>
@@ -318,7 +318,7 @@ const UsersManagement = () => {
       </div>
 
       {/* Filters and search */}
-      <div className="bg-white rounded-lg border border-brown-400 p-6 mb-6">
+      <div className="bg-white rounded-lg border border-brown-400 p-4 md:p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Search and filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
@@ -520,8 +520,8 @@ const UsersManagement = () => {
                     <div className="mx-4 h-px bg-primary-400" />
                   )}
                   <div className="p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex items-center flex-wrap gap-2">
                       <button
                         onClick={() => openUserModal(user)}
                         className="text-gray-400 hover:text-blue-600 transition-colors"
