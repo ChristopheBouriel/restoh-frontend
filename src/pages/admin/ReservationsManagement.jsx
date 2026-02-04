@@ -306,16 +306,8 @@ const ReservationsManagement = () => {
     if (!isDeletedUser(reservation)) {
       return 'hover:bg-gray-50'
     }
-
-    const timePassed = isReservationTimePassed(reservation.date, reservation.slot)
-
-    if (reservation.status === 'completed' || reservation.status === 'cancelled' || reservation.status === 'no-show') {
-      return 'bg-gray-100 hover:bg-gray-200'
-    } else if (!timePassed) {
-      return 'bg-red-50 hover:bg-red-100'
-    } else {
-      return 'bg-orange-50 hover:bg-orange-100'
-    }
+    // Deleted users always get gray background
+    return 'bg-gray-100 hover:bg-gray-200'
   }
 
   const isDeletedUser = (reservation) => {
@@ -395,12 +387,6 @@ const ReservationsManagement = () => {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Reservations Management</h1>
         <p className="text-gray-600">Manage all restaurant reservations</p>
-        <div className="mt-3 text-xs text-gray-500">
-          <strong>Color codes:</strong>
-          <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Completed/Cancelled/No-show
-          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Upcoming reservation
-          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Past reservation not completed
-        </div>
       </div>
 
       {/* Tabs */}

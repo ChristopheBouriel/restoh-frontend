@@ -266,10 +266,9 @@ const OrdersManagement = () => {
 
     if (order.status === 'delivered' || order.status === 'cancelled') {
       return 'bg-gray-100 hover:bg-gray-200'
-    } else if (order.paymentStatus === 'paid') {
-      return 'bg-orange-50 hover:bg-orange-100'
     } else {
-      return 'bg-red-50 hover:bg-red-100'
+      // Order in progress from deleted user (always paid since unpaid orders block deletion)
+      return 'bg-orange-50 hover:bg-orange-100'
     }
   }
 
@@ -333,11 +332,9 @@ const OrdersManagement = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
         <p className="text-gray-600">View and manage all customer orders</p>
-        <div className="mt-3 text-xs text-gray-500">
-          <strong>Color codes:</strong>
-          <span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 ml-2">Gray</span>Deleted user - Delivered/Cancelled
-          <span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2 ml-3">Orange</span>Deleted user - Paid order in progress
-          <span className="inline-block bg-red-50 px-2 py-1 rounded mr-2 ml-3">Red</span>Deleted user - Unpaid order in progress
+        <div className="mt-3 text-xs text-gray-500 flex flex-col gap-1">
+          <div><span className="inline-block bg-gray-100 px-2 py-1 rounded mr-2">Gray</span>Deleted user - Delivered/Cancelled</div>
+          <div><span className="inline-block bg-orange-50 px-2 py-1 rounded mr-2">Orange</span>Deleted user - Paid order in progress</div>
         </div>
       </div>
 
