@@ -514,11 +514,6 @@ const ReservationsManagement = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
             <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-              {lastRefresh && (
-                <span className="text-xs text-gray-500">
-                  Updated {getTimeSinceRefresh()}
-                </span>
-              )}
               <button
                 onClick={() => setShowTodayOnly(!showTodayOnly)}
                 className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -538,6 +533,11 @@ const ReservationsManagement = () => {
                 <RefreshCw className={`h-4 w-4 ${recentLoading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </button>
+              {lastRefresh && (
+                <span className="text-xs text-gray-500 w-full sm:w-auto order-first sm:order-last">
+                  Updated {getTimeSinceRefresh()}
+                </span>
+              )}
             </div>
           </div>
 

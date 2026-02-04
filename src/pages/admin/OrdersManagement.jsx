@@ -428,16 +428,11 @@ const OrdersManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-brown-400 p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-lg border border-brown-400 p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           {activeTab === 'recent' && (
-            <div className="flex items-center space-x-3">
-              {lastRefresh && (
-                <span className="text-xs text-gray-500">
-                  Updated {getTimeSinceRefresh()}
-                </span>
-              )}
+            <div className="flex items-center flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={() => setShowTodayOnly(!showTodayOnly)}
                 className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -457,6 +452,11 @@ const OrdersManagement = () => {
                 <RefreshCw className={`h-4 w-4 ${isLoadingRecent ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </button>
+              {lastRefresh && (
+                <span className="text-xs text-gray-500 w-full sm:w-auto order-first sm:order-last">
+                  Updated {getTimeSinceRefresh()}
+                </span>
+              )}
             </div>
           )}
         </div>
