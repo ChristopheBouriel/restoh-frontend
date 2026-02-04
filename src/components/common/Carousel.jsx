@@ -94,17 +94,17 @@ const Carousel = ({
         <>
           <button
             onClick={goToPrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors z-10 hidden md:flex items-center justify-center"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-4 bg-white shadow-lg rounded-full p-1.5 md:p-2 hover:bg-gray-100 transition-colors z-10 flex items-center justify-center"
             aria-label="Previous"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-700" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors z-10 hidden md:flex items-center justify-center"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-4 bg-white shadow-lg rounded-full p-1.5 md:p-2 hover:bg-gray-100 transition-colors z-10 flex items-center justify-center"
             aria-label="Next"
           >
-            <ChevronRight className="w-6 h-6 text-gray-700" />
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
           </button>
         </>
       )}
