@@ -311,9 +311,9 @@ const ContactsManagement = () => {
       {/* Filtres - Only for active tab */}
       {activeTab === 'active' && (
         <div className="bg-white p-4 rounded-lg shadow-sm border border-brown-400">
-          <div className="flex items-center space-x-4">
-            <Filter className="w-5 h-5 text-gray-400" />
-            <div className="flex space-x-2 flex-wrap gap-2">
+          <div className="flex items-start space-x-3">
+            <Filter className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilterStatus('all')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -401,36 +401,64 @@ const ContactsManagement = () => {
                 return (
                   <div
                     key={message.id}
-                    className={`p-6 hover:bg-gray-50 cursor-pointer ${
+                    className={`p-4 md:p-6 hover:bg-gray-50 cursor-pointer ${
                       message.status === 'new' ? 'bg-terracotta-50 border-l-4 border-terracotta-400' : ''
                     }`}
                     onClick={() => handleMessageClick(message)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium w-24 ${statusConfig[message.status]?.color}`}>
+                    {/* Mobile layout */}
+                    <div className="md:hidden space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[message.status]?.color}`}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {statusConfig[message.status]?.label}
+                        </div>
+                        <div className="flex items-center text-xs text-gray-400">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {new Date(message.createdAt).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                      <h3 className={`font-medium ${message.status === 'new' ? 'text-gray-900 font-semibold' : 'text-gray-800'}`}>
+                        {message.subject}
+                      </h3>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <User className="w-4 h-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{message.name}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {message.message}
+                      </p>
+                    </div>
+
+                    {/* Desktop layout */}
+                    <div className="hidden md:flex items-center justify-between">
+                      <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        <div className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium w-24 flex-shrink-0 ${statusConfig[message.status]?.color}`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {statusConfig[message.status]?.label}
                         </div>
 
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className={`font-medium ${message.status === 'new' ? 'text-gray-900 font-semibold' : 'text-gray-800'}`}>
-                              {message.subject}
-                            </h3>
-                          </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`font-medium truncate ${message.status === 'new' ? 'text-gray-900 font-semibold' : 'text-gray-800'}`}>
+                            {message.subject}
+                          </h3>
                           <div className="flex items-center space-x-4 mt-1">
                             <div className="flex items-center text-sm text-gray-500">
-                              <User className="w-4 h-4 mr-1" />
-                              {message.name}
+                              <User className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{message.name}</span>
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
-                              <Mail className="w-4 h-4 mr-1" />
-                              {message.email}
+                              <Mail className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{message.email}</span>
                             </div>
                             {message.phone && (
                               <div className="flex items-center text-sm text-gray-500">
-                                <Phone className="w-4 h-4 mr-1" />
+                                <Phone className="w-4 h-4 mr-1 flex-shrink-0" />
                                 {message.phone}
                               </div>
                             )}
@@ -441,7 +469,7 @@ const ContactsManagement = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2 ml-4">
+                      <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
                         <div className="flex items-center text-xs text-gray-400">
                           <Clock className="w-4 h-4 mr-1" />
                           {new Date(message.createdAt).toLocaleDateString('fr-FR', {
@@ -473,34 +501,74 @@ const ContactsManagement = () => {
                 return (
                   <div
                     key={message.id}
-                    className="p-6 hover:bg-gray-50 cursor-pointer bg-gray-50"
+                    className="p-4 md:p-6 hover:bg-gray-50 cursor-pointer bg-gray-50"
                     onClick={() => setSelectedMessage({ ...message, isArchived: true })}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium w-24 ${statusConfig[message.status]?.color}`}>
+                    {/* Mobile layout */}
+                    <div className="md:hidden space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[message.status]?.color}`}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {statusConfig[message.status]?.label}
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <Archive className="w-3 h-3 mr-1" />
+                          Archived
+                        </span>
+                      </div>
+                      <h3 className="font-medium text-gray-800">
+                        {message.subject}
+                      </h3>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <User className="w-4 h-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{message.name}</span>
+                      </div>
+                      {message.deletedBy && (
+                        <p className="text-xs text-red-500">
+                          Archived by {message.deletedBy.firstName} {message.deletedBy.lastName}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {message.message}
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRestoreMessage(message.id)
+                        }}
+                        className="flex items-center space-x-1 px-3 py-1.5 text-sm text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors w-full justify-center"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        <span>Restore</span>
+                      </button>
+                    </div>
+
+                    {/* Desktop layout */}
+                    <div className="hidden md:flex items-center justify-between">
+                      <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        <div className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium w-24 flex-shrink-0 ${statusConfig[message.status]?.color}`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {statusConfig[message.status]?.label}
                         </div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
-                            <h3 className="font-medium text-gray-800">
+                            <h3 className="font-medium text-gray-800 truncate">
                               {message.subject}
                             </h3>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 flex-shrink-0">
                               <Archive className="w-3 h-3 mr-1" />
                               Archived
                             </span>
                           </div>
                           <div className="flex items-center space-x-4 mt-1">
                             <div className="flex items-center text-sm text-gray-500">
-                              <User className="w-4 h-4 mr-1" />
-                              {message.name}
+                              <User className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{message.name}</span>
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
-                              <Mail className="w-4 h-4 mr-1" />
-                              {message.email}
+                              <Mail className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{message.email}</span>
                             </div>
                           </div>
                           {message.deletedBy && (
@@ -514,7 +582,7 @@ const ContactsManagement = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 ml-4">
+                      <div className="flex items-center space-x-3 ml-4 flex-shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()

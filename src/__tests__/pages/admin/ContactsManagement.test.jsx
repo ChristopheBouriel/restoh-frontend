@@ -307,18 +307,19 @@ describe('ContactsManagement Component', () => {
     it('should display message list with different status indicators', () => {
       renderComponent()
 
-      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
-      expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
-      expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.getByText('Question about hours')).toBeInTheDocument()
+      // With mobile/desktop layouts, elements appear twice
+      expect(screen.getAllByText('Question about allergens').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Réservation événement d\'entreprise').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Compliments sur le service').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Question about hours').length).toBeGreaterThanOrEqual(1)
 
       expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(2)
       expect(screen.getAllByText('Read').length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByText('Replied').length).toBeGreaterThanOrEqual(1)
 
-      expect(screen.getByText('Marie Dubois')).toBeInTheDocument()
-      expect(screen.getByText('marie.dubois@email.com')).toBeInTheDocument()
-      expect(screen.getByText('06 12 34 56 78')).toBeInTheDocument()
+      expect(screen.getAllByText('Marie Dubois').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('marie.dubois@email.com').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('06 12 34 56 78').length).toBeGreaterThanOrEqual(1)
     })
   })
 
@@ -348,38 +349,39 @@ describe('ContactsManagement Component', () => {
     it('should filter messages by status when filter buttons are clicked', async () => {
       renderComponent()
 
-      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
-      expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
-      expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.getByText('Question about hours')).toBeInTheDocument()
+      // With mobile/desktop layouts, elements appear twice
+      expect(screen.getAllByText('Question about allergens').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Réservation événement d\'entreprise').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Compliments sur le service').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Question about hours').length).toBeGreaterThanOrEqual(1)
 
       await user.click(screen.getByText('New (2)'))
 
-      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
-      expect(screen.getByText('Question about hours')).toBeInTheDocument()
+      expect(screen.getAllByText('Question about allergens').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Question about hours').length).toBeGreaterThanOrEqual(1)
       expect(screen.queryByText('Réservation événement d\'entreprise')).not.toBeInTheDocument()
       expect(screen.queryByText('Compliments sur le service')).not.toBeInTheDocument()
 
       await user.click(screen.getByText('Read (1)'))
 
-      expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
+      expect(screen.getAllByText('Réservation événement d\'entreprise').length).toBeGreaterThanOrEqual(1)
       expect(screen.queryByText('Question about allergens')).not.toBeInTheDocument()
       expect(screen.queryByText('Question about hours')).not.toBeInTheDocument()
       expect(screen.queryByText('Compliments sur le service')).not.toBeInTheDocument()
 
       await user.click(screen.getByText('Replied (1)'))
 
-      expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
+      expect(screen.getAllByText('Compliments sur le service').length).toBeGreaterThanOrEqual(1)
       expect(screen.queryByText('Question about allergens')).not.toBeInTheDocument()
       expect(screen.queryByText('Réservation événement d\'entreprise')).not.toBeInTheDocument()
       expect(screen.queryByText('Question about hours')).not.toBeInTheDocument()
 
       await user.click(screen.getByText('All (4)'))
 
-      expect(screen.getByText('Question about allergens')).toBeInTheDocument()
-      expect(screen.getByText('Réservation événement d\'entreprise')).toBeInTheDocument()
-      expect(screen.getByText('Compliments sur le service')).toBeInTheDocument()
-      expect(screen.getByText('Question about hours')).toBeInTheDocument()
+      expect(screen.getAllByText('Question about allergens').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Réservation événement d\'entreprise').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Compliments sur le service').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Question about hours').length).toBeGreaterThanOrEqual(1)
     })
 
     it('should show empty state when no messages match filter', () => {
@@ -417,7 +419,8 @@ describe('ContactsManagement Component', () => {
     it('should open message modal when message is clicked', async () => {
       renderComponent()
 
-      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about allergens')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -433,7 +436,8 @@ describe('ContactsManagement Component', () => {
     it('should mark new message as read when clicked', async () => {
       renderComponent()
 
-      const newMessageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about allergens')
+      const newMessageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(newMessageElement)
 
       await waitFor(() => {
@@ -444,7 +448,8 @@ describe('ContactsManagement Component', () => {
     it('should archive message with confirmation prompt', async () => {
       renderComponent()
 
-      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about allergens')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -476,7 +481,8 @@ describe('ContactsManagement Component', () => {
     it('should display comprehensive message information in modal', async () => {
       renderComponent()
 
-      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about allergens')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -498,7 +504,8 @@ describe('ContactsManagement Component', () => {
     it('should close modal with X button', async () => {
       renderComponent()
 
-      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about allergens')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -567,7 +574,8 @@ describe('ContactsManagement Component', () => {
     it('should handle message without phone number', async () => {
       renderComponent()
 
-      const messageElement = screen.getByText('Compliments sur le service').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Compliments sur le service')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -582,7 +590,8 @@ describe('ContactsManagement Component', () => {
 
       renderComponent()
 
-      const messageElement = screen.getByText('Question about allergens').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about allergens')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -614,7 +623,8 @@ describe('ContactsManagement Component', () => {
     it('should display discussion thread in message modal', async () => {
       renderComponent()
 
-      const messageElement = screen.getByText('Question about menu').closest('div[class*="p-6"]')
+      const messageElements = screen.getAllByText('Question about menu')
+      const messageElement = messageElements[0].closest('div[class*="p-4"]') || messageElements[0].closest('div[class*="p-6"]')
       await user.click(messageElement)
 
       await waitFor(() => {
@@ -627,8 +637,8 @@ describe('ContactsManagement Component', () => {
     it('should show "You" for current admin messages', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         const discussionSection = screen.getByText('Discussion').closest('div')
@@ -640,8 +650,8 @@ describe('ContactsManagement Component', () => {
     it('should show other admin names (not "You")', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Reservation question')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Reservation question')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByText('Other Admin')).toBeInTheDocument()
@@ -654,8 +664,8 @@ describe('ContactsManagement Component', () => {
     it('should show user names for user messages', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getAllByText('John Doe').length).toBeGreaterThanOrEqual(2)
@@ -665,8 +675,8 @@ describe('ContactsManagement Component', () => {
     it('should show read/new status for discussion messages', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         const discussionSection = screen.getByText('Discussion').closest('div')
@@ -690,8 +700,8 @@ describe('ContactsManagement Component', () => {
     it('should allow admin to add reply', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
@@ -715,8 +725,8 @@ describe('ContactsManagement Component', () => {
     it('should show character count while typing', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByText('0 / 1000 characters')).toBeInTheDocument()
@@ -731,8 +741,8 @@ describe('ContactsManagement Component', () => {
     it('should enforce 1000 character limit', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         const textarea = screen.getByPlaceholderText('Type your message here...')
@@ -745,8 +755,8 @@ describe('ContactsManagement Component', () => {
 
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
@@ -778,8 +788,8 @@ describe('ContactsManagement Component', () => {
     it('should hide reply form for unregistered users', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('General inquiry')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('General inquiry')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByText('Unregistered user.', { exact: false })).toBeInTheDocument()
@@ -790,8 +800,8 @@ describe('ContactsManagement Component', () => {
     it('should show "Mark as Replied" button for unregistered users', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('General inquiry')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('General inquiry')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Mark as Replied/i })).toBeInTheDocument()
@@ -801,8 +811,8 @@ describe('ContactsManagement Component', () => {
     it('should mark unregistered user message as replied', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('General inquiry')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('General inquiry')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Mark as Replied/i })).toBeInTheDocument()
@@ -819,8 +829,8 @@ describe('ContactsManagement Component', () => {
     it('should hide reply form for deleted users', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Old question')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Old question')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByText('Unregistered user.', { exact: false })).toBeInTheDocument()
@@ -831,8 +841,8 @@ describe('ContactsManagement Component', () => {
     it('should keep Archive and Mark as Closed buttons visible for unregistered users', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('General inquiry')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('General inquiry')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         // Find the Archive button in the modal (not the tab)
@@ -858,8 +868,8 @@ describe('ContactsManagement Component', () => {
     it('should show "Mark as Closed" button for open conversations', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
@@ -869,8 +879,8 @@ describe('ContactsManagement Component', () => {
     it('should mark conversation as closed', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()
@@ -887,8 +897,8 @@ describe('ContactsManagement Component', () => {
     it('should disable reply form for closed conversations', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Complaint')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Complaint')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByText('This conversation is closed. No more replies can be added.')).toBeInTheDocument()
@@ -899,8 +909,8 @@ describe('ContactsManagement Component', () => {
     it('should show "Closed" status badge for closed messages', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Complaint')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Complaint')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getAllByText('Closed').length).toBeGreaterThanOrEqual(1)
@@ -921,8 +931,8 @@ describe('ContactsManagement Component', () => {
     it('should mark unread user messages as read when opening', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(mockStoreStateEnhanced.markDiscussionMessageAsRead).toHaveBeenCalledWith('msg-001', 'reply-002')
@@ -934,8 +944,8 @@ describe('ContactsManagement Component', () => {
 
       renderComponent()
 
-      const messageCard = screen.getByText('Reservation question')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Reservation question')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(mockStoreStateEnhanced.markDiscussionMessageAsRead).not.toHaveBeenCalled()
@@ -956,10 +966,11 @@ describe('ContactsManagement Component', () => {
     it('should display newlyReplied badge in message list', () => {
       renderComponent()
 
-      const reservationMessage = screen.getByText('Reservation question')
-      const messageCard = reservationMessage.closest('div[class*="p-6"]')
+      const reservationMessages = screen.getAllByText('Reservation question')
+      const messageCard = reservationMessages[0].closest('div[class*="p-4"]') || reservationMessages[0].closest('div[class*="p-6"]')
 
-      expect(within(messageCard).getByText('New Reply')).toBeInTheDocument()
+      // With mobile/desktop layouts, badges may appear multiple times
+      expect(within(messageCard).getAllByText('New Reply').length).toBeGreaterThanOrEqual(1)
     })
 
     it('should include newlyReplied in badge count', () => {
@@ -990,8 +1001,8 @@ describe('ContactsManagement Component', () => {
     it('should show Archive and Mark as Closed buttons even when reply form is hidden', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('General inquiry')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('General inquiry')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.queryByPlaceholderText('Type your message here...')).not.toBeInTheDocument()
@@ -1006,8 +1017,8 @@ describe('ContactsManagement Component', () => {
     it('should show Archive and Mark as Closed buttons for closed conversations', async () => {
       renderComponent()
 
-      const messageCard = screen.getByText('Complaint')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Complaint')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         // Find the Archive button in the modal (not the tab)
@@ -1038,8 +1049,8 @@ describe('ContactsManagement Component', () => {
 
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
@@ -1062,8 +1073,8 @@ describe('ContactsManagement Component', () => {
 
       renderComponent()
 
-      const messageCard = screen.getByText('Question about menu')
-      await user.click(messageCard.closest('div[class*="p-6"]'))
+      const messageCards = screen.getAllByText('Question about menu')
+      await user.click(messageCards[0].closest('div[class*="p-4"]') || messageCards[0].closest('div[class*="p-6"]'))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Mark as Closed/i })).toBeInTheDocument()

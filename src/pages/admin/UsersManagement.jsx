@@ -428,7 +428,7 @@ const UsersManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {user.name}
+                            {user.name || <span className="text-gray-400 italic">Deleted Account</span>}
                           </div>
                           <div className="text-sm text-gray-500">
                             ID: {user.id || user.id}
@@ -565,16 +565,18 @@ const UsersManagement = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">{user.name}</span>
-                      <span className="text-xs text-gray-500">ID: {user.id || user.id}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-gray-900 truncate">
+                        {user.name || <span className="text-gray-400 italic">Deleted Account</span>}
+                      </span>
+                      <span className="text-xs text-gray-500 flex-shrink-0">ID: ...{(user.id || user.id).slice(-6)}</span>
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">{user.email}</span>
-                      <span className="text-sm text-gray-500">{user.phone || 'N/A'}</span>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                      <span className="text-sm text-gray-500 truncate">{user.email}</span>
+                      <span className="text-sm text-gray-500 flex-shrink-0">{user.phone || 'N/A'}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>Orders: {user.totalOrders}</span>
                       <span>Spent: {user.totalSpent.toFixed(2)}€</span>
@@ -615,7 +617,7 @@ const UsersManagement = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Personal information</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><strong>Name:</strong> {selectedUser.name}</p>
+                    <p><strong>Name:</strong> {selectedUser.name || <span className="text-gray-400 italic">Deleted Account</span>}</p>
                     <p><strong>Email:</strong> {selectedUser.email}</p>
                     <p><strong>Phone:</strong> {selectedUser.phone || 'N/A'}</p>
                     <div>
@@ -867,7 +869,7 @@ const UsersManagement = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Customer information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p><strong>Name:</strong> {selectedOrderDetail.userName || selectedUser?.name}</p>
+                    <p><strong>Name:</strong> {selectedOrderDetail.userName || selectedUser?.name || <span className="text-gray-400 italic">Deleted Account</span>}</p>
                     <p><strong>Email:</strong> {selectedOrderDetail.userEmail || selectedUser?.email}</p>
                     <p><strong>Date:</strong> {formatDate(selectedOrderDetail.createdAt)}</p>
                   </div>
@@ -973,7 +975,7 @@ const UsersManagement = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Customer information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p><strong>Name:</strong> {selectedReservationDetail.userName || selectedUser?.name}</p>
+                    <p><strong>Name:</strong> {selectedReservationDetail.userName || selectedUser?.name || <span className="text-gray-400 italic">Deleted Account</span>}</p>
                     <p><strong>Email:</strong> {selectedReservationDetail.userEmail || selectedUser?.email}</p>
                     <p><strong>Phone:</strong> {selectedReservationDetail.contactPhone || selectedUser?.phone || 'N/A'}</p>
                   </div>
@@ -1045,7 +1047,7 @@ const UsersManagement = () => {
                 Are you sure you want to delete this user?
               </p>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-sm font-medium text-gray-900">{userToDelete.name}</p>
+                <p className="text-sm font-medium text-gray-900">{userToDelete.name || <span className="text-gray-400 italic">Deleted Account</span>}</p>
                 <p className="text-sm text-gray-600">{userToDelete.email}</p>
               </div>
               <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
