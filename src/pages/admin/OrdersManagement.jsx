@@ -328,7 +328,7 @@ const OrdersManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
@@ -763,7 +763,10 @@ const OrdersManagement = () => {
 
       {/* Pagination */}
       {!isLoading && filteredOrders.length > 0 && (
-        <div className="bg-white border-t px-6 py-4">
+        (activeTab === 'recent' && recentPagination && recentPagination.totalPages > 1) ||
+        (activeTab === 'history' && historicalPagination && historicalPagination.totalPages > 1)
+      ) && (
+        <div className="bg-white border-t px-6 py-4 rounded-b-lg border border-brown-400 border-t-0">
           {activeTab === 'recent' && recentPagination && recentPagination.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">

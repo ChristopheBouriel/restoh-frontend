@@ -390,7 +390,7 @@ const ReservationsManagement = () => {
   ]
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6 overflow-x-hidden">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Reservations Management</h1>
@@ -900,7 +900,10 @@ const ReservationsManagement = () => {
 
       {/* Pagination */}
       {!recentLoading && !historicalLoading && displayedReservations.length > 0 && (
-        <div className="bg-white border-t px-6 py-4">
+        (activeTab === 'recent' && recentPagination && recentPagination.totalPages > 1) ||
+        (activeTab === 'history' && historicalPagination && historicalPagination.totalPages > 1)
+      ) && (
+        <div className="bg-white border-t px-6 py-4 rounded-b-lg border border-brown-400 border-t-0">
           {activeTab === 'recent' && recentPagination && recentPagination.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">

@@ -572,10 +572,12 @@ const UsersManagement = () => {
                       <span className="text-xs text-gray-500 flex-shrink-0">ID: ...{(user.id || user.id).slice(-6)}</span>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
-                      <span className="text-sm text-gray-500 truncate">{user.email}</span>
-                      <span className="text-sm text-gray-500 flex-shrink-0">{user.phone || 'N/A'}</span>
-                    </div>
+                    {user.name && (
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                        <span className="text-sm text-gray-500 truncate">{user.email}</span>
+                        <span className="text-sm text-gray-500 flex-shrink-0">{user.phone || 'N/A'}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>Orders: {user.totalOrders}</span>
