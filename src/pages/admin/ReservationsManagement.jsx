@@ -510,10 +510,10 @@ const ReservationsManagement = () => {
 
       {/* Filters - Recent Tab */}
       {activeTab === 'recent' && (
-        <div className="bg-white rounded-lg border border-brown-400 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-lg border border-brown-400 p-4 md:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center flex-wrap gap-2 sm:gap-3">
               {lastRefresh && (
                 <span className="text-xs text-gray-500">
                   Updated {getTimeSinceRefresh()}

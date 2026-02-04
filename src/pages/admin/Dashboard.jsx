@@ -22,6 +22,12 @@ import { OrderService } from '../../services/orders'
 import { getLabelFromSlot } from '../../utils/reservationSlots'
 import { pluralize } from '../../utils/pluralize'
 
+// Helper to detect deleted users
+const isDeletedUser = (item) => {
+  const deletedEmailPattern = /^deleted-[a-f0-9]+@account\.com$/i
+  return deletedEmailPattern.test(item.userEmail) || item.userId === 'deleted-user'
+}
+
 const Dashboard = () => {
   const { orders } = useOrdersStore()
   const { reservations } = useReservationsStore()
@@ -399,7 +405,11 @@ const Dashboard = () => {
                     {/* Left side */}
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 mb-1">#{order.orderNumber || order.id}</p>
-                      <p className="text-sm text-gray-600 mb-1">{order.userEmail || 'Guest'}</p>
+                      {isDeletedUser(order) ? (
+                          <p className="text-sm text-gray-500 italic mb-1">Deleted user</p>
+                        ) : (
+                          <p className="text-sm text-gray-600 mb-1">{order.userEmail || 'Guest'}</p>
+                        )}
                       <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
                     </div>
 
@@ -462,7 +472,11 @@ const Dashboard = () => {
                     {/* Left side */}
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 mb-1">#{reservation.reservationNumber || reservation.id?.slice(-8)}</p>
-                      <p className="text-sm text-gray-600 mb-1">{reservation.userEmail || 'Guest'}</p>
+                      {isDeletedUser(reservation) ? (
+                          <p className="text-sm text-gray-500 italic mb-1">Deleted user</p>
+                        ) : (
+                          <p className="text-sm text-gray-600 mb-1">{reservation.userEmail || 'Guest'}</p>
+                        )}
                       <p className="text-xs text-gray-500">{formatDate(reservation.date)} • {getLabelFromSlot(reservation.slot)}</p>
                     </div>
 
